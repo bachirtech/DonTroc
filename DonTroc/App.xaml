@@ -1,0 +1,66 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DonTroc"
+             xmlns:converters="clr-namespace:DonTroc.Converters"
+             x:Class="DonTroc.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global Converters -->
+            <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
+            <converters:IntToBoolInverseConverter x:Key="IntToBoolInverseConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:NoPhotosConverter x:Key="NoPhotosConverter" />
+            <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+            <converters:BadgeCountConverter x:Key="BadgeCountConverter" />
+            <converters:BoolToFontAttributesConverter x:Key="BoolToFontAttributesConverter" />
+            <converters:StringEqualsToBoolConverter x:Key="StringEqualsToBoolConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+            <converters:StringNotNullOrEmptyConverter x:Key="StringNotNullOrEmptyConverter" />
+            <converters:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
+            <converters:EqualConverter x:Key="EqualConverter" />
+            <converters:NotEqualConverter x:Key="NotEqualConverter" />
+            <converters:AllTrueConverter x:Key="AllTrueConverter" />
+            <converters:DoubleNotZeroConverter x:Key="DoubleNotZeroConverter" />
+            
+            <!-- Convertisseurs pour le thème -->
+            <converters:ThemeToIconConverter x:Key="ThemeToIconConverter" />
+            <converters:ThemeToDisplayNameConverter x:Key="ThemeToDisplayNameConverter" />
+            
+            <!-- Nouveaux convertisseurs pour le tri par distance -->
+            <converters:BoolToSortTextConverter x:Key="BoolToSortTextConverter" />
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <converters:DistanceVisibilityConverter x:Key="DistanceVisibilityConverter" />
+            <converters:DistanceStringConverter x:Key="DistanceStringConverter" />
+            <converters:MultiplePicturesConverter x:Key="MultiplePicturesConverter" />
+            
+            <!-- Convertisseurs pour le système de notation -->
+            <converters:BoolToStarColorConverter x:Key="BoolToStarColorConverter" />
+            <converters:NoteToDescriptionConverter x:Key="NoteToDescriptionConverter" />
+            <converters:BadgeConfianceToColorConverter x:Key="BadgeConfianceToColorConverter" />
+            <converters:BadgeConfianceToTextConverter x:Key="BadgeConfianceToTextConverter" />
+            <converters:NoteToStarsConverter x:Key="NoteToStarsConverter" />
+            
+            <!-- Convertisseurs pour les favoris -->
+            <converters:BoolToHeartConverter x:Key="BoolToHeartConverter" />
+            <converters:BoolToFavoriteColorConverter x:Key="BoolToFavoriteColorConverter" />
+            <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter" />
+            
+            <!-- Convertisseurs pour la visibilité du mot de passe -->
+            <converters:PasswordVisibilityIconConverter x:Key="PasswordVisibilityIconConverter" />
+            <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+
+            <!-- Convertisseur pour les messages vocaux -->
+            <converters:PlayButtonTextConverter x:Key="PlayButtonTextConverter" />
+            
+            <!-- Convertisseur pour les ombres des favoris -->
+            <converters:BoolToShadowColorConverter x:Key="BoolToShadowColorConverter" />
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

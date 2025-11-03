@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Fichier: DonTroc/Views/AnnoncesView.xaml -->
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:views="clr-namespace:DonTroc.Views"
+             x:DataType="viewModels:AnnoncesViewModel"
+             x:Class="DonTroc.Views.AnnoncesView"
+             Title="Annonces">
+
+    <!-- Utilisation d'un Grid pour mieux contrôler la disposition -->
+    <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="10" RowSpacing="10">
+        
+        <!-- Bannière publicitaire en haut -->
+        <views:AdBannerView Grid.Row="0" />
+
+        <!-- Barre de recherche -->
+        <Border Grid.Row="1" Style="{StaticResource InputContainer}">
+            <SearchBar Placeholder="Rechercher une annonce..." Text="{Binding SearchText}" TextColor="{StaticResource Ardoise}"/>
+        </Border>
+
+        <!-- Filtres améliorés avec options de distance -->
+        <StackLayout Grid.Row="2" Spacing="10">
+            <!-- Première ligne de filtres -->
+            <StackLayout Orientation="Horizontal" Spacing="10">
+                <Border Style="{StaticResource InputContainer}" HorizontalOptions="FillAndExpand">
+                    <Picker Title="Catégorie" 
+                            ItemsSource="{Binding Categories}" 
+                            SelectedItem="{Binding SelectedCategory}"/>
+                </Border>
+                <Border Style="{StaticResource InputContainer}" HorizontalOptions="FillAndExpand">
+                    <Picker Title="Type" 
+                            ItemsSource="{Binding Types}"
+                            SelectedItem="{Binding SelectedType}"/>
+                </Border>
+            </StackLayout>
+            
+            <!-- Deuxième ligne : filtres de distance -->
+            <StackLayout Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsLocationAvailable}">
+                <Label Text="Rayon max:" VerticalOptions="Center" FontSize="Small"/>
+                <Border Style="{StaticResource InputContainer}" HorizontalOptions="FillAndExpand">
+                    <Picker Title="Distance (km)" 
+                            ItemsSource="{Binding DistanceOptions}" 
+                            SelectedItem="{Binding MaxDistance}"/>
+                </Border>
+                <Button Text="{Binding IsSortedByDistance, Converter={StaticResource BoolToSortTextConverter}}" 
+                        Command="{Binding SortByDistanceCommand}" 
+                        Style="{StaticResource SecondaryButton}"
+                        BackgroundColor="{Binding IsSortedByDistance, Converter={StaticResource BoolToColorConverter}}" />
+            </StackLayout>
+            
+            <!-- Message si la géolocalisation n'est pas disponible -->
+            <Label Text="📍 Géolocalisation non disponible - Les distances ne peuvent pas être calculées" 
+                   FontSize="Small"
+                   TextColor="{StaticResource Ardoise}"
+                   IsVisible="{Binding IsLocationAvailable, Converter={StaticResource InverseBoolConverter}}"
+                   HorizontalTextAlignment="Center"
+                   Padding="10,5"/>
+        </StackLayout>
+
+        <!-- Affichage des annonces en liste avec rafraîchissement -->
+        <Grid Grid.Row="3">
+            <!-- Skeleton loading pendant le chargement initial -->
+            <ScrollView IsVisible="{Binding IsInitialLoading}">
+                <StackLayout Spacing="10" Padding="5">
+                    <!-- Affichage de plusieurs skeleton d'annonces -->
+                    <views:AnnonceSkeletonView />
+                    <views:AnnonceSkeletonView />
+                    <views:AnnonceSkeletonView />
+                    <views:AnnonceSkeletonView />
+                    <views:AnnonceSkeletonView />
+                    <views:AnnonceSkeletonView />
+                </StackLayout>
+            </ScrollView>
+            
+            <!-- Liste des annonces normale -->
+            <RefreshView Command="{Binding LoadAnnoncesCommand}"
+                         IsRefreshing="{Binding IsBusy}"
+                         IsVisible="{Binding IsInitialLoading, Converter={StaticResource InverseBoolConverter}}">
+                <CollectionView ItemsSource="{Binding Annonces}"
+                                SelectionMode="None">
+                    <!-- Layout en liste verticale -->
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical"
+                                           ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Annonce">
+                            <!-- Carte élégante avec images qui fonctionnent -->
+                            <Frame Padding="0" 
+                                   CornerRadius="15" 
+                                   HasShadow="True"
+                                   BackgroundColor="White"
+                                   Margin="5,0">
+                                <Grid ColumnDefinitions="120,*,Auto" 
+                                      Padding="10"
+                                      ColumnSpacing="15">
+
+                                    <!-- Zone image à gauche -->
+                                    <Grid Grid.Column="0"
+                                          WidthRequest="120"
+                                          HeightRequest="120">
+
+                                        <!-- Image principale (version simple qui fonctionne) -->
+                                        <Frame CornerRadius="10"
+                                               Padding="0"
+                                               HasShadow="False"
+                                               BackgroundColor="LightGray">
+                                            <Image Source="{Binding FirstPhotoUrl}"
+                                                   Aspect="AspectFill"
+                                                   WidthRequest="120"
+                                                   HeightRequest="120" />
+                                        </Frame>
+
+                                        <!-- Badge du nombre de photos en bas à droite -->
+                                        <Frame BackgroundColor="#80000000"
+                                               Padding="4,2"
+                                               CornerRadius="6"
+                                               HorizontalOptions="End"
+                                               VerticalOptions="End"
+                                               Margin="5"
+                                               IsVisible="{Binding PhotosCount}">
+                                            <Label Text="{Binding PhotosCount, StringFormat='{0} 📷'}"
+                                                   TextColor="White"
+                                                   FontSize="Micro" />
+                                        </Frame>
+
+                                        <!-- Badge "Boosté" en haut à gauche -->
+                                        <Frame BackgroundColor="{StaticResource VertSauge}"
+                                               Padding="6,3"
+                                               CornerRadius="6"
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Start"
+                                               Margin="5"
+                                               IsVisible="{Binding IsBoosted}">
+                                            <Label Text="🚀 Boosté"
+                                                   TextColor="White"
+                                                   FontSize="Micro"
+                                                   FontAttributes="Bold" />
+                                        </Frame>
+
+                                        <!-- Overlay transparent pour capturer les clics -->
+                                        <BoxView BackgroundColor="Transparent"
+                                                 WidthRequest="120"
+                                                 HeightRequest="120">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=OpenImageViewerCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                    </Grid>
+
+                                    <!-- Contenu textuel au centre -->
+                                    <StackLayout Grid.Column="1"
+                                                 Spacing="8"
+                                                 VerticalOptions="FillAndExpand">
+
+                                        <!-- En-tête avec titre et badge type -->
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding Titre}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="Medium"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1"
+                                                   VerticalOptions="Start" />
+
+                                            <!-- Badge du type -->
+                                            <Frame Grid.Column="1"
+                                                   BackgroundColor="{StaticResource Terracotta}"
+                                                   Padding="8,4"
+                                                   CornerRadius="8"
+                                                   HasShadow="False"
+                                                   VerticalOptions="Start">
+                                                <Label Text="{Binding Type}"
+                                                       TextColor="White"
+                                                       FontSize="Micro"
+                                                       FontAttributes="Bold" />
+                                            </Frame>
+                                        </Grid>
+
+                                        <!-- Description -->
+                                        <Label Text="{Binding Description}"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="3"
+                                               FontSize="Small"
+                                               TextColor="{StaticResource Ardoise}"
+                                               VerticalOptions="FillAndExpand" />
+
+                                        <!-- Informations en bas -->
+                                        <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="5">
+                                            <!-- Catégorie -->
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding Categorie}"
+                                                   FontSize="Micro"
+                                                   TextColor="{StaticResource VertSauge}"
+                                                   FontAttributes="Bold"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1"
+                                                   HorizontalOptions="Start" />
+
+                                            <!-- Date -->
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding DateCreation, StringFormat='{0:dd/MM/yyyy}'}"
+                                                   FontSize="Micro"
+                                                   TextColor="{StaticResource Ardoise}"
+                                                   LineBreakMode="NoWrap"
+                                                   HorizontalOptions="Center" />
+
+                                            <!-- Distance si disponible -->
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding DistanceFormatted}"
+                                                   FontSize="Micro"
+                                                   TextColor="{StaticResource Terracotta}"
+                                                   FontAttributes="Bold"
+                                                   LineBreakMode="NoWrap"
+                                                   HorizontalOptions="End"
+                                                   IsVisible="{Binding DistanceFromUser, Converter={StaticResource DistanceVisibilityConverter}}" />
+                                        </Grid>
+                                    </StackLayout>
+
+                                    <!-- Colonne d'actions à droite -->
+                                    <StackLayout Grid.Column="2"
+                                                 VerticalOptions="Center"
+                                                 HorizontalOptions="End"
+                                                 Spacing="8">
+
+                                        <!-- Bouton pour chatter -->
+                                        <Button Text="💬"
+                                                FontSize="20"
+                                                SemanticProperties.Hint="Démarrer une conversation"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=GoToChatCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="#D98C6A"
+                                                WidthRequest="40"
+                                                HeightRequest="40"
+                                                CornerRadius="20"
+                                                Padding="0"/>
+                                                     
+                                        <!-- Bouton pour les favoris -->
+                                        <Button FontSize="20"
+                                                SemanticProperties.Hint="Ajouter aux favoris"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=ToggleFavoriteCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="#D98C6A"
+                                                WidthRequest="40"
+                                                HeightRequest="40"
+                                                CornerRadius="20"
+                                                Padding="0">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding IsFavorite}" Value="True">
+                                                    <Setter Property="Text" Value="❤️"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Button" Binding="{Binding IsFavorite}" Value="False">
+                                                    <Setter Property="Text" Value="🤍"/>
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
+
+                                        <!-- Bouton pour partager -->
+                                        <Button Text="📤"
+                                                FontSize="20"
+                                                SemanticProperties.Hint="Partager l'annonce"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=ShareAnnonceCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="#A8C686"
+                                                WidthRequest="40"
+                                                HeightRequest="40"
+                                                CornerRadius="20"
+                                                Padding="0"/>
+                                                     
+                                        <!-- Bouton pour signaler -->
+                                        <Button Text="⚠️"
+                                                FontSize="20"
+                                                SemanticProperties.Hint="Signaler cette annonce"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=ReportAnnonceCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="#DC3545"
+                                                WidthRequest="40"
+                                                HeightRequest="40"
+                                                CornerRadius="20"
+                                                Padding="0"/>
+
+                                    </StackLayout>
+
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    
+                    <CollectionView.EmptyView>
+                        <StackLayout VerticalOptions="CenterAndExpand"
+                                     HorizontalOptions="CenterAndExpand"
+                                     Spacing="20"
+                                     Padding="50">
+                            <Label Text="📭"
+                                   FontSize="48"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Aucune annonce trouvée"
+                                   FontSize="Large"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+                            <Label Text="Essayez de modifier vos filtres de recherche"
+                                   FontSize="Medium"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                   Opacity="0.7" />
+                            <Button Text="🔄 Actualiser"
+                                    Command="{Binding LoadAnnoncesCommand}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                                    TextColor="White"
+                                    CornerRadius="20"
+                                    Padding="30,10" />
+                        </StackLayout>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </RefreshView>
+        </Grid>
+        
+    </Grid>
+</ContentPage>

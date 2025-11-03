@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <!-- Supprimer tous les types UserMessagingPlatform pour éviter les erreurs de package manquant -->
+  <remove-node path="/api/package[@name='com.google.android.ump']" />
+</metadata>
+

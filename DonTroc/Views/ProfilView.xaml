@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Fichier: DonTroc/Views/ProfilView.xaml -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:views="clr-namespace:DonTroc.Views"
+             x:DataType="viewModels:ProfilViewModel"
+             x:Class="DonTroc.Views.ProfilView"
+             Title="Profil">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Bannière publicitaire en haut -->
+            <views:AdBannerView />
+
+            <!-- Accès rapide aux autres sections -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   Margin="0,5,0,10"
+                   Padding="15"
+                   CornerRadius="15"
+                   HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="Accès rapide"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <!-- Bouton Carte -->
+                        <Button Grid.Column="0"
+                                Text="🗺️ Carte"
+                                BackgroundColor="{StaticResource Terracotta}"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontSize="14"
+                                Padding="10"
+                                Command="{Binding NavigateToMapCommand}" />
+                        
+                        <!-- Bouton Transactions -->
+                        <Button Grid.Column="1"
+                                Text="💰 Transactions"
+                                BackgroundColor="{StaticResource Terracotta}"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontSize="14"
+                                Padding="10"
+                                Command="{Binding NavigateToTransactionsCommand}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Photo de profil et nom -->
+            <Border WidthRequest="100" HeightRequest="100"
+                    StrokeShape="RoundRectangle 50,50,50,50"
+                    HorizontalOptions="Center">
+                <Image Aspect="AspectFill"
+                       Source="{Binding UserProfile.ProfilePictureUrl, FallbackValue='user_placeholder.png'}" />
+            </Border>
+            
+            <Label Text="{Binding UserProfile.Name, FallbackValue='Utilisateur'}" 
+                   HorizontalOptions="Center" 
+                   FontSize="Large" 
+                   FontAttributes="Bold" />
+
+            <!-- Section Statistiques de notation -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   Margin="0,10,0,0"
+                   Padding="15"
+                   CornerRadius="15"
+                   HasShadow="True">
+                <StackLayout Spacing="10">
+                    <!-- Badge de confiance -->
+                    <Label Text="{Binding UserProfile.Badge, Converter={StaticResource BadgeConfianceToTextConverter}}"
+                           FontSize="Medium"
+                           FontAttributes="Bold"
+                           BackgroundColor="{Binding UserProfile.Badge, Converter={StaticResource BadgeConfianceToColorConverter}}"
+                           TextColor="White"
+                           Padding="12,6"
+                           HorizontalOptions="Start" />
+
+                    <!-- Statistiques de notation -->
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="15">
+                        <!-- Note moyenne -->
+                        <StackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="5">
+                            <Label Text="{Binding UserProfile.NoteMoyenne, StringFormat='{0:F1}'}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="⭐⭐⭐⭐⭐"
+                                   FontSize="12"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Note moyenne"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                   Opacity="0.7" />
+                        </StackLayout>
+
+                        <!-- Nombre d'évaluations -->
+                        <StackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="5">
+                            <Label Text="{Binding UserProfile.NombreEvaluations}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="💬"
+                                   FontSize="16"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Avis reçus"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                   Opacity="0.7"
+                                   HorizontalOptions="Center" />
+                        </StackLayout>
+
+                        <!-- Échanges réussis -->
+                        <StackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="5">
+                            <Label Text="{Binding UserProfile.NombreEchangesReussis}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                                   HorizontalOptions="Center" />
+                            <Label Text="✅"
+                                   FontSize="16"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Échanges réussis"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                   Opacity="0.7"
+                                   HorizontalOptions="Center" />
+                        </StackLayout>
+                    </Grid>
+
+                    <!-- Affichage des dernières évaluations -->
+                    <StackLayout IsVisible="{Binding UserProfile.DernieresEvaluations.Count, Converter={StaticResource IntToBoolConverter}}"
+                                 Spacing="8">
+                        <Label Text="Derniers avis reçus"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                               Margin="0,10,0,5" />
+                        
+                        <CollectionView ItemsSource="{Binding UserProfile.DernieresEvaluations}"
+                                        BackgroundColor="Transparent"
+                                        HeightRequest="120">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:Rating">
+                                    <Frame BackgroundColor="{AppThemeBinding Light=White, Dark=#2D2D30}"
+                                           CornerRadius="8"
+                                           Padding="10"
+                                           WidthRequest="150"
+                                           HasShadow="False"
+                                           BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                        <StackLayout Spacing="4">
+                                            <!-- Note et nom -->
+                                            <StackLayout Orientation="Horizontal" Spacing="5">
+                                                <Label Text="{Binding Note}"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}" />
+                                                <Label Text="⭐"
+                                                       FontSize="12" />
+                                                <Label Text="{Binding NomEvaluateur}"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                                       HorizontalOptions="EndAndExpand" />
+                                            </StackLayout>
+                                            
+                                            <!-- Commentaire -->
+                                            <Label Text="{Binding Commentaire}"
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                                   Opacity="0.8"
+                                                   MaxLines="3"
+                                                   LineBreakMode="TailTruncation"
+                                                   IsVisible="{Binding Commentaire, Converter={StaticResource StringToBoolConverter}}" />
+                                            
+                                            <!-- Date -->
+                                            <Label Text="{Binding DateCreation, StringFormat='{0:dd/MM/yyyy}'}"
+                                                   FontSize="10"
+                                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                                   Opacity="0.6"
+                                                   HorizontalOptions="End" />
+                                        </StackLayout>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Boutons d'action -->
+            <Button Text="Modifier le profil"
+                    Command="{Binding EditProfileCommand}" 
+                    Style="{StaticResource SecondaryButton}"/>
+            <Button Text="Mes Messages" 
+                    Command="{Binding GoToConversationsCommand}" 
+                    Style="{StaticResource SecondaryButton}"/>
+            <Button Text="Se déconnecter" 
+                    Command="{Binding SignOutCommand}" />
+
+            <!-- Zone de danger - Suppression de compte -->
+            <Frame BackgroundColor="{AppThemeBinding Light=#FFF5F5, Dark=#4A1A1A}"
+                   BorderColor="{AppThemeBinding Light=#FCA5A5, Dark=#EF4444}"
+                   Margin="0,20,0,0"
+                   Padding="15"
+                   CornerRadius="10"
+                   HasShadow="False">
+                <StackLayout Spacing="10">
+                    <Label Text="⚠️ Zone de danger"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                           HorizontalOptions="Center" />
+                    
+                    <Label Text="La suppression de votre compte est définitive. Toutes vos données seront perdues."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light=#7F1D1D, Dark=#FCA5A5}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,0,0,10" />
+                    
+                    <Button Text="🗑️ Supprimer mon compte"
+                            Command="{Binding DeleteAccountCommand}"
+                            BackgroundColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                            TextColor="White"
+                            CornerRadius="8"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            Padding="15,10"
+                            HorizontalOptions="FillAndExpand" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Section Paramètres - Version compacte -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   Margin="0,15,0,0"
+                   Padding="12"
+                   CornerRadius="10"
+                   HasShadow="True">
+                <StackLayout Spacing="8">
+                    <!-- Titre de la section réduit -->
+                    <Label Text="⚙️ Paramètres" 
+                           FontSize="Small" 
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                           Margin="0,0,0,5" />
+                    
+                    <!-- Sélecteur de thème compact -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <!-- Icône du thème actuel plus petite -->
+                        <Label Grid.Column="0"
+                               Text="{Binding CurrentThemeIcon, FallbackValue='🌙'}"
+                               FontSize="Medium"
+                               VerticalOptions="Center" />
+                        
+                        <!-- Informations sur le thème condensées -->
+                        <StackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                            <Label Text="Apparence"
+                                   FontSize="Small"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+                            <Label Text="{Binding CurrentThemeName, FallbackValue='Automatique'}"
+                                   FontSize="Micro"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                   Opacity="0.7" />
+                        </StackLayout>
+                        
+                        <!-- Bouton compact pour changer le thème -->
+                        <Button Grid.Column="2"
+                                Text="⚙️"
+                                FontSize="Medium"
+                                Padding="3"
+                                CornerRadius="17"
+                                WidthRequest="30"
+                                HeightRequest="30"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                                TextColor="White"
+                                Clicked="OnThemeButtonClicked" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Séparateur -->
+            <BoxView HeightRequest="1" Color="{StaticResource Gray200}" Margin="0,20" />
+
+            <!-- Liste des annonces postées -->
+            <Label Text="Mes annonces" 
+                   FontSize="Medium" 
+                   TextColor="#D98C6A"
+                   FontAttributes="Bold" />
+
+            <!-- Collection pour afficher les annonces de l'utilisateur -->
+            <CollectionView ItemsSource="{Binding MesAnnonces}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Annonce">
+                        <Frame Margin="0,5">
+                            <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" Padding="10">
+                                <!-- Image de l'annonce -->
+                                <Image Grid.Column="0" 
+                                       Source="{Binding FirstPhotoUrl, FallbackValue='placeholder.png'}" 
+                                       Aspect="AspectFill" 
+                                       WidthRequest="80" 
+                                       HeightRequest="80" />
+
+                                <!-- Détails et boutons -->
+                                <VerticalStackLayout Grid.Column="1" Spacing="5">
+                                    <Label Text="{Binding Titre}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Type}" FontSize="Small" />
+                                    
+                                    <!-- Première ligne de boutons -->
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="5" Margin="0,5,0,0">
+                                        <Button Grid.Column="0"
+                                                Text="Modifier" 
+                                                HeightRequest="32"
+                                                Padding="0,0,10,0"
+                                                FontSize="10"
+                                                FontFamily="PoppinsBold"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ProfilViewModel}}, Path=EditAnnonceCommand}"
+                                                CommandParameter="{Binding .}"
+                                                Style="{StaticResource SecondaryButton}" />
+                                        <Button Grid.Column="1"
+                                                Text="Supprimer" 
+                                                HeightRequest="32"
+                                                Padding="0,0,10,0"
+                                                FontSize="10"
+                                                FontFamily="PoppinsBold"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ProfilViewModel}}, Path=DeleteAnnonceCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="Red"
+                                                TextColor="White" />
+                                    </Grid>
+                                    
+                                    <!-- Deuxième ligne pour le bouton Booster -->
+                                    <Button Text="🚀 Booster cette annonce"
+                                            HeightRequest="32"
+                                            Padding="0,0,10,0"
+                                            FontSize="10"
+                                            FontFamily="PoppinsBold"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ProfilViewModel}}, Path=BoostAnnonceCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource VertSauge}"
+                                            TextColor="White"
+                                            HorizontalOptions="FillAndExpand" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

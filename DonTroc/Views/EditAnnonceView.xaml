@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             x:DataType="viewModels:EditAnnonceViewModel"
+             x:Class="DonTroc.Views.EditAnnonceView"
+             Title="Modifier l'annonce"
+             BackgroundColor="{StaticResource BeigeClair}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            
+            <!-- Section Titre -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True"
+                   Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Titre de l'annonce" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource Ardoise}" />
+                    <Border Style="{StaticResource InputContainer}">
+                        <Entry Placeholder="Entrez le titre de votre annonce" 
+                               Text="{Binding Titre}"
+                               FontSize="16" />
+                    </Border>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Section Description -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True"
+                   Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Description" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource Ardoise}" />
+                    <Border Style="{StaticResource InputContainer}">
+                        <Editor Placeholder="Décrivez votre objet en détail..." 
+                                HeightRequest="120" 
+                                Text="{Binding Description}"
+                                FontSize="16" />
+                    </Border>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Section Type et Catégorie -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True"
+                   Padding="15">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Informations de l'annonce" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource Ardoise}" />
+                    
+                    <!-- Type d'annonce -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Type d'annonce" 
+                               FontSize="14" 
+                               TextColor="{StaticResource Ardoise}" />
+                        <Border Style="{StaticResource InputContainer}">
+                            <Picker Title="Choisir le type" 
+                                    SelectedItem="{Binding Type}"
+                                    FontSize="16">
+                                <Picker.ItemsSource>
+                                    <x:Array Type="{x:Type x:String}">
+                                        <x:String>Don</x:String>
+                                        <x:String>Troc</x:String>
+                                    </x:Array>
+                                </Picker.ItemsSource>
+                            </Picker>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Catégorie -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Catégorie" 
+                               FontSize="14" 
+                               TextColor="{StaticResource Ardoise}" />
+                        <Border Style="{StaticResource InputContainer}">
+                            <Picker Title="Choisir la catégorie" 
+                                    SelectedItem="{Binding Categorie}"
+                                    FontSize="16">
+                                <Picker.ItemsSource>
+                                    <x:Array Type="{x:Type x:String}">
+                                        <x:String>Vêtements</x:String>
+                                        <x:String>Maison</x:String>
+                                        <x:String>Livres</x:String>
+                                        <x:String>Sport</x:String>
+                                        <x:String>Électronique</x:String>
+                                        <x:String>Outils</x:String>
+                                    </x:Array>
+                                </Picker.ItemsSource>
+                            </Picker>
+                        </Border>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Section Photos -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   HasShadow="True"
+                   Padding="15">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Photos de l'annonce" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="{StaticResource Ardoise}" />
+                    
+                    <Button Text="📷 Modifier les photos" 
+                            Command="{Binding SelectImageCommand}"
+                            BackgroundColor="{StaticResource VertSauge}"
+                            TextColor="White"
+                            CornerRadius="25"
+                            HeightRequest="50"
+                            FontAttributes="Bold" />
+
+                    <!-- Zone d'aperçu des photos -->
+                    <Grid HeightRequest="150" 
+                          IsVisible="{Binding Photos.Count, Converter={StaticResource IntToBoolConverter}}">
+                        <!-- CarouselView pour prévisualiser les photos -->
+                        <CarouselView ItemsSource="{Binding Photos}"
+                                      HeightRequest="150"
+                                      IndicatorView="editIndicatorView">
+                            <CarouselView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="5">
+                                        <Frame CornerRadius="10" 
+                                               Padding="0"
+                                               HasShadow="True">
+                                            <Image Source="{Binding .}"
+                                                   Aspect="AspectFill"
+                                                   HeightRequest="150" />
+                                        </Frame>
+                                    </Grid>
+                                </DataTemplate>
+                            </CarouselView.ItemTemplate>
+                        </CarouselView>
+                        
+                        <!-- Indicateur de position -->
+                        <IndicatorView x:Name="editIndicatorView"
+                                       IndicatorColor="{StaticResource BeigeClair}"
+                                       SelectedIndicatorColor="{StaticResource Terracotta}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="End"
+                                       Margin="0,0,0,10" />
+                    </Grid>
+                    
+                    <!-- Message si aucune photo -->
+                    <Label Text="Aucune photo sélectionnée"
+                           FontSize="14"
+                           TextColor="{StaticResource Ardoise}"
+                           HorizontalTextAlignment="Center"
+                           IsVisible="{Binding Photos.Count, Converter={StaticResource IntToBoolInverseConverter}}"
+                           Margin="0,20" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Boutons d'action -->
+            <VerticalStackLayout Spacing="15" Margin="0,10,0,20">
+                <Button Text="💾 Sauvegarder les modifications" 
+                        Command="{Binding UpdateAnnonceCommand}"
+                        BackgroundColor="{StaticResource Terracotta}"
+                        TextColor="White"
+                        CornerRadius="25"
+                        HeightRequest="55"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        IsEnabled="{Binding IsFormValid}" />
+
+                <Button Text="❌ Annuler" 
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Ardoise}"
+                        BorderColor="{StaticResource Ardoise}"
+                        BorderWidth="2"
+                        CornerRadius="25"
+                        HeightRequest="45"
+                        FontSize="16" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

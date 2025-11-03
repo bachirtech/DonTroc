@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+	<application 
+		android:icon="@mipmap/appicon"
+		android:label="DonTroc"
+		android:theme="@style/Maui.SplashTheme"
+		android:allowBackup="false" 
+		android:supportsRtl="true"
+		android:usesCleartextTraffic="false">
+		
+		<!-- Configuration Google Maps API Key -->
+		<meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyBBr5uAyAsABZXFCoQV5eUPmmIEWSAaNhc" />
+		
+		<!-- Configuration sécurisée pour la production -->
+		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
+		
+		<!-- Déclaration de sécurité des données pour Google Play Console -->
+		<meta-data 
+			android:name="data_safety" 
+			android:resource="@xml/data_safety" />
+		
+		<!-- ID de l'application AdMob (PRODUCTION) -->
+		<meta-data
+			android:name="com.google.android.gms.ads.APPLICATION_ID"
+			android:value="ca-app-pub-5085236088670848~9868416380"/>
+    
+	</application>
+
+	<!-- DÉCLARATIONS DE PERMISSIONS AVEC JUSTIFICATIONS POUR GOOGLE PLAY -->
+	
+	<!-- Permission CAMERA avec déclaration de confidentialité conforme Google Play Console 2024 -->
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission-sdk-23 android:name="android.permission.CAMERA" />
+	
+	<!-- Permissions réseau essentielles -->
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+
+	<!-- Permissions notifications (Android 13+) -->
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+
+	<!-- Permissions géolocalisation avec justification explicite -->
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	
+	<!-- Déclaration des fonctionnalités GPS requises -->
+	<uses-feature 
+		android:name="android.hardware.location" 
+		android:required="false" />
+	<uses-feature 
+		android:name="android.hardware.location.gps" 
+		android:required="false" />
+	<uses-feature 
+		android:name="android.hardware.location.network" 
+		android:required="false" />
+	
+	<!-- Déclaration de l'utilisation de la caméra pour la confidentialité -->
+	<uses-feature 
+		android:name="android.hardware.camera"
+		android:required="false" />
+	<uses-feature 
+		android:name="android.hardware.camera.autofocus"
+		android:required="false" />
+	
+	<!-- Permissions stockage sécurisées -->
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+	
+	<!-- Permissions audio -->
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+	<!-- Permissions Firebase Cloud Messaging -->
+	<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+	
+	<!-- Queries pour détecter les applications (Android 11+) -->
+	<queries>
+		<!-- Applications de partage social sécurisées -->
+		<intent>
+			<action android:name="android.intent.action.SEND" />
+			<data android:mimeType="text/plain" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.SEND" />
+			<data android:mimeType="image/*" />
+		</intent>
+		<!-- Caméra pour prise de photos -->
+		<intent>
+			<action android:name="android.media.action.IMAGE_CAPTURE" />
+		</intent>
+		<!-- Galerie pour sélection d'images -->
+		<intent>
+			<action android:name="android.intent.action.PICK" />
+			<data android:mimeType="image/*" />
+		</intent>
+	</queries>
+</manifest>

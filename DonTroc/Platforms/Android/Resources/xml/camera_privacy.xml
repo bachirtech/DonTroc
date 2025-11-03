@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<privacy-declarations>
+    <!-- Déclaration de confidentialité spécifique pour la permission CAMERA -->
+    <permission-declaration>
+        <permission>android.permission.CAMERA</permission>
+        <purpose>app_functionality</purpose>
+        <data-category>photos_and_videos</data-category>
+        <usage-description>Permet aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc</usage-description>
+        <data-handling>
+            <collection>user_initiated</collection>
+            <sharing>not_shared</sharing>
+            <retention>user_controlled</retention>
+            <security>encrypted_in_transit_and_at_rest</security>
+        </data-handling>
+        <user-control>
+            <can-delete>true</can-delete>
+            <can-export>true</can-export>
+            <can-revoke>true</can-revoke>
+        </user-control>
+        <compliance>
+            <gdpr>true</gdpr>
+            <ccpa>true</ccpa>
+            <google-play-data-safety>true</google-play-data-safety>
+        </compliance>
+    </permission-declaration>
+</privacy-declarations>
+

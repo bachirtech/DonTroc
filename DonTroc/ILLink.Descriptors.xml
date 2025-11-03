@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!-- ✅ Protection des assemblies critiques contre le trimming -->
+  <assembly fullname="DonTroc" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Controls" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Essentials" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Graphics" preserve="all" />
+  <assembly fullname="CommunityToolkit.Maui" preserve="all" />
+  <assembly fullname="SkiaSharp" preserve="all" />
+  <assembly fullname="SkiaSharp.Views.Maui.Controls" preserve="all" />
+  <assembly fullname="Syncfusion.Maui.Core" preserve="all" />
+  <assembly fullname="Syncfusion.Maui.ImageEditor" preserve="all" />
+  
+  <!-- ✅ Protection JSON et sérialisation -->
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
+  <assembly fullname="System.Text.Json" preserve="all" />
+  
+  <!-- ✅ Protection Cloudinary -->
+  <assembly fullname="CloudinaryDotNet" preserve="all" />
+  
+  <!-- ✅ Protection Firebase -->
+  <assembly fullname="Plugin.Firebase" preserve="all" />
+  <assembly fullname="Plugin.Maui.Audio" preserve="all" />
+  
+  <!-- ✅ Protection des types spécifiques qui causent des problèmes -->
+  <type fullname="System.ComponentModel.INotifyPropertyChanged" preserve="all" />
+  <type fullname="System.ComponentModel.PropertyChangedEventHandler" preserve="all" />
+  <type fullname="Microsoft.Toolkit.Mvvm.*" preserve="all" />
+  
+  <!-- ✅ Protection des ViewModels et Services -->
+  <namespace fullname="DonTroc.ViewModels" preserve="all" />
+  <namespace fullname="DonTroc.Services" preserve="all" />
+  <namespace fullname="DonTroc.Models" preserve="all" />
+  <namespace fullname="DonTroc.Views" preserve="all" />
+</linker>

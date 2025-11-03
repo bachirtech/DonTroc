@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Firebase Crashlytics Build ID -->
+    <string name="com.crashlytics.android.build_id" translatable="false">20251006140949</string>
+    <string name="com.google.firebase.crashlytics.build_id" translatable="false">20251006140949</string>
+    
+    <!-- Configuration Crashlytics -->
+    <bool name="firebase_crashlytics_collection_enabled">true</bool>
+    <bool name="firebase_analytics_collection_enabled">true</bool>
+</resources>

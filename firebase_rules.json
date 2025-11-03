@@ -1,0 +1,92 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+
+    "Annonces": {
+      ".indexOn": ["UtilisateurId", "Categorie", "Type", "DateCreation"],
+      "$annonceId": {
+        ".read": "auth != null",
+        ".write": "!data.exists() && newData.child('UtilisateurId').val() == auth.uid || data.child('UtilisateurId').val() == auth.uid",
+        ".validate": "newData.hasChildren(['UtilisateurId', 'Titre', 'Description', 'Categorie', 'Type', 'DateCreationTimestamp']) && newData.child('UtilisateurId').isString() && newData.child('Titre').isString() && newData.child('Titre').val().length > 0 && newData.child('Description').isString() && newData.child('DateCreationTimestamp').isNumber()"
+      }
+    },
+
+    "UserProfiles": {
+      "$userId": {
+        ".read": "auth != null",
+        ".write": "auth.uid == $userId",
+        ".validate": "newData.hasChildren(['Id', 'Name', 'DateInscription']) && newData.child('Id').isString() && newData.child('Name').isString() && newData.child('DateInscription').isString()"
+      }
+    },
+
+    "UserStats": {
+      "$userId": {
+        ".read": "auth != null",
+        ".write": "auth.uid == $userId",
+        ".validate": "newData.hasChildren(['UserId']) && newData.child('UserId').isString()"
+      }
+    },
+
+    "Conversations": {
+      ".indexOn": ["BuyerId", "SellerId", "LastMessageTimestamp", "AnnonceId", "UtilisateurId"],
+      "$conversationId": {
+        ".read": "auth != null && (!data.exists() || data.child('ParticipantIds').child(auth.uid).val() === true || data.child('BuyerId').val() == auth.uid || data.child('SellerId').val() == auth.uid || data.child('UtilisateurId').val() == auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('ParticipantIds').child(auth.uid).val() === true || data.child('BuyerId').val() == auth.uid || data.child('SellerId').val() == auth.uid || newData.child('ParticipantIds').child(auth.uid).val() === true || newData.child('BuyerId').val() == auth.uid || newData.child('SellerId').val() == auth.uid || data.child('UtilisateurId').val() == auth.uid || newData.child('UtilisateurId').val() == auth.uid)",
+        ".validate": "newData.hasChildren(['AnnonceId', 'LastMessageTimestamp']) && newData.child('AnnonceId').isString() && (newData.child('ParticipantIds').hasChild(auth.uid) || newData.child('BuyerId').val() == auth.uid || newData.child('SellerId').val() == auth.uid || newData.child('UtilisateurId').val() == auth.uid)"
+      }
+    },
+
+    "Messages": {
+      ".indexOn": ["SenderId", "Timestamp"],
+      "$conversationId": {
+        ".read": "root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).exists()",
+        ".write": "root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).exists()",
+        ".indexOn": ["Timestamp", "SenderId"],
+        "$messageId": {
+          ".validate": "newData.hasChildren(['SenderId', 'Timestamp']) && newData.child('SenderId').val() == auth.uid"
+        }
+      }
+    },
+
+    "Transactions": {
+      ".indexOn": ["ProprietaireId", "DemandeurId", "DateCreation", "Status", "SenderId", "ReceiverId"],
+      "$transactionId": {
+        ".read": "data.child('ProprietaireId').val() == auth.uid || data.child('DemandeurId').val() == auth.uid || data.child('SenderId').val() == auth.uid || data.child('ReceiverId').val() == auth.uid",
+        ".write": "!data.exists() || data.child('ProprietaireId').val() == auth.uid || data.child('DemandeurId').val() == auth.uid || data.child('SenderId').val() == auth.uid || data.child('ReceiverId').val() == auth.uid",
+        ".validate": "newData.hasChildren(['AnnonceId', 'ProprietaireId', 'DemandeurId', 'Status', 'DateCreation'])"
+      }
+    },
+
+    "Favorites": {
+      ".indexOn": ["UtilisateurId", "AnnonceId"],
+      "$userId": {
+        ".read": "auth.uid == $userId",
+        ".write": "auth.uid == $userId",
+        ".indexOn": ["AnnonceId", "DateAjout"],
+        "$favoriteId": {
+          ".validate": "newData.hasChildren(['UtilisateurId', 'AnnonceId']) && newData.child('UtilisateurId').val() == auth.uid"
+        }
+      }
+    },
+
+    "Notifications": {
+      "$userId": {
+        ".read": "auth.uid == $userId",
+        ".write": "auth.uid == $userId",
+        "$notificationId": {
+          ".validate": "newData.hasChildren(['UserId', 'Timestamp']) && newData.child('UserId').val() == auth.uid"
+        }
+      }
+    },
+
+    "Ratings": {
+      ".indexOn": ["RatedUserId", "RaterUserId", "DateCreation", "EvaluateurId", "EvalueId"],
+      "$ratingId": {
+        ".read": "auth != null",
+        ".write": "newData.child('RaterUserId').val() == auth.uid || newData.child('EvaluateurId').val() == auth.uid",
+        ".validate": "newData.hasChildren(['RatedUserId', 'RaterUserId', 'Rating', 'DateCreation']) && newData.child('Rating').isNumber() && newData.child('Rating').val() >= 1 && newData.child('Rating').val() <= 5"
+      }
+    }
+  }
+}

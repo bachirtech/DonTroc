@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Déclarations de confidentialité pour Google Play Console -->
+    <string name="camera_permission_purpose">Prendre des photos d\'objets pour créer des annonces sur DonTroc</string>
+    <string name="camera_permission_description">Cette permission permet aux utilisateurs de photographier les objets qu\'ils souhaitent donner ou échanger. Les photos sont essentielles pour présenter les objets de manière attrayante sur la plateforme.</string>
+    
+    <!-- Autres déclarations pour les permissions -->
+    <string name="location_permission_purpose">Localiser les objets disponibles près de vous</string>
+    <string name="location_permission_description">Cette permission permet de vous montrer les objets disponibles dans votre région pour faciliter les échanges locaux.</string>
+    
+    <!-- Informations de l'application -->
+    <string name="app_name">DonTroc</string>
+    <string name="privacy_policy_url">https://dontroc.com/privacy-policy</string>
+</resources>
+

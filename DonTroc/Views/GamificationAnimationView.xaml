@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             x:Class="DonTroc.Views.GamificationAnimationView"
+             x:Name="AnimationContainer"
+             IsVisible="False"
+             BackgroundColor="Transparent">
+
+    <Grid>
+        <!-- Overlay semi-transparent avec gestionnaire de tap -->
+        <BoxView BackgroundColor="#40000000" 
+                 IsVisible="{Binding Source={x:Reference AnimationContainer}, Path=IsVisible}">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnOverlayTapped" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Zone d'animation centrale -->
+        <Frame BackgroundColor="White" 
+               CornerRadius="20" 
+               HasShadow="True"
+               WidthRequest="300"
+               HeightRequest="350"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               Padding="20">
+            
+            <StackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                
+                <!-- Animation principale (badges, trophées, etc.) -->
+                <Frame x:Name="AnimationFrame"
+                       BackgroundColor="Transparent"
+                       HasShadow="False"
+                       WidthRequest="120"
+                       HeightRequest="120"
+                       CornerRadius="60"
+                       HorizontalOptions="Center">
+                    
+                    <!-- Icône principale animée -->
+                    <Label x:Name="AnimationIcon"
+                           Text="🏆"
+                           FontSize="60"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"
+                           Scale="0.1" />
+                    
+                </Frame>
+
+                <!-- Titre de l'achievement -->
+                <Label x:Name="AchievementTitle"
+                       Text="Nouveau Badge !"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Terracotta}"
+                       HorizontalTextAlignment="Center"
+                       Opacity="0" />
+
+                <!-- Description -->
+                <Label x:Name="AchievementDescription"
+                       Text="Vous avez débloqué un nouveau niveau !"
+                       FontSize="16"
+                       TextColor="{StaticResource Ardoise}"
+                       HorizontalTextAlignment="Center"
+                       MaxLines="2"
+                       Opacity="0" />
+
+                <!-- Points gagnés -->
+                <Frame BackgroundColor="{StaticResource VertSauge}"
+                       CornerRadius="15"
+                       Padding="15,8"
+                       HasShadow="False"
+                       HorizontalOptions="Center">
+                    <Label x:Name="PointsLabel"
+                           Text="+50 points"
+                           TextColor="White"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           Opacity="0" />
+                </Frame>
+
+                <!-- Bouton de fermeture -->
+                <Button x:Name="CloseButton"
+                        Text="Continuer"
+                        BackgroundColor="{StaticResource Terracotta}"
+                        TextColor="White"
+                        CornerRadius="20"
+                        HeightRequest="45"
+                        FontAttributes="Bold"
+                        Clicked="OnCloseButtonClicked"
+                        Opacity="0" />
+
+            </StackLayout>
+        </Frame>
+
+        <!-- Particules d'animation (confettis) -->
+        <Grid x:Name="ParticleGrid" IsVisible="False">
+            <!-- Particules simulées avec des labels colorés -->
+            <Label x:Name="Particle1" Text="🎉" FontSize="20" HorizontalOptions="Start" VerticalOptions="Start" />
+            <Label x:Name="Particle2" Text="⭐" FontSize="16" HorizontalOptions="End" VerticalOptions="Start" />
+            <Label x:Name="Particle3" Text="🎊" FontSize="18" HorizontalOptions="Start" VerticalOptions="Center" />
+            <Label x:Name="Particle4" Text="✨" FontSize="14" HorizontalOptions="End" VerticalOptions="Center" />
+            <Label x:Name="Particle5" Text="🏆" FontSize="12" HorizontalOptions="Start" VerticalOptions="End" />
+            <Label x:Name="Particle6" Text="🎉" FontSize="22" HorizontalOptions="End" VerticalOptions="End" />
+        </Grid>
+
+    </Grid>
+</ContentView>

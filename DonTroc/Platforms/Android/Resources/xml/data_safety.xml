@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-safety>
+    <!-- Déclaration de sécurité des données pour Google Play Console -->
+    
+    <data-collection>
+        <!-- Photos -->
+        <data-type category="photos_videos">
+            <purpose>app_functionality</purpose>
+            <collection-method>user_initiated</collection-method>
+            <sharing>none</sharing>
+            <retention>user_controlled</retention>
+            <description>Photos d'objets pour créer des annonces sur la plateforme de dons et échanges</description>
+        </data-type>
+        
+        <!-- Position approximative -->
+        <data-type category="location">
+            <purpose>app_functionality</purpose>
+            <collection-method>user_initiated</collection-method>
+            <sharing>public_in_app</sharing>
+            <retention>account_deletion</retention>
+            <description>Position approximative pour localiser les objets disponibles dans votre région</description>
+        </data-type>
+    </data-collection>
+    
+    <security-practices>
+        <data-encryption>in_transit_and_at_rest</data-encryption>
+        <data-deletion>user_can_request</data-deletion>
+        <privacy-policy-url>https://dontroc.com/privacy-policy</privacy-policy-url>
+    </security-practices>
+</data-safety>
+

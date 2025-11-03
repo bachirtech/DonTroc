@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Déclarations de confidentialité pour Google Play Console -->
+    
+    <!-- Permission CAMERA -->
+    <string name="camera_permission_purpose">Prendre des photos des objets à donner ou échanger</string>
+    <string name="camera_permission_description">Cette application utilise l\'appareil photo pour permettre aux utilisateurs de photographier les objets qu\'ils souhaitent partager sur la plateforme DonTroc. Les photos sont essentielles pour créer des annonces attractives et faciliter les échanges entre membres de la communauté.</string>
+    <string name="camera_data_usage">Les photos prises sont stockées localement sur votre appareil et peuvent être uploadées sur nos serveurs sécurisés uniquement avec votre consentement explicite lors de la création d\'une annonce.</string>
+    <string name="camera_data_retention">Vous conservez le contrôle total sur vos photos. Elles peuvent être supprimées à tout moment depuis votre profil ou en supprimant votre compte.</string>
+    
+    <!-- Permission LOCATION -->
+    <string name="location_permission_purpose">Localiser les objets disponibles près de chez vous</string>
+    <string name="location_permission_description">Cette application utilise votre position approximative pour vous montrer les objets disponibles dans votre région et permettre aux autres utilisateurs de connaître la zone générale de vos annonces.</string>
+    <string name="location_data_usage">Seule votre position approximative (ville/quartier) est utilisée et affichée publiquement dans vos annonces. Votre adresse exacte n\'est jamais partagée.</string>
+    
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">Politique de Confidentialité - DonTroc</string>
+    <string name="privacy_policy_summary">DonTroc respecte votre vie privée. Nous collectons uniquement les données nécessaires au fonctionnement de la plateforme de dons et d\'échanges.</string>
+    <string name="data_protection_notice">Vos données personnelles sont protégées selon le RGPD européen et ne sont jamais vendues à des tiers.</string>
+    
+    <!-- User Controls -->
+    <string name="permission_control_notice">Vous pouvez révoquer ces permissions à tout moment dans les paramètres de votre appareil Android.</string>
+    <string name="data_deletion_notice">Pour supprimer définitivement toutes vos données, vous pouvez supprimer votre compte depuis les paramètres de l\'application.</string>
+</resources>

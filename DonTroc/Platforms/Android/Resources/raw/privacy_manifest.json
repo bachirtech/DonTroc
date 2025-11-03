@@ -1,0 +1,42 @@
+{
+  "privacy_policy": {
+    "url": "https://dontroc.com/privacy-policy",
+    "permissions": {
+      "android.permission.CAMERA": {
+        "purpose": "Permet aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc",
+        "data_collection": "Photos stockées localement et sur serveurs sécurisés",
+        "data_sharing": "Aucun partage avec des tiers sans consentement",
+        "data_retention": "Photos supprimées avec le compte utilisateur",
+        "user_control": "L'utilisateur peut supprimer ses photos à tout moment"
+      },
+      "android.permission.ACCESS_FINE_LOCATION": {
+        "purpose": "Localiser les objets disponibles près de l'utilisateur",
+        "data_collection": "Position approximative uniquement",
+        "data_sharing": "Position approximative affichée dans les annonces",
+        "data_retention": "Supprimée après suppression de l'annonce",
+        "user_control": "Permission révocable dans les paramètres"
+      }
+    }
+  },
+  "permissions": [
+    {
+      "permission": "android.permission.CAMERA",
+      "purpose": "photo_capture",
+      "data_category": "photo",
+      "description": "Cette permission est utilisée pour permettre aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc. Les photos sont essentielles pour présenter les objets de manière attrayante et favoriser les échanges entre utilisateurs.",
+      "usage": "user_initiated",
+      "retention": "user_controlled"
+    }
+  ],
+  "data_usage": [
+    {
+      "data_type": "photos",
+      "collection_purpose": "app_functionality",
+      "sharing": "none",
+      "retention_policy": "user_controlled",
+      "description": "Les photos prises via l'appareil photo sont utilisées uniquement pour créer des annonces d'objets à donner ou échanger. Elles sont stockées localement et uploadées vers notre service cloud sécurisé uniquement avec le consentement de l'utilisateur."
+    }
+  ],
+  "third_party_services": [],
+  "contact": "contact@bachirdev.com"
+}

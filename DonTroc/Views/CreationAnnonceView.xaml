@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             x:DataType="viewModels:CreationAnnonceViewModel"
+             x:Class="DonTroc.Views.CreationAnnonceView"
+             Title="Créer une annonce">
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="15">
+
+                <!-- Champ pour le titre -->
+                <Label Text="Titre" />
+                <Border Style="{StaticResource InputContainer}">
+                    <Entry Placeholder="Titre de l'annonce" Text="{Binding Titre}" />
+                </Border>
+
+                <!-- Champ pour la description -->
+                <Label Text="Description" />
+                <Border Style="{StaticResource InputContainer}">
+                    <Editor Placeholder="Description de l'objet" Text="{Binding Description}" />
+                </Border>
+
+                <!-- Sélecteur pour le type d'annonce -->
+                <Label Text="Type d'annonce" />
+                <Border Style="{StaticResource InputContainer}">
+                    <Picker Title="Type (Don/Troc)" SelectedItem="{Binding Type}">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>Don</x:String>
+                                <x:String>Troc</x:String>
+                            </x:Array>
+                        </Picker.ItemsSource>
+                    </Picker>
+                </Border>
+
+                <!-- Sélecteur pour la catégorie -->
+                <Label Text="Catégorie" />
+                <Border Style="{StaticResource InputContainer}">
+                    <Picker Title="Catégorie" SelectedItem="{Binding Categorie}">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>Vêtements</x:String>
+                                <x:String>Maison</x:String>
+                                <x:String>Livres</x:String>
+                                <x:String>Sport</x:String>
+                                <x:String>Électronique</x:String>
+                                <x:String>Outils</x:String>
+                            </x:Array>
+                        </Picker.ItemsSource>
+                    </Picker>
+                </Border>
+
+                <!-- Bouton pour ajouter des photos -->
+                <Button Text="Ajouter des photos" 
+                        Command="{Binding SelectImageCommand}" 
+                        Style="{StaticResource SecondaryButton}" />
+
+                <!-- Zone d'aperçu améliorée pour les photos sélectionnées -->
+                <Grid HeightRequest="120" IsVisible="{Binding Photos.Count, Converter={StaticResource IntToBoolConverter}}">
+                    <!-- CarouselView pour prévisualiser les photos -->
+                    <CarouselView ItemsSource="{Binding Photos}"
+                                  HeightRequest="120"
+                                  IndicatorView="previewIndicatorView">
+                        <CarouselView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="5">
+                                    <!-- Frame contenant l'image -->
+                                    <Frame CornerRadius="10" Padding="0" HasShadow="True">
+                                        <Image Source="{Binding .}"
+                                               WidthRequest="100"
+                                               HeightRequest="100"
+                                               Aspect="AspectFill" />
+                                    </Frame>
+                                    
+                                    <!-- Bouton de suppression en haut à droite -->
+                                    <Button Text="✕" 
+                                            FontSize="16"
+                                            TextColor="White"
+                                            BackgroundColor="Red"
+                                            CornerRadius="15"
+                                            WidthRequest="30"
+                                            HeightRequest="30"
+                                            Padding="0"
+                                            HorizontalOptions="End"
+                                            VerticalOptions="Start"
+                                            Margin="0,-5,-5,0"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:CreationAnnonceViewModel}}, Path=RemoveImageCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CarouselView.ItemTemplate>
+                    </CarouselView>
+                    
+                    <!-- Indicateurs de pagination pour l'aperçu -->
+                    <IndicatorView x:Name="previewIndicatorView"
+                                   VerticalOptions="End"
+                                   HorizontalOptions="Center"
+                                   Margin="0,0,0,5"
+                                   IndicatorColor="{StaticResource Ardoise}"
+                                   SelectedIndicatorColor="{StaticResource Terracotta}"
+                                   IsVisible="{Binding Photos.Count, Converter={StaticResource MultiplePicturesConverter}}" />
+                    
+                    <!-- Badge du nombre de photos sélectionnées -->
+                    <Frame BackgroundColor="{StaticResource Terracotta}"
+                           Padding="8,4"
+                           CornerRadius="10"
+                           HorizontalOptions="End"
+                           VerticalOptions="Start"
+                           Margin="10">
+                        <Label Text="{Binding Photos.Count, StringFormat='{0}/5 📷'}"
+                               TextColor="White"
+                               FontSize="Micro" />
+                    </Frame>
+                </Grid>
+
+                <!-- Bouton pour publier l'annonce -->
+                <Button Text="Publier l'annonce" 
+                        Command="{Binding PublierAnnonceCommand}"
+                        IsEnabled="{Binding IsFormValid}"
+                        FontAttributes="Bold" 
+                        Margin="0,20,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Indicateur d'activité superposé amélioré -->
+        <Grid IsVisible="{Binding IsBusy}" 
+              BackgroundColor="#80000000"
+              RowDefinitions="*,Auto,*"
+              RowSpacing="10">
+              
+            <VerticalStackLayout Grid.Row="1"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 BackgroundColor="{StaticResource BeigeClair}"
+                                 Padding="20"
+                                 WidthRequest="300"
+                                 Margin="20">
+                                 
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   HorizontalOptions="Center"
+                                   HeightRequest="50"
+                                   WidthRequest="50"
+                                   Color="{StaticResource Terracotta}" />
+                
+                <Label Text="{Binding StatusMessage}"
+                       HorizontalOptions="Center"
+                       Margin="0,10,0,0"
+                       FontSize="16"
+                       TextColor="{StaticResource Ardoise}"/>
+                       
+                <Label Text="{Binding ProgressPercentage, StringFormat='{0}%'}"
+                       HorizontalOptions="Center"
+                       Margin="0,5,0,0"
+                       FontSize="14"
+                       TextColor="{StaticResource Ardoise}"
+                       IsVisible="{Binding ShowProgress}"/>
+                       
+                <ProgressBar Progress="{Binding ProgressValue}"
+                             Margin="0,5,0,0"
+                             ProgressColor="{StaticResource Terracotta}"
+                             HorizontalOptions="Fill"
+                             IsVisible="{Binding ShowProgress}"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="RemoveUserMessagingPlatformReferences" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <!-- Supprimer toute référence au package UserMessagingPlatform -->
+      <Reference Remove="Xamarin.Google.UserMessagingPlatform" />
+      <PackageReference Remove="Xamarin.Google.UserMessagingPlatform" />
+      
+      <!-- Supprimer les fichiers Java générés pour UMP -->
+      <Compile Remove="**/obj/**/android/src/mono/com/google/android/ump/**/*.java" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Supprimer les fichiers Java UMP après la génération des bindings -->
+  <Target Name="CleanUserMessagingPlatformJavaFiles" AfterTargets="_GenerateJavaStubs">
+    <ItemGroup>
+      <UMPJavaFiles Include="$(IntermediateOutputPath)android/src/mono/com/google/android/ump/**/*.java" />
+    </ItemGroup>
+    <Delete Files="@(UMPJavaFiles)" ContinueOnError="true" />
+    <Message Text="✅ Fichiers Java UMP supprimés: @(UMPJavaFiles)" Importance="high" Condition="'@(UMPJavaFiles)' != ''" />
+  </Target>
+</Project>
+

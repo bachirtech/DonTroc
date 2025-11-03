@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:local="clr-namespace:DonTroc.Views"
+             x:DataType="viewModels:ChatViewModel"
+             x:Class="DonTroc.Views.ChatView"
+             Title="Chat">
+
+    <ContentPage.Resources>
+        <!-- Modèle pour les messages envoyés par l'utilisateur (alignés à droite) -->
+        <DataTemplate x:Key="SentMessageTemplate" x:DataType="models:Message">
+            <Grid Padding="5,10" MaximumWidthRequest="300" HorizontalOptions="End">
+                <Frame BackgroundColor="{StaticResource Terracotta}" CornerRadius="15" Padding="10" HasShadow="False">
+                    <StackLayout>
+                        <!-- Message texte -->
+                        <Label Text="{Binding Text}" 
+                               TextColor="White" 
+                               IsVisible="{Binding Text, Converter={StaticResource StringNotNullOrEmptyConverter}}"/>
+                        
+                        <!-- Image -->
+                        <Grid IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}">
+                            <!-- Remplacement par ImageButton pour gérer tap et appui long -->
+                            <ImageButton Source="{Binding ImageUrl}"
+                                         MaximumHeightRequest="200"
+                                         Aspect="AspectFit"
+                                         BackgroundColor="Transparent"
+                                         BorderWidth="0"
+                                         Clicked="OnImageClicked"
+                                         Pressed="OnImagePressed"
+                                         Released="OnImageReleased"/>
+                        </Grid>
+                        
+                        <!-- Localisation -->
+                        <Button Text="📍 Voir la localisation" 
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                FontSize="12"
+                                IsVisible="{Binding Latitude, Converter={StaticResource DoubleNotZeroConverter}}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
+                                CommandParameter="{Binding .}"/>
+
+                        <!-- Horodatage -->
+                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
+                               TextColor="LightGray" 
+                               FontSize="10" 
+                               HorizontalOptions="End"/>
+                    </StackLayout>
+                </Frame>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Modèle pour les messages reçus (alignés à gauche) -->
+        <DataTemplate x:Key="ReceivedMessageTemplate" x:DataType="models:Message">
+            <Grid Padding="5,10" MaximumWidthRequest="300" HorizontalOptions="Start">
+                <Frame BackgroundColor="{StaticResource Gray200}" CornerRadius="15" Padding="10" HasShadow="False">
+                    <StackLayout>
+                        <!-- Message texte -->
+                        <Label Text="{Binding Text}" 
+                               TextColor="Black"
+                               IsVisible="{Binding Text, Converter={StaticResource StringNotNullOrEmptyConverter}}"/>
+
+                        <!-- Image -->
+                        <Grid IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}">
+                            <!-- Utiliser ImageButton pour gérer tap + appui long de manière fiable sur mobile -->
+                            <ImageButton Source="{Binding ImageUrl}"
+                                         MaximumHeightRequest="200"
+                                         Aspect="AspectFit"
+                                         BackgroundColor="Transparent"
+                                         BorderWidth="0"
+                                         Clicked="OnImageClicked"
+                                         Pressed="OnImagePressed"
+                                         Released="OnImageReleased"/>
+                        </Grid>
+
+                        <!-- Localisation -->
+                        <Button Text="📍 Voir la localisation" 
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource Ardoise}"
+                                FontSize="12"
+                                IsVisible="{Binding LocationLatitude, Converter={StaticResource DoubleNotZeroConverter}}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
+                                CommandParameter="{Binding .}"/>
+
+                        <!-- Horodatage -->
+                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
+                               TextColor="Gray" 
+                               FontSize="10" 
+                               HorizontalOptions="End"/>
+                    </StackLayout>
+                </Frame>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Register the MessageTemplateSelector so CollectionView can use it (declared after templates) -->
+        <local:MessageTemplateSelector x:Key="MessageTemplateSelector"
+                                       SentMessageTemplate="{StaticResource SentMessageTemplate}"
+                                       ReceivedMessageTemplate="{StaticResource ReceivedMessageTemplate}" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="*,Auto">
+        <!-- Liste des messages -->
+        <CollectionView Grid.Row="0"
+                        ItemsSource="{Binding Messages}"
+                        ItemTemplate="{StaticResource MessageTemplateSelector}"
+                        SelectionMode="None">
+            <CollectionView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnCollectionViewTapped" />
+                <PanGestureRecognizer PanUpdated="OnPanUpdated" />
+            </CollectionView.GestureRecognizers>
+        </CollectionView>
+
+        <!-- Indicateur de frappe -->
+        <Label Grid.Row="0" 
+               IsVisible="{Binding IsOtherUserTyping}"
+               Text="{Binding TypingIndicatorText}"
+               TextColor="{StaticResource Ardoise}"
+               FontSize="12"
+               FontAttributes="Italic"
+               HorizontalOptions="Start">
+        </Label>
+
+        <!-- Zone de saisie et envoi de message -->
+        <Frame Grid.Row="1" Padding="0" Margin="10,5" BorderColor="{StaticResource Gray200}" BackgroundColor="White" CornerRadius="25" HasShadow="True">
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                
+                <!-- Bouton pour les options multimédia (image, etc.) -->
+                <Button Grid.Column="0" 
+                        Text="+" 
+                        FontSize="24" 
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource Primary}"
+                        BackgroundColor="Transparent"
+                        BorderColor="Transparent"
+                        Command="{Binding ToggleMediaOptionsCommand}"
+                        VerticalOptions="Center"
+                        Padding="15,0"/>
+
+                <!-- Champ de saisie du message -->
+                <Editor Grid.Column="1"
+                        x:Name="MessageEditor"
+                        Text="{Binding NewMessageText}"
+                        Placeholder="Votre message..."
+                        AutoSize="TextChanges"
+                        VerticalOptions="Center"
+                        BackgroundColor="Transparent"/>
+
+                <!-- Bouton d'envoi ou d'enregistrement vocal -->
+                <Button Grid.Column="2"
+                        Text="{Binding SendButtonText}"
+                        FontSize="{Binding SendButtonFontSize}"
+                        BackgroundColor="{Binding SendButtonBackgroundColor}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="20"
+                        HeightRequest="40"
+                        WidthRequest="40"
+                        Margin="5"
+                        Command="{Binding SendOrRecordCommand}"
+                        VerticalOptions="Center"/>
+            </Grid>
+        </Frame>
+
+        <!-- Options multimédia (cachées par défaut) -->
+        <Frame Grid.Row="1" 
+               IsVisible="{Binding IsMediaOptionsVisible}"
+               BackgroundColor="{StaticResource White}"
+               BorderColor="{StaticResource Gray300}"
+               CornerRadius="20"
+               Padding="10"
+               Margin="10,0,10,70" 
+               VerticalOptions="End"
+               HasShadow="True">
+            <StackLayout Orientation="Horizontal" Spacing="20" HorizontalOptions="Center">
+                <Button Text="📷 Photo" Command="{Binding TakePhotoCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
+                <Button Text="🖼️ Galerie" Command="{Binding SelectImageCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
+                <Button Text="📍 Position" Command="{Binding SendLocationCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
+            </StackLayout>
+        </Frame>
+    </Grid>
+</ContentPage>

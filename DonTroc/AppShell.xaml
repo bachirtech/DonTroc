@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="DonTroc.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:DonTroc"
+    xmlns:views="clr-namespace:DonTroc.Views"
+    FlyoutBehavior="Disabled"
+    Title="DonTroc"
+    Shell.TabBarBackgroundColor="{StaticResource BeigeClair}"
+    Shell.TabBarTitleColor="{StaticResource Terracotta}"
+    Shell.TabBarUnselectedColor="{StaticResource Ardoise}">
+
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Grid ColumnSpacing="0" RowSpacing="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Icône de l'onglet -->
+                <Image Grid.Row="0"
+                       Source="{Binding Icon}"
+                       Margin="0,5,0,0"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       HeightRequest="24"
+                       WidthRequest="24">
+                    <Image.Triggers>
+                        <!-- Change la couleur de l'icône quand l'onglet est sélectionné -->
+                        <DataTrigger TargetType="Image" 
+                                     Binding="{Binding IsSelected}" 
+                                     Value="True">
+                            <Setter Property="Source" Value="{Binding SelectedIcon}" />
+                        </DataTrigger>
+                    </Image.Triggers>
+                </Image>
+
+                <!-- Titre de l'onglet -->
+                <Label Grid.Row="1"
+                       Text="{Binding Title}"
+                       FontSize="10"
+                       HorizontalOptions="Center"
+                       VerticalOptions="End"
+                       Margin="0,0,0,5" />
+
+                <!-- Badge de messages non lus, visible uniquement pour l'onglet "Messages" -->
+                <views:BadgeView 
+                    Grid.Row="0"
+                    Count="{Binding Source={RelativeSource AncestorType={x:Type local:AppShell}}, Path=TotalUnreadCount}"
+                    IsVisible="{Binding Title, Converter={StaticResource StringEqualsToBoolConverter}, ConverterParameter='Messages'}"
+                    BadgeColor="{StaticResource Terracotta}"
+                    TextColor="White"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Start"
+                    Margin="20,0,0,0"
+                    Scale="0.7" />
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    <!-- Page de connexion, définie comme page de démarrage de l'application -->
+    <ShellContent
+        Title="Connexion"
+        ContentTemplate="{DataTemplate views:LoginView}"
+        Route="LoginView" />
+
+    <!-- Barre de navigation inférieure (accessible après une connexion réussie) -->
+    <TabBar Route="MainApp">
+        <!-- Onglet Accueil -->
+        <Tab Title="Accueil" Icon="home_icon.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:DashboardView}"
+                Route="DashboardView" />
+        </Tab>
+
+        <!-- Onglet Annonces -->
+        <Tab Title="Annonces" Icon="search_icon.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:AnnoncesView}"
+                Route="AnnoncesView" />
+        </Tab>
+
+        <!-- Onglet Messages -->
+        <Tab Title="Messages" Icon="messagerie_icon.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:ConversationsView}"
+                Route="ConversationsView" />
+        </Tab>
+
+        <!-- Onglet Favoris -->
+        <Tab Title="Favoris" Icon="heart_icon.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate views:FavoritesView}"
+                Route="FavoritesView" />
+        </Tab>
+
+        <!-- Onglet Plus (regroupement des autres pages) -->
+        <Tab Title="Plus" Icon="user_icon.png">
+            <!-- Profil comme page principale -->
+            <ShellContent
+                ContentTemplate="{DataTemplate views:ProfilView}"
+                Route="ProfilView" />
+            <!-- Les autres pages seront accessibles via des boutons dans le profil -->
+        </Tab>
+    </TabBar>
+
+</Shell>

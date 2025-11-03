@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100%" height="100%" viewBox="0 0 375 812" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" preserveAspectRatio="xMidYMid slice">
+    <!-- Fond beige clair qui couvre tout l'écran -->
+    <rect width="100%" height="100%" style="fill:#F6F1EB;"/>
+    
+    <!-- Éléments décoratifs subtils en arrière-plan -->
+    <circle cx="15%" cy="20%" r="40" style="fill:#A8C686;opacity:0.1;"/>
+    <circle cx="85%" cy="75%" r="35" style="fill:#D98C6A;opacity:0.1;"/>
+    <circle cx="10%" cy="80%" r="25" style="fill:#A8C686;opacity:0.1;"/>
+    <circle cx="90%" cy="25%" r="30" style="fill:#D98C6A;opacity:0.1;"/>
+    
+    <!-- Groupe principal centré -->
+    <g transform="translate(50%, 50%)">
+        <!-- Logo DonTroc au centre -->
+        <g transform="translate(0, -40)">
+            <!-- Cercle principal du logo -->
+            <circle cx="0" cy="0" r="80" style="fill:#D98C6A;"/>
+            
+            <!-- Icône d'échange/troc à l'intérieur du logo -->
+            <g>
+                <!-- Flèche gauche vers droite -->
+                <path d="M -40,-15 L -15,-15 L -15,-25 L 20,0 L -15,25 L -15,15 L -40,15 Z" style="fill:#F6F1EB;"/>
+                <!-- Flèche droite vers gauche -->
+                <path d="M 40,15 L 15,15 L 15,25 L -20,0 L 15,-25 L 15,-15 L 40,-15 Z" style="fill:#F6F1EB;"/>
+            </g>
+            
+            <!-- Petits éléments décoratifs autour du logo -->
+            <circle cx="-60" cy="-60" r="8" style="fill:#A8C686;opacity:0.7;"/>
+            <circle cx="60" cy="-60" r="8" style="fill:#A8C686;opacity:0.7;"/>
+            <circle cx="-60" cy="60" r="8" style="fill:#A8C686;opacity:0.7;"/>
+            <circle cx="60" cy="60" r="8" style="fill:#A8C686;opacity:0.7;"/>
+        </g>
+        
+        <!-- Texte "DonTroc" -->
+        <text x="0" y="80" text-anchor="middle" style="font-family:'Arial', 'Helvetica', sans-serif; font-size:42px; font-weight:bold; fill:#6B7A8F;">DonTroc</text>
+        
+        <!-- Sous-titre "Donnez • Troquez" -->
+        <text x="0" y="110" text-anchor="middle" style="font-family:'Arial', 'Helvetica', sans-serif; font-size:18px; font-weight:normal; fill:#A8C686;">Donnez • Troquez</text>
+    </g>
+</svg>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:DataType="viewModels:SocialViewModel"
+             x:Class="DonTroc.Views.SocialView"
+             Title="Social">
+
+    <Grid RowDefinitions="Auto,*" Padding="15" RowSpacing="15">
+        
+        <!-- En-tête avec statistiques -->
+        <Frame Grid.Row="0" Style="{StaticResource CardFrame}" Padding="20">
+            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="15">
+                
+                <!-- Titre -->
+                <Label Grid.Row="0" Text="🌟 Votre Impact Social" 
+                       FontSize="Large" FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="{StaticResource VertSauge}" />
+                
+                <!-- Statistiques en grille -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                    
+                    <!-- Amis -->
+                    <Frame Grid.Column="0" BackgroundColor="{StaticResource VertSauge}" 
+                           Padding="15" CornerRadius="12" HasShadow="False">
+                        <StackLayout HorizontalOptions="Center">
+                            <Label Text="👥" FontSize="Large" HorizontalOptions="Center" />
+                            <Label Text="{Binding SocialStats.NombreAmis}" 
+                                   FontSize="Large" FontAttributes="Bold" 
+                                   TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Amis" FontSize="Small" 
+                                   TextColor="White" HorizontalOptions="Center" />
+                        </StackLayout>
+                    </Frame>
+                    
+                    <!-- Parrainages -->
+                    <Frame Grid.Column="1" BackgroundColor="{StaticResource Terracotta}" 
+                           Padding="15" CornerRadius="12" HasShadow="False">
+                        <StackLayout HorizontalOptions="Center">
+                            <Label Text="🎯" FontSize="Large" HorizontalOptions="Center" />
+                            <Label Text="{Binding SocialStats.NombreParrainages}" 
+                                   FontSize="Large" FontAttributes="Bold" 
+                                   TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Parrainages" FontSize="Small" 
+                                   TextColor="White" HorizontalOptions="Center" />
+                        </StackLayout>
+                    </Frame>
+                    
+                    <!-- Partages -->
+                    <Frame Grid.Column="2" BackgroundColor="{StaticResource Ardoise}" 
+                           Padding="15" CornerRadius="12" HasShadow="False">
+                        <StackLayout HorizontalOptions="Center">
+                            <Label Text="📤" FontSize="Large" HorizontalOptions="Center" />
+                            <Label Text="{Binding SocialStats.NombrePartages}" 
+                                   FontSize="Large" FontAttributes="Bold" 
+                                   TextColor="White" HorizontalOptions="Center" />
+                            <Label Text="Partages" FontSize="Small" 
+                                   TextColor="White" HorizontalOptions="Center" />
+                        </StackLayout>
+                    </Frame>
+                </Grid>
+                
+                <!-- Boutons d'action -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0" Text="🎁 Mon Code" 
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding GenerateReferralCodeCommand}" />
+                    <Button Grid.Column="1" Text="🔗 Utiliser Code" 
+                            Style="{StaticResource SecondaryButton}"
+                            Clicked="OnUseReferralCodeClicked" />
+                </Grid>
+            </Grid>
+        </Frame>
+        
+        <!-- Contenu principal avec tabs -->
+        <Grid Grid.Row="1">
+            
+            <!-- Activité des amis -->
+            <ScrollView>
+                <StackLayout Spacing="15">
+                    
+                    <!-- Section Mes Amis -->
+                    <Frame Style="{StaticResource CardFrame}" Padding="15">
+                        <StackLayout Spacing="10">
+                            <Label Text="👥 Mes Amis" FontSize="Medium" FontAttributes="Bold" 
+                                   TextColor="{StaticResource VertSauge}" />
+                            
+                            <CollectionView ItemsSource="{Binding Friends}" 
+                                          HeightRequest="120">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                                </CollectionView.ItemsLayout>
+                                
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:UserProfile">
+                                        <StackLayout WidthRequest="80" Spacing="5">
+                                            <Frame WidthRequest="60" HeightRequest="60" 
+                                                   CornerRadius="30" Padding="0" 
+                                                   BackgroundColor="LightGray"
+                                                   HorizontalOptions="Center">
+                                                <Image Source="{Binding PhotoProfil}" 
+                                                       Aspect="AspectFill" />
+                                            </Frame>
+                                            <Label Text="{Binding Nom}" FontSize="Micro" 
+                                                   HorizontalOptions="Center" 
+                                                   LineBreakMode="TailTruncation" />
+                                        </StackLayout>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                                
+                                <CollectionView.EmptyView>
+                                    <StackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Label Text="🔗 Aucun ami pour le moment" 
+                                               FontSize="Small" TextColor="{StaticResource Ardoise}" 
+                                               HorizontalOptions="Center" />
+                                        <Label Text="Utilisez un code de parrainage pour ajouter des amis !" 
+                                               FontSize="Micro" TextColor="{StaticResource Ardoise}" 
+                                               HorizontalOptions="Center" />
+                                    </StackLayout>
+                                </CollectionView.EmptyView>
+                            </CollectionView>
+                        </StackLayout>
+                    </Frame>
+                    
+                    <!-- Section Activité récente -->
+                    <Frame Style="{StaticResource CardFrame}" Padding="15">
+                        <StackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="📈 Activité des Amis" 
+                                       FontSize="Medium" FontAttributes="Bold" 
+                                       TextColor="{StaticResource VertSauge}" />
+                                <Button Grid.Column="1" Text="🔄" 
+                                        Style="{StaticResource SecondaryButton}"
+                                        WidthRequest="40" HeightRequest="40"
+                                        Command="{Binding RefreshActivityCommand}" />
+                            </Grid>
+                            
+                            <CollectionView ItemsSource="{Binding FriendsActivity}"
+                                          HeightRequest="300">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:FriendActivity">
+                                        <Frame Style="{StaticResource CardFrame}" 
+                                               Margin="0,5" Padding="12">
+                                            <Grid ColumnDefinitions="50,*,Auto" ColumnSpacing="10">
+                                                
+                                                <!-- Photo de l'ami -->
+                                                <Frame Grid.Column="0" WidthRequest="40" HeightRequest="40" 
+                                                       CornerRadius="20" Padding="0" 
+                                                       BackgroundColor="LightGray">
+                                                    <Image Source="{Binding UserPhotoUrl}" 
+                                                           Aspect="AspectFill" />
+                                                </Frame>
+                                                
+                                                <!-- Contenu -->
+                                                <StackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding UserName}" 
+                                                           FontAttributes="Bold" FontSize="Small" />
+                                                    <Label Text="{Binding Description}" 
+                                                           FontSize="Micro" TextColor="{StaticResource Ardoise}"
+                                                           LineBreakMode="TailTruncation" MaxLines="2" />
+                                                    <Label Text="{Binding DateActivite, StringFormat='{0:dd/MM HH:mm}'}" 
+                                                           FontSize="Micro" TextColor="{StaticResource Terracotta}" />
+                                                </StackLayout>
+                                                
+                                                <!-- Points -->
+                                                <Frame Grid.Column="2" BackgroundColor="{StaticResource VertSauge}"
+                                                       Padding="8,4" CornerRadius="12" 
+                                                       IsVisible="{Binding Points, Converter={StaticResource IntToBoolConverter}}">
+                                                    <Label Text="{Binding Points, StringFormat='+{0} pts'}" 
+                                                           TextColor="White" FontSize="Micro" />
+                                                </Frame>
+                                            </Grid>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                                
+                                <CollectionView.EmptyView>
+                                    <StackLayout HorizontalOptions="Center" VerticalOptions="Center" Padding="20">
+                                        <Label Text="📱 Aucune activité récente" 
+                                               FontSize="Small" TextColor="{StaticResource Ardoise}" 
+                                               HorizontalOptions="Center" />
+                                        <Label Text="L'activité de vos amis apparaîtra ici" 
+                                               FontSize="Micro" TextColor="{StaticResource Ardoise}" 
+                                               HorizontalOptions="Center" />
+                                    </StackLayout>
+                                </CollectionView.EmptyView>
+                            </CollectionView>
+                        </StackLayout>
+                    </Frame>
+                </StackLayout>
+            </ScrollView>
+        </Grid>
+        
+        <!-- Dialog pour utiliser un code de parrainage -->
+        <Frame Grid.RowSpan="2" 
+               BackgroundColor="#80000000" 
+               IsVisible="{Binding ShowReferralDialog}"
+               Padding="20" 
+               VerticalOptions="Center">
+            <Frame Style="{StaticResource CardFrame}" Padding="25">
+                <StackLayout Spacing="20">
+                    <Label Text="🎁 Utiliser un Code de Parrainage" 
+                           FontSize="Large" FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="{StaticResource VertSauge}" />
+                    
+                    <Label Text="Saisissez le code de parrainage d'un ami pour devenir amis et gagner des points !" 
+                           FontSize="Small" TextColor="{StaticResource Ardoise}"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    
+                    <Border Style="{StaticResource InputContainer}">
+                        <Entry Placeholder="Ex: ABC123" 
+                               Text="{Binding ReferralCodeToUse}"
+                               FontSize="Large" 
+                               HorizontalTextAlignment="Center"
+                               TextTransform="Uppercase" />
+                    </Border>
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0" Text="Annuler" 
+                                Style="{StaticResource SecondaryButton}"
+                                Clicked="OnCancelReferralDialog" />
+                        <Button Grid.Column="1" Text="Utiliser" 
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding UseReferralCodeCommand}"
+                                CommandParameter="{Binding ReferralCodeToUse}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+        </Frame>
+        
+        <!-- Dialog pour partager une annonce -->
+        <Frame Grid.RowSpan="2" 
+               BackgroundColor="#80000000" 
+               IsVisible="{Binding ShowShareDialog}"
+               Padding="20" 
+               VerticalOptions="Center">
+            <Frame Style="{StaticResource CardFrame}" Padding="25">
+                <StackLayout Spacing="20">
+                    <Label Text="📤 Partager cette annonce" 
+                           FontSize="Large" FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="{StaticResource VertSauge}" />
+                    
+                    <Label Text="{Binding AnnonceToShare.Titre}" 
+                           FontSize="Medium" FontAttributes="Bold"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    
+                    <Label Text="Choisissez où partager cette bonne action :" 
+                           FontSize="Small" TextColor="{StaticResource Ardoise}"
+                           HorizontalOptions="Center" />
+                    
+                    <!-- Boutons de partage en grille -->
+                    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" 
+                          ColumnSpacing="10" RowSpacing="10">
+                        
+                        <Button Grid.Row="0" Grid.Column="0" Text="📱 WhatsApp" 
+                                Style="{StaticResource SecondaryButton}" FontSize="Small"
+                                Clicked="OnShareWhatsApp" />
+                        <Button Grid.Row="0" Grid.Column="1" Text="✈️ Telegram" 
+                                Style="{StaticResource SecondaryButton}" FontSize="Small"
+                                Clicked="OnShareTelegram" />
+                        <Button Grid.Row="0" Grid.Column="2" Text="📘 Facebook" 
+                                Style="{StaticResource SecondaryButton}" FontSize="Small"
+                                Clicked="OnShareFacebook" />
+                        
+                        <Button Grid.Row="1" Grid.Column="0" Text="🐦 Twitter" 
+                                Style="{StaticResource SecondaryButton}" FontSize="Small"
+                                Clicked="OnShareTwitter" />
+                        <Button Grid.Row="1" Grid.Column="1" Text="📧 Email" 
+                                Style="{StaticResource SecondaryButton}" FontSize="Small"
+                                Clicked="OnShareEmail" />
+                        <Button Grid.Row="1" Grid.Column="2" Text="💬 SMS" 
+                                Style="{StaticResource SecondaryButton}" FontSize="Small"
+                                Clicked="OnShareSMS" />
+                        
+                        <Button Grid.Row="2" Grid.ColumnSpan="3" Text="Annuler" 
+                                Style="{StaticResource PrimaryButton}"
+                                Clicked="OnCancelShareDialog" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+        </Frame>
+        
+        <!-- Dialog pour afficher le code de parrainage -->
+        <Frame Grid.RowSpan="2" 
+               BackgroundColor="#80000000" 
+               IsVisible="{Binding UserReferralCode, Converter={StaticResource ObjectToBoolConverter}}"
+               Padding="20" 
+               VerticalOptions="Center">
+            <Frame Style="{StaticResource CardFrame}" Padding="25"
+                   IsVisible="{Binding UserReferralCode, Converter={StaticResource ObjectToBoolConverter}}">
+                <StackLayout Spacing="20">
+                    <Label Text="🎯 Votre Code de Parrainage" 
+                           FontSize="Large" FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="{StaticResource VertSauge}" />
+                    
+                    <Frame BackgroundColor="{StaticResource VertSauge}" 
+                           Padding="20" CornerRadius="15">
+                        <Label Text="{Binding UserReferralCode.Code}" 
+                               FontSize="Title" FontAttributes="Bold"
+                               TextColor="White" 
+                               HorizontalOptions="Center" 
+                               HorizontalTextAlignment="Center" />
+                    </Frame>
+                    
+                    <Label Text="Partagez ce code avec vos amis pour qu'ils vous rejoignent sur DonTroc !" 
+                           FontSize="Small" TextColor="{StaticResource Ardoise}"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    
+                    <StackLayout Spacing="5">
+                        <Label Text="{Binding UserReferralCode.NbUtilisations, StringFormat='✅ {0} utilisations'}" 
+                               FontSize="Small" HorizontalOptions="Center" />
+                        <Label Text="{Binding UserReferralCode.MaxUtilisations, StringFormat='📊 Maximum : {0} utilisations'}" 
+                               FontSize="Micro" TextColor="{StaticResource Ardoise}"
+                               HorizontalOptions="Center" />
+                    </StackLayout>
+                    
+                    <Button Text="Fermer" 
+                            Style="{StaticResource PrimaryButton}"
+                            Clicked="OnCloseReferralCodeDialog" />
+                </StackLayout>
+            </Frame>
+        </Frame>
+    </Grid>
+</ContentPage>

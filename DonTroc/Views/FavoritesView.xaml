@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:Class="DonTroc.Views.FavoritesView"
+             x:DataType="viewModels:FavoritesViewModel"
+             Title="Favoris">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Onglets -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,*" Padding="10" ColumnSpacing="10">
+            <Button x:Name="FavoritesTabButton"
+                    Text="⭐ Favoris"
+                    Clicked="OnFavoritesTabClicked"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    CornerRadius="12"
+                    Padding="20,10"/>
+            <Button x:Name="AlertsTabButton"
+                    Grid.Column="1"
+                    Text="🔔 Alertes"
+                    Clicked="OnAlertsTabClicked"
+                    BackgroundColor="LightGray"
+                    TextColor="Black"
+                    CornerRadius="12"
+                    Padding="20,10"/>
+        </Grid>
+        
+        <!-- Contenu -->
+        <Grid Grid.Row="1">
+            <!-- Vue Favoris -->
+            <Grid x:Name="FavoritesContent" RowDefinitions="Auto,Auto,*" IsVisible="True" Padding="10" RowSpacing="10">
+                <!-- Entête + création de liste -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <Label Text="Mes favoris" FontAttributes="Bold" FontSize="18" VerticalOptions="Center"/>
+                    <Button Grid.Column="1" Text="+ Liste" Command="{Binding ShowCreateListCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White"/>
+                </Grid>
+                
+                <!-- Sélection de la liste -->
+                <Border Grid.Row="1" Style="{StaticResource InputContainer}">
+                    <Picker Title="Choisir une liste"
+                            ItemsSource="{Binding UserLists}"
+                            ItemDisplayBinding="{Binding Name}"
+                            SelectedItem="{Binding SelectedList}"/>
+                </Border>
+                
+                <!-- Liste des favoris -->
+                <RefreshView Grid.Row="2" Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsBusy}">
+                    <CollectionView ItemsSource="{Binding Favorites}" SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+                        </CollectionView.ItemsLayout>
+                        
+                        <CollectionView.EmptyView>
+                            <StackLayout Padding="50" VerticalOptions="CenterAndExpand" Spacing="10">
+                                <Label Text="☆" FontSize="48" HorizontalOptions="Center"/>
+                                <Label Text="Aucun favori" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                <Label Text="Ajoutez des annonces à vos listes personnalisées" FontSize="14" TextColor="Gray" HorizontalOptions="Center"/>
+                            </StackLayout>
+                        </CollectionView.EmptyView>
+                        
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Favorite">
+                                <Border BackgroundColor="White" StrokeThickness="0" Padding="12" Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12"/>
+                                    </Border.StrokeShape>
+                                    <Border.Shadow>
+                                        <Shadow Brush="Black" Offset="0,2" Radius="4" Opacity="0.08"/>
+                                    </Border.Shadow>
+                                    
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <!-- Image -->
+                                        <Border WidthRequest="70" HeightRequest="70" StrokeThickness="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="8"/>
+                                            </Border.StrokeShape>
+                                            <Image Source="{Binding AnnonceImageUrl}" Aspect="AspectFill"/>
+                                        </Border>
+                                        
+                                        <!-- Infos -->
+                                        <StackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <Label Text="{Binding AnnonceTitle}" FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="1"/>
+                                            <Label Text="{Binding AnnonceLocation}" FontSize="13" TextColor="Gray" LineBreakMode="TailTruncation" MaxLines="1"/>
+                                            <Label Text="{Binding AnnonceAuthorName}" FontSize="12" TextColor="{StaticResource Primary}"/>
+                                            <Label Text="{Binding DateAdded, StringFormat='Ajouté le {0:dd/MM/yyyy}'}" FontSize="11" TextColor="Gray"/>
+                                        </StackLayout>
+                                        
+                                        <!-- Actions -->
+                                        <StackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                            <Button Text="Voir"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=NavigateToAnnonceCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="{StaticResource Primary}" TextColor="White" FontSize="12" CornerRadius="6" Padding="10,6"/>
+                                            <Button Text="❌"
+                                                    Padding="10,6"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=DeleteFavoriteCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="Transparent" TextColor="Red" FontSize="14" CornerRadius="15" WidthRequest="34" HeightRequest="34"/>
+                                        </StackLayout>
+                                    </Grid>
+                                    
+                                    <!-- Tap global pour naviguer -->
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=NavigateToAnnonceCommand}" CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </RefreshView>
+            </Grid>
+            
+            <!-- Vue Alertes -->
+            <Grid x:Name="AlertsContent" IsVisible="False" RowDefinitions="Auto,*" Padding="10" RowSpacing="10">
+                <Button Grid.Row="0" Text="+ Créer une alerte" Command="{Binding ShowCreateAlertCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White"/>
+                <CollectionView Grid.Row="1" ItemsSource="{Binding UserAlerts}" BackgroundColor="Transparent" SelectionMode="None">
+                    <CollectionView.EmptyView>
+                        <StackLayout Padding="50" VerticalOptions="CenterAndExpand" Spacing="10">
+                            <Label Text="🔔" FontSize="48" HorizontalOptions="Center"/>
+                            <Label Text="Aucune alerte" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            <Label Text="Créez des alertes pour être notifié quand des annonces correspondantes sont publiées" FontSize="14" TextColor="Gray" HorizontalTextAlignment="Center"/>
+                        </StackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:AnnonceAlert">
+                            <Border BackgroundColor="White" StrokeThickness="0" Padding="15" Margin="0,0,0,4">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12"/>
+                                </Border.StrokeShape>
+                                <Border.Shadow>
+                                    <Shadow Brush="Black" Offset="0,2" Radius="4" Opacity="0.08"/>
+                                </Border.Shadow>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <StackLayout Grid.Column="0" Spacing="4">
+                                        <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold"/>
+                                        <Label Text="{Binding TriggerCount, StringFormat='Déclenchée {0} fois'}" FontSize="12" TextColor="Green"/>
+                                        <Label Text="{Binding IsActive, StringFormat='Statut: {0}'}" FontSize="12" TextColor="{StaticResource Primary}"/>
+                                    </StackLayout>
+                                    <Button Grid.Column="1" Text="❌"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=DeleteAlertCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="Transparent" TextColor="Red" FontSize="14" CornerRadius="15" WidthRequest="34" HeightRequest="34"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Grid>
+        
+        <!-- Overlays superposés -->
+        <Grid x:Name="CreateListOverlay" Grid.RowSpan="2" IsVisible="{Binding ShowCreateListDialog}" BackgroundColor="#80000000">
+            <Border BackgroundColor="White" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center" Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="15"/>
+                </Border.StrokeShape>
+                <StackLayout Spacing="15">
+                    <Label Text="Créer une nouvelle liste" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+                    <Entry Placeholder="Nom de la liste" Text="{Binding NewListName}"/>
+                    <Entry Placeholder="Description (optionnel)" Text="{Binding NewListDescription}"/>
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Button Text="Annuler" Clicked="OnCancelCreateList" BackgroundColor="Gray" TextColor="White"/>
+                        <Button Text="Créer" Command="{Binding CreateListCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White"/>
+                    </HorizontalStackLayout>
+                </StackLayout>
+            </Border>
+        </Grid>
+        
+        <Grid x:Name="CreateAlertOverlay" Grid.RowSpan="2" IsVisible="{Binding ShowCreateAlertDialog}" BackgroundColor="#80000000">
+            <Border BackgroundColor="White" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center" Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="15"/>
+                </Border.StrokeShape>
+                <StackLayout Spacing="15">
+                    <Label Text="Créer une nouvelle alerte" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+                    <Entry Placeholder="Nom de l'alerte" Text="{Binding NewAlertName}"/>
+                    <Entry Placeholder="Mots-clés (séparés par des virgules)" Text="{Binding NewAlertKeywords}"/>
+                    <Entry Placeholder="Localisation (optionnel)" Text="{Binding NewAlertLocation}"/>
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Button Text="Annuler" Clicked="OnCancelCreateAlert" BackgroundColor="Gray" TextColor="White"/>
+                        <Button Text="Créer" Command="{Binding CreateAlertCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White"/>
+                    </HorizontalStackLayout>
+                </StackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

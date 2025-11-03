@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             x:DataType="viewModels:EditProfileViewModel"
+             x:Class="DonTroc.Views.EditProfileView"
+             Title="Modifier le profil">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Photo de profil" FontSize="Medium" FontAttributes="Bold" />
+
+            <Image Source="{Binding ProfilePictureUrl, FallbackValue='user_placeholder.png'}"
+                   WidthRequest="150"
+                   HeightRequest="150"
+                   HorizontalOptions="Center"
+                   Aspect="AspectFill" />
+
+            <Button Text="Changer la photo" 
+                    Command="{Binding PickPhotoCommand}" 
+                    HorizontalOptions="Center" />
+
+            <Label Text="Nom d'utilisateur" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0" />
+
+            <Entry Text="{Binding Name}" 
+                   Placeholder="Votre nom" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Button Text="Enregistrer" 
+                    Command="{Binding SaveProfileCommand}" 
+                    IsEnabled="{Binding IsNotBusy}"
+                    Margin="0,30,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+

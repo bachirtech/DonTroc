@@ -1,0 +1,17 @@
+# Fichiers de sécurité Cloudinary - NE JAMAIS COMMITTER
+.env
+cloudinary-config.json
+**/cloudinary_credentials.*
+
+# Clés API et secrets
+**/*api_key*
+**/*secret*
+**/*credentials*
+
+# Logs de sécurité
+security-logs/
+upload-logs/
+
+# Fichiers temporaires d'upload
+temp-uploads/
+**/*.tmp

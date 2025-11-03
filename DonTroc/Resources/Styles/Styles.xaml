@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Couleurs du thème (définies en premier) -->
+    <Color x:Key="BeigeClair">#F9FFFB</Color> // Couleur de fond principale
+    <Color x:Key="Terracotta">#D98C6A</Color> // Couleur principale de l'application
+    <Color x:Key="VertSauge">#A8C686</Color> // Couleur secondaire de l'application
+    <Color x:Key="Ardoise">#6B7A8F</Color>
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+    <Color x:Key="Gray100">#E1E1E1</Color>
+    <Color x:Key="Gray200">#C8C8C8</Color>
+    <Color x:Key="Gray300">#ACACAC</Color>
+    <Color x:Key="Gray400">#919191</Color>
+    <Color x:Key="Gray500">#6E6E6E</Color>
+    <Color x:Key="Gray600">#404040</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    <Color x:Key="Gray950">#141414</Color>
+
+    <!-- Couleurs de l'application (valeurs directes pour éviter les références circulaires) -->
+    <Color x:Key="Primary">#D98C6A</Color>
+    <Color x:Key="Secondary">#A8C686</Color>
+    <Color x:Key="Tertiary">#6B7A8F</Color>
+    <Color x:Key="Error">#DC3545</Color>
+    <Color x:Key="Success">#28A745</Color>
+
+    <!-- Alias pour DonTrocBackground -->
+    <Color x:Key="DonTrocBackground">#F9FFFB</Color> // Couleur de fond de l'application
+
+    <!-- Style global pour toutes les pages -->
+    <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}" />
+    </Style>
+
+    <!-- Style pour la barre de navigation (Shell) -->
+    <Style TargetType="Shell" ApplyToDerivedTypes="True">
+        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}" />
+        <Setter Property="Shell.ForegroundColor" Value="White" />
+        <Setter Property="Shell.TitleColor" Value="White" />
+        <Setter Property="Shell.DisabledColor" Value="#B4FFFFFF" />
+        <Setter Property="Shell.UnselectedColor" Value="#95FFFFFF" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"/>
+        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"/>
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+    </Style>
+
+    <!-- Style pour les boutons (style de base implicite) -->
+    <Style TargetType="Button">
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsBold"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderWidth" Value="0"/>
+        <Setter Property="CornerRadius" Value="22"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#EACDBF, Dark=#5A453A}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- Style pour les labels (textes) -->
+    <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsRegular" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- Style pour les champs de saisie -->
+    <Style TargetType="Entry">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsRegular"/>
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light=#A9A9A9, Dark=#666666}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}" />
+    </Style>
+
+    <!-- Style pour les éditeurs de texte -->
+    <Style TargetType="Editor">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsRegular"/>
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light=#A9A9A9, Dark=#666666}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}" />
+        <Setter Property="MinimumHeightRequest" Value="120" />
+    </Style>
+
+    <!-- Style pour les listes déroulantes -->
+    <Style TargetType="Picker">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsRegular"/>
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light=#A9A9A9, Dark=#666666}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}" />
+    </Style>
+
+    <!-- Style pour les conteneurs de saisie -->
+    <Style x:Key="InputContainer" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="8" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Style pour les cartes (annonces, etc.) -->
+    <Style TargetType="Frame">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}" />
+    </Style>
+
+    <!-- Style pour le bouton secondaire (style complet pour éviter les erreurs d'héritage) -->
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSecondary}, Dark={StaticResource DonTrocSecondaryDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsBold"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderWidth" Value="0"/>
+        <Setter Property="CornerRadius" Value="22"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#D4E3C5, Dark=#4A5D3A}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- Styles pour la validation des champs -->
+    <Style x:Key="ValidEntryStyle" TargetType="Entry">
+        <Setter Property="TextColor" Value="{StaticResource Primary}" />
+    </Style>
+
+    <Style x:Key="InvalidEntryStyle" TargetType="Entry">
+        <Setter Property="TextColor" Value="{StaticResource Error}" />
+    </Style>
+
+    <Style x:Key="ValidationMessageStyle" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource Error}" />
+        <Setter Property="Margin" Value="5,0,0,0" />
+    </Style>
+
+    <!-- Style pour les boutons d'action (ImageButton) -->
+    <Style x:Key="ActionButton" TargetType="ImageButton">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Aspect" Value="AspectFit" />
+    </Style>
+
+</ResourceDictionary>

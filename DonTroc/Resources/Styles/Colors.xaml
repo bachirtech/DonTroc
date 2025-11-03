@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+
+    <!-- Palette de couleurs DonTroc - Mode Clair -->
+    <Color x:Key="BeigeClair">#F6F1EB</Color>
+    <Color x:Key="Terracotta">#D98C6A</Color>
+    <Color x:Key="VertSauge">#A8C686</Color>
+    <Color x:Key="Vert">#4CAF50</Color>
+    <Color x:Key="Ardoise">#6B7A8F</Color>
+    <Color x:Key="Rouge">#E53935</Color>
+
+    <!-- Palette de couleurs DonTroc - Mode Sombre -->
+    <Color x:Key="BeigeSombre">#2C2620</Color>
+    <Color x:Key="TerracottaSombre">#B8704E</Color>
+    <Color x:Key="VertSaugeSombre">#8DAE6A</Color>
+    <Color x:Key="ArdoiseSombre">#9BB0C7</Color>
+    <Color x:Key="RougeSombre">#E53935</Color>
+
+    <!-- Couleurs adaptatives selon le thème -->
+    <!-- Note: AppThemeBinding sera utilisé directement dans les contrôles -->
+    <!-- Couleurs de base pour référence -->
+    <Color x:Key="DonTrocBackground">#F6F1EB</Color>
+    <Color x:Key="DonTrocBackgroundDark">#2C2620</Color>
+    <Color x:Key="DonTrocPrimary">#D98C6A</Color>
+    <Color x:Key="DonTrocPrimaryDark">#B8704E</Color>
+    <Color x:Key="DonTrocSecondary">#A8C686</Color>
+    <Color x:Key="DonTrocSecondaryDark">#8DAE6A</Color>
+    <Color x:Key="DonTrocText">#6B7A8F</Color>
+    <Color x:Key="DonTrocTextDark">#9BB0C7</Color>
+    <Color x:Key="DonTrocSurface">#FFFFFF</Color>
+    <Color x:Key="DonTrocSurfaceDark">#1E1E1E</Color>
+    <Color x:Key="DonTrocCardBackground">#FFFFFF</Color>
+    <Color x:Key="DonTrocCardBackgroundDark">#2D2D2D</Color>
+
+    <!-- Couleurs de l'application par défaut (à remplacer progressivement) -->
+    <Color x:Key="Primary">#512BD4</Color>
+    <Color x:Key="PrimaryDark">#ac99ea</Color>
+    <Color x:Key="PrimaryDarkText">#242424</Color>
+    <Color x:Key="Secondary">#DFD8F7</Color>
+    <Color x:Key="SecondaryDarkText">#9880e5</Color>
+    <Color x:Key="Tertiary">#2B0B98</Color>
+
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+    <Color x:Key="Magenta">#D600AA</Color>
+    <Color x:Key="MidnightBlue">#190649</Color>
+    <Color x:Key="OffBlack">#1f1f1f</Color>
+
+    <Color x:Key="Gray100">#E1E1E1</Color>
+    <Color x:Key="Gray200">#C8C8C8</Color>
+    <Color x:Key="Gray300">#ACACAC</Color>
+    <Color x:Key="Gray400">#919191</Color>
+    <Color x:Key="Gray500">#6E6E6E</Color>
+    <Color x:Key="Gray600">#404040</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    <Color x:Key="Gray950">#141414</Color>
+
+    <!-- Pinceaux pour la palette DonTroc -->
+    <SolidColorBrush x:Key="BeigeClairBrush" Color="{StaticResource BeigeClair}"/>
+    <SolidColorBrush x:Key="TerracottaBrush" Color="{StaticResource Terracotta}"/>
+    <SolidColorBrush x:Key="VertSaugeBrush" Color="{StaticResource VertSauge}"/>
+    <SolidColorBrush x:Key="VertBrush" Color="{StaticResource Vert}"/>
+    <SolidColorBrush x:Key="ArdoiseBrush" Color="{StaticResource Ardoise}"/>
+    <SolidColorBrush x:Key="RougeBrush" Color="{StaticResource Rouge}"/>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+
+    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
+    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
+    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
+    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
+    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
+    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
+    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
+    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+</ResourceDictionary>

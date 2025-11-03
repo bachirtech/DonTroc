@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:DonTroc.ViewModels"
+             x:Class="DonTroc.Views.TransactionDetailsView"
+             x:DataType="viewmodel:TransactionDetailsViewModel"
+             Title="Détails de la transaction"
+             BackgroundColor="{StaticResource BeigeClair}">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+            
+            <!-- En-tête de la transaction -->
+            <Frame BackgroundColor="White" 
+                   HasShadow="True" 
+                   CornerRadius="10"
+                   Padding="15">
+                <StackLayout Spacing="10">
+                    <Label Text="{Binding Transaction.TypeDisplay}" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Terracotta}" />
+                    
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0"
+                               Text="Statut:" 
+                               FontAttributes="Bold" 
+                               VerticalOptions="Center" />
+                        <Label Grid.Column="1"
+                               Text="{Binding Transaction.StatutDisplay}" 
+                               VerticalOptions="Center"
+                               Margin="10,0,0,0" />
+                        <Label Grid.Column="2"
+                               Text="{Binding Transaction.DateCreation, StringFormat='{0:dd/MM/yyyy}'}" 
+                               FontSize="12"
+                               TextColor="Gray"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Informations des participants -->
+            <Frame BackgroundColor="White" 
+                   HasShadow="True" 
+                   CornerRadius="10"
+                   Padding="15">
+                <StackLayout Spacing="10">
+                    <Label Text="Participants" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ardoise}" />
+                    
+                    <Grid ColumnDefinitions="*,*" RowSpacing="10">
+                        <!-- Propriétaire -->
+                        <StackLayout Grid.Column="0">
+                            <Label Text="Propriétaire" FontAttributes="Bold" FontSize="14" />
+                            <Label Text="{Binding Transaction.ProprietaireId}" FontSize="12" TextColor="Gray" />
+                        </StackLayout>
+                        
+                        <!-- Demandeur -->
+                        <StackLayout Grid.Column="1">
+                            <Label Text="Demandeur" FontAttributes="Bold" FontSize="14" />
+                            <Label Text="{Binding Transaction.DemandeurId}" FontSize="12" TextColor="Gray" />
+                        </StackLayout>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Détails de la transaction -->
+            <Frame BackgroundColor="White" 
+                   HasShadow="True" 
+                   CornerRadius="10"
+                   Padding="15">
+                <StackLayout Spacing="10">
+                    <Label Text="Détails de la transaction" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ardoise}" />
+                    
+                    <Grid ColumnDefinitions="Auto,*" RowSpacing="5">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Type:" FontAttributes="Bold" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Transaction.TypeDisplay}" Margin="10,0,0,0" />
+                        
+                        <Label Grid.Row="1" Grid.Column="0" Text="Annonce ID:" FontAttributes="Bold" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Transaction.AnnonceId}" Margin="10,0,0,0" FontSize="12" TextColor="Gray" />
+                        
+                        <Label Grid.Row="2" Grid.Column="0" Text="Créée le:" FontAttributes="Bold" 
+                               IsVisible="{Binding Transaction.DateCreation, Converter={StaticResource ObjectToBoolConverter}}" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding Transaction.DateCreation, StringFormat='{0:dd/MM/yyyy HH:mm}'}" 
+                               Margin="10,0,0,0" FontSize="12"
+                               IsVisible="{Binding Transaction.DateCreation, Converter={StaticResource ObjectToBoolConverter}}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Actions selon le statut -->
+            <StackLayout Spacing="10">
+                <!-- Boutons pour transaction en cours -->
+                <Button Text="Marquer comme terminée"
+                        BackgroundColor="{StaticResource VertSauge}"
+                        TextColor="White"
+                        IsVisible="{Binding Transaction.PeutEtreFinalisee}"
+                        Command="{Binding MarquerTermineeCommand}" />
+                
+                <!-- Boutons pour transaction terminée -->
+                <Button Text="Laisser un avis"
+                        BackgroundColor="{StaticResource Terracotta}"
+                        TextColor="White"
+                        IsVisible="{Binding Transaction.PeutEtreEvaluee}"
+                        Command="{Binding LaisserAvisCommand}" />
+            </StackLayout>
+
+            <!-- Messages de la transaction -->
+            <Frame BackgroundColor="White" 
+                   HasShadow="True" 
+                   CornerRadius="10"
+                   Padding="15"
+                   IsVisible="{Binding HasMessages}">
+                <StackLayout Spacing="10">
+                    <Label Text="Messages" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ardoise}" />
+                    
+                    <!-- Message du demandeur -->
+                    <StackLayout IsVisible="{Binding Transaction.MessageDemandeur, Converter={StaticResource StringToBoolConverter}}">
+                        <Label Text="Message du demandeur:" FontAttributes="Bold" FontSize="14" />
+                        <Label Text="{Binding Transaction.MessageDemandeur}" />
+                    </StackLayout>
+                    
+                    <!-- Message du propriétaire -->
+                    <StackLayout IsVisible="{Binding Transaction.MessageProprietaire, Converter={StaticResource StringToBoolConverter}}">
+                        <Label Text="Réponse du propriétaire:" FontAttributes="Bold" FontSize="14" />
+                        <Label Text="{Binding Transaction.MessageProprietaire}" />
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Informations du rendez-vous -->
+            <Frame BackgroundColor="White" 
+                   HasShadow="True" 
+                   CornerRadius="10"
+                   Padding="15"
+                   IsVisible="{Binding HasRendezVousInfo}">
+                <StackLayout Spacing="10">
+                    <Label Text="Rendez-vous" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ardoise}" />
+                    
+                    <Grid ColumnDefinitions="Auto,*" RowSpacing="5">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Lieu:" FontAttributes="Bold" 
+                               IsVisible="{Binding Transaction.LieuRendezVous, Converter={StaticResource StringToBoolConverter}}" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Transaction.LieuRendezVous}" 
+                               Margin="10,0,0,0"
+                               IsVisible="{Binding Transaction.LieuRendezVous, Converter={StaticResource StringToBoolConverter}}" />
+                        
+                        <Label Grid.Row="1" Grid.Column="0" Text="Date:" FontAttributes="Bold" 
+                               IsVisible="{Binding Transaction.DateRendezVous, Converter={StaticResource ObjectToBoolConverter}}" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Transaction.DateRendezVous, StringFormat='{0:dd/MM/yyyy HH:mm}'}" 
+                               Margin="10,0,0,0"
+                               IsVisible="{Binding Transaction.DateRendezVous, Converter={StaticResource ObjectToBoolConverter}}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Notes et commentaires (si disponibles) -->
+            <Frame BackgroundColor="White" 
+                   HasShadow="True" 
+                   CornerRadius="10"
+                   Padding="15"
+                   IsVisible="{Binding Transaction.Notes, Converter={StaticResource StringToBoolConverter}}">
+                <StackLayout Spacing="10">
+                    <Label Text="Notes" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ardoise}" />
+                    <Label Text="{Binding Transaction.Notes}" />
+                </StackLayout>
+            </Frame>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

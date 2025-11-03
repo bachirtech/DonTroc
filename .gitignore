@@ -1,0 +1,94 @@
+# Binaires et fichiers de build
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.cache
+
+# Fichiers Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.sln.DotSettings.user
+
+# Fichiers temporaires
+*.tmp
+*.temp
+*~
+
+# 🔒 FICHIERS DE SÉCURITÉ - NE JAMAIS COMMITER !
+keystore/signing.properties
+keystore/maps.properties
+keystore/*.keystore
+keystore/*.jks
+google-services.json
+GoogleService-Info.plist
+firebase_private_key.json
+
+# Clés API et secrets
+*.key
+*.pem
+*.p12
+*.mobileprovision
+appsettings.*.json
+secrets.json
+
+# Logs et crashs
+*.log
+crash_*.txt
+
+# Packages NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Fichiers macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# === SÉCURITÉ CLOUDINARY - NE JAMAIS COMMITTER ===
+.env
+cloudinary-config.json
+**/cloudinary_credentials.*
+
+# Logs de sécurité
+security-logs/
+upload-logs/
+
+# Fichiers temporaires d'upload
+upload_temp/
+*.upload
+
+# === SIGNATURE D'APPLICATION - SÉCURITÉ CRITIQUE ===
+# Keystore Android - NE JAMAIS COMMITTER
+keystore/
+*.keystore
+*.jks
+signing.properties
+
+# Certificats iOS - NE JAMAIS COMMITTER  
+*.p12
+*.mobileprovision
+*.certSigningRequest
+Certificates/
+
+# Variables d'environnement de signature
+.env.signing
+**/signing_config.*
+
+# Builds signés prêts pour distribution
+publish/
+release/
+*.aab
+*.ipa
+
+# Keystore et configuration de signature
+keystore/
+*.keystore
+signing.properties
+keystore/maps.properties

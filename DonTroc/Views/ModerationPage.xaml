@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:Class="DonTroc.Views.ModerationPage"
+             Title="Moderation">
+    <StackLayout Padding="10" Spacing="15">
+        <Button Text="Charger les signalements" 
+                Command="{Binding LoadReportsCommand}"
+                BackgroundColor="{StaticResource Primaire}"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="15"/>
+        
+        <ListView ItemsSource="{Binding Reports}"
+                  HasUnevenRows="True"
+                  SeparatorVisibility="None">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:Report">
+                    <ViewCell>
+                        <Frame Margin="5" 
+                               Padding="15" 
+                               CornerRadius="10" 
+                               HasShadow="True"
+                               BackgroundColor="White">
+                            <StackLayout Spacing="8">
+                                <Label Text="{Binding ReportedItemType, StringFormat='Type: {0}'}" 
+                                       FontAttributes="Bold"
+                                       FontSize="Medium"/>
+                                <Label Text="{Binding Reason, StringFormat='Raison: {0}'}" 
+                                       FontSize="Small"
+                                       TextColor="{StaticResource Ardoise}"/>
+                                <Label Text="{Binding Status, StringFormat='Statut: {0}'}" 
+                                       FontSize="Small"
+                                       TextColor="{StaticResource VertSauge}"
+                                       FontAttributes="Bold"/>
+                                <Label Text="{Binding Timestamp, StringFormat='Date: {0:dd/MM/yyyy HH:mm}'}" 
+                                       FontSize="Micro"
+                                       TextColor="{StaticResource GrisClair}"/>
+                                <Button Text="Mettre à jour le statut" 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ModerationViewModel}}, Path=UpdateReportStatusCommand}" 
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="{StaticResource Terracotta}"
+                                        TextColor="White"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        Margin="0,10,0,0"/>
+                            </StackLayout>
+                        </Frame>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
+</ContentPage>

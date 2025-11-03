@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_notification_channel_id">dontroc_notifications</string>
+    <string name="default_notification_channel_name">DonTroc Notifications</string>
+    <string name="default_notification_channel_description">Notifications principales de DonTroc</string>
+</resources>
+

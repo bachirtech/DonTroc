@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DonTroc.Views.ImageViewerView"
+             BackgroundColor="#AA000000">
+
+    <Grid>
+        <!-- Visionneuse d'images avec un carrousel pour plusieurs images -->
+        <CarouselView x:Name="ImagesCarousel"
+                      ItemsSource="{Binding ImageUrls}"
+                      IndicatorView="IndicatorView"
+                      HorizontalOptions="FillAndExpand"
+                      VerticalOptions="FillAndExpand">
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <!-- Conteneur pour le zoom -->
+                    <ContentView>
+                        <Grid>
+                            <Image Source="{Binding .}"
+                                   Aspect="AspectFit"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center">
+                                <Image.GestureRecognizers>
+                                    <!-- Reconnaissance du pincement pour le zoom -->
+                                    <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
+                                </Image.GestureRecognizers>
+                            </Image>
+                        </Grid>
+                    </ContentView>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+
+        <!-- Indicateur de position pour le carrousel -->
+        <IndicatorView x:Name="IndicatorView"
+                       IndicatorColor="Gray"
+                       SelectedIndicatorColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="End"
+                       Margin="0,0,0,20"/>
+
+        <!-- Bouton de fermeture en haut à droite -->
+        <Button Text="X"
+                FontAttributes="Bold"
+                TextColor="White"
+                BackgroundColor="#80000000"
+                BorderColor="Transparent"
+                Clicked="OnCloseButtonClicked"
+                HorizontalOptions="End"
+                VerticalOptions="Start"
+                Margin="10"
+                WidthRequest="40"
+                HeightRequest="40"
+                CornerRadius="20"/>
+    </Grid>
+</ContentPage>

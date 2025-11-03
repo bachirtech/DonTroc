@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="DonTroc.Views.RatingView"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DonTroc.ViewModels"
+             x:DataType="vm:RatingViewModel"
+             Title="Évaluer l'échange"
+             BackgroundColor="{DynamicResource DonTrocBackground}">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="25">
+            
+            <!-- En-tête avec informations utilisateur -->
+            <Frame BackgroundColor="{DynamicResource BeigeClair}" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <!-- Photo de profil -->
+                    <Frame WidthRequest="60" 
+                           HeightRequest="60" 
+                           CornerRadius="30" 
+                           Padding="0" 
+                           BackgroundColor="{DynamicResource VertSauge}">
+                        <Image Aspect="AspectFill">
+                            <Image.Source>
+                                <UriImageSource Uri="{Binding UtilisateurAEvaluer.ProfilePictureUrl}"
+                                              CachingEnabled="True" />
+                            </Image.Source>
+                        </Image>
+                    </Frame>
+                    
+                    <!-- Informations utilisateur -->
+                    <StackLayout Spacing="5" VerticalOptions="Center">
+                        <Label Text="{Binding UtilisateurAEvaluer.Name}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource Ardoise}" />
+                        
+                        <!-- Statistiques existantes -->
+                        <StackLayout Orientation="Horizontal" Spacing="10">
+                            <StackLayout Orientation="Horizontal" Spacing="3">
+                                <Label Text="⭐"
+                                       FontSize="14" />
+                                <Label Text="{Binding UtilisateurAEvaluer.NoteMoyenne, StringFormat='{0:F1}'}"
+                                       FontSize="14"
+                                       TextColor="{DynamicResource Ardoise}" />
+                                <Label Text="{Binding UtilisateurAEvaluer.NombreEvaluations, StringFormat='({0} avis)'}"
+                                       FontSize="12"
+                                       TextColor="{DynamicResource Ardoise}"
+                                       Opacity="0.7" />
+                            </StackLayout>
+                        </StackLayout>
+                        
+                        <!-- Badge de confiance -->
+                        <Label Text="{Binding UtilisateurAEvaluer.Badge}"
+                               FontSize="12"
+                               BackgroundColor="{DynamicResource Terracotta}"
+                               TextColor="White"
+                               Padding="8,4"
+                               HorizontalOptions="Start" />
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Section d'évaluation -->
+            <StackLayout IsVisible="{Binding PeutEvaluer}" Spacing="20">
+                
+                <!-- Titre de section -->
+                <Label Text="Donnez votre avis sur cet échange"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource Ardoise}"
+                       HorizontalOptions="Center" />
+
+                <!-- Sélection des étoiles -->
+                <StackLayout Spacing="15">
+                    <Label Text="Votre note :"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource Ardoise}" />
+                    
+                    <StackLayout Orientation="Horizontal" 
+                                 HorizontalOptions="Center"
+                                 Spacing="10">
+                        <!-- Étoile 1 -->
+                        <Button Text="⭐"
+                                FontSize="30"
+                                BackgroundColor="Transparent"
+                                TextColor="{Binding Etoile1, Converter={StaticResource BoolToStarColorConverter}}"
+                                Command="{Binding SelectionnerNoteCommand}"
+                                CommandParameter="1" />
+                        
+                        <!-- Étoile 2 -->
+                        <Button Text="⭐"
+                                FontSize="30"
+                                BackgroundColor="Transparent"
+                                TextColor="{Binding Etoile2, Converter={StaticResource BoolToStarColorConverter}}"
+                                Command="{Binding SelectionnerNoteCommand}"
+                                CommandParameter="2" />
+                        
+                        <!-- Étoile 3 -->
+                        <Button Text="⭐"
+                                FontSize="30"
+                                BackgroundColor="Transparent"
+                                TextColor="{Binding Etoile3, Converter={StaticResource BoolToStarColorConverter}}"
+                                Command="{Binding SelectionnerNoteCommand}"
+                                CommandParameter="3" />
+                        
+                        <!-- Étoile 4 -->
+                        <Button Text="⭐"
+                                FontSize="30"
+                                BackgroundColor="Transparent"
+                                TextColor="{Binding Etoile4, Converter={StaticResource BoolToStarColorConverter}}"
+                                Command="{Binding SelectionnerNoteCommand}"
+                                CommandParameter="4" />
+                        
+                        <!-- Étoile 5 -->
+                        <Button Text="⭐"
+                                FontSize="30"
+                                BackgroundColor="Transparent"
+                                TextColor="{Binding Etoile5, Converter={StaticResource BoolToStarColorConverter}}"
+                                Command="{Binding SelectionnerNoteCommand}"
+                                CommandParameter="5" />
+                    </StackLayout>
+                    
+                    <!-- Description de la note -->
+                    <Label Text="{Binding NoteSelectionnee, Converter={StaticResource NoteToDescriptionConverter}}"
+                           FontSize="16"
+                           FontAttributes="Italic"
+                           TextColor="{DynamicResource Terracotta}"
+                           HorizontalOptions="Center" />
+                </StackLayout>
+
+                <!-- Commentaire -->
+                <StackLayout Spacing="10">
+                    <Label Text="Commentaire (optionnel) :"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource Ardoise}" />
+                    
+                    <Frame BackgroundColor="White"
+                           CornerRadius="10"
+                           Padding="0"
+                           HasShadow="False"
+                           BorderColor="{DynamicResource VertSauge}">
+                        <Editor Text="{Binding Commentaire}"
+                                Placeholder="Partagez votre expérience avec cet utilisateur..."
+                                PlaceholderColor="{DynamicResource Ardoise}"
+                                TextColor="{DynamicResource Ardoise}"
+                                FontSize="14"
+                                HeightRequest="100"
+                                MaxLength="500" />
+                    </Frame>
+                </StackLayout>
+
+                <!-- Bouton soumettre -->
+                <Button Text="Publier l'évaluation"
+                        Command="{Binding SoumettreEvaluationCommand}"
+                        BackgroundColor="{DynamicResource Terracotta}"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="25"
+                        HeightRequest="50"
+                        IsEnabled="{Binding IsNotBusy}" />
+            </StackLayout>
+
+            <!-- Section modification d'évaluation -->
+            <StackLayout IsVisible="{Binding EvaluationDejaFaite}" Spacing="20">
+                
+                <Label Text="Votre évaluation"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource Ardoise}"
+                       HorizontalOptions="Center" />
+
+                <!-- Affichage de l'évaluation actuelle -->
+                <Frame BackgroundColor="{DynamicResource BeigeClair}"
+                       CornerRadius="15"
+                       Padding="15">
+                    <StackLayout Spacing="10">
+                        <!-- Note actuelle -->
+                        <StackLayout Orientation="Horizontal" Spacing="5">
+                            <Label Text="Votre note :"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource Ardoise}" />
+                            <Label Text="{Binding EvaluationActuelle.Note}"
+                                   TextColor="{DynamicResource Terracotta}"
+                                   FontAttributes="Bold" />
+                            <Label Text="⭐" />
+                        </StackLayout>
+                        
+                        <!-- Commentaire actuel -->
+                        <StackLayout IsVisible="{Binding EvaluationActuelle.Commentaire, Converter={StaticResource StringToBoolConverter}}">
+                            <Label Text="Votre commentaire :"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource Ardoise}" />
+                            <Label Text="{Binding EvaluationActuelle.Commentaire}"
+                                   TextColor="{DynamicResource Ardoise}"
+                                   FontAttributes="Italic" />
+                        </StackLayout>
+                        
+                        <!-- Date -->
+                        <Label Text="{Binding EvaluationActuelle.DateCreation, StringFormat='Publié le {0:dd/MM/yyyy}'}"
+                               FontSize="12"
+                               TextColor="{DynamicResource Ardoise}"
+                               Opacity="0.7" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- Bouton modifier -->
+                <Button Text="Modifier mon évaluation"
+                        Command="{Binding ModifierEvaluationCommand}"
+                        BackgroundColor="{DynamicResource VertSauge}"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="25"
+                        HeightRequest="50"
+                        IsEnabled="{Binding IsNotBusy}" />
+            </StackLayout>
+
+            <!-- Historique des évaluations -->
+            <StackLayout Spacing="15">
+                <Label Text="Évaluations reçues"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource Ardoise}" />
+
+                <CollectionView ItemsSource="{Binding EvaluationsUtilisateur}"
+                                BackgroundColor="Transparent">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="White"
+                                   CornerRadius="10"
+                                   Margin="0,5"
+                                   Padding="15"
+                                   HasShadow="True">
+                                <StackLayout Spacing="8">
+                                    <!-- En-tête de l'évaluation -->
+                                    <StackLayout Orientation="Horizontal" Spacing="10">
+                                        <Label Text="{Binding NomEvaluateur}"
+                                               FontAttributes="Bold"
+                                               TextColor="{DynamicResource Ardoise}"
+                                               VerticalOptions="Center" />
+                                        
+                                        <StackLayout Orientation="Horizontal" Spacing="2">
+                                            <Label Text="{Binding Note}"
+                                                   TextColor="{DynamicResource Terracotta}"
+                                                   FontAttributes="Bold" />
+                                            <Label Text="⭐" />
+                                        </StackLayout>
+                                        
+                                        <Label Text="{Binding DateCreation, StringFormat='{0:dd/MM/yyyy}'}"
+                                               FontSize="12"
+                                               TextColor="{DynamicResource Ardoise}"
+                                               Opacity="0.7"
+                                               HorizontalOptions="EndAndExpand"
+                                               VerticalOptions="Center" />
+                                    </StackLayout>
+                                    
+                                    <!-- Commentaire -->
+                                    <Label Text="{Binding Commentaire}"
+                                           TextColor="{DynamicResource Ardoise}"
+                                           FontAttributes="Italic"
+                                           IsVisible="{Binding Commentaire, Converter={StaticResource StringToBoolConverter}}" />
+                                </StackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+
+            <!-- Indicateur de chargement -->
+            <ActivityIndicator IsVisible="{Binding IsBusy}"
+                              IsRunning="{Binding IsBusy}"
+                              Color="{DynamicResource Terracotta}"
+                              HeightRequest="50" />
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
