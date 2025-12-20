@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:Class="DonTroc.Views.RewardsPage"
+             x:DataType="viewmodels:RewardsViewModel"
+             Title="Récompenses"
+             BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="15">
+            
+            <!-- Header Niveau et XP -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                    StrokeShape="RoundRectangle 15"
+                    Stroke="Transparent"
+                    Padding="20">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                    
+                    <!-- Niveau et Titre -->
+                    <StackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                        <Label Text="{Binding LevelTitle}"
+                               FontSize="14"
+                               TextColor="White"
+                               Opacity="0.9"/>
+                        <Label FontSize="28"
+                               FontAttributes="Bold"
+                               TextColor="White">
+                            <Label.Text>
+                                <MultiBinding StringFormat="Niveau {0}">
+                                    <Binding Path="CurrentLevel"/>
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </StackLayout>
+                    
+                    <!-- XP Total -->
+                    <StackLayout Grid.Row="0" Grid.Column="1" 
+                                 HorizontalOptions="End"
+                                 VerticalOptions="Center">
+                        <Label Text="{Binding TotalXp, StringFormat='{0} XP'}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="End"/>
+                    </StackLayout>
+                    
+                    <!-- Barre de progression XP -->
+                    <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,15,0,5">
+                        <Border BackgroundColor="#40FFFFFF"
+                                StrokeShape="RoundRectangle 5"
+                                HeightRequest="12"/>
+                        <Border BackgroundColor="White"
+                                StrokeShape="RoundRectangle 5"
+                                HeightRequest="12"
+                                HorizontalOptions="Start"
+                                WidthRequest="{Binding ProgressBarWidth}"/>
+                    </Grid>
+                    
+                    <!-- XP pour prochain niveau -->
+                    <Label Grid.Row="2" Grid.ColumnSpan="2"
+                           TextColor="White"
+                           Opacity="0.8"
+                           FontSize="12"
+                           HorizontalOptions="Center">
+                        <Label.Text>
+                            <MultiBinding StringFormat="{}{0} / {1} XP pour niveau {2}">
+                                <Binding Path="CurrentLevelXp"/>
+                                <Binding Path="XpForNextLevel"/>
+                                <Binding Path="NextLevel"/>
+                            </MultiBinding>
+                        </Label.Text>
+                    </Label>
+                    
+                    <!-- Streak -->
+                    <Border Grid.Row="3" Grid.ColumnSpan="2"
+                            BackgroundColor="#40FFFFFF"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="10,8"
+                            Margin="0,10,0,0"
+                            HorizontalOptions="Center">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="🔥" FontSize="18"/>
+                            <Label Text="{Binding DailyStreak, StringFormat='{0} jours de suite'}"
+                                   TextColor="White"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                </Grid>
+            </Border>
+            
+            <!-- Boutons d'action rapide -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                
+                <!-- Quiz du Jour -->
+                <Border Grid.Column="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        StrokeShape="RoundRectangle 12"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="15">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenQuizCommand}"/>
+                    </Border.GestureRecognizers>
+                    <StackLayout Spacing="5" HorizontalOptions="Center">
+                        <Label Text="🧠" FontSize="35" HorizontalOptions="Center"/>
+                        <Label Text="Quiz"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Gagnez des XP"
+                               FontSize="10"
+                               TextColor="#4CAF50"
+                               HorizontalOptions="Center"/>
+                    </StackLayout>
+                </Border>
+                
+                <!-- Roue de la Fortune -->
+                <Border Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        StrokeShape="RoundRectangle 12"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="15">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SpinWheelCommand}"/>
+                    </Border.GestureRecognizers>
+                    <StackLayout Spacing="5" HorizontalOptions="Center">
+                        <Label Text="🎡" FontSize="40" HorizontalOptions="Center"/>
+                        <Label Text="Roue Fortune"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                               HorizontalOptions="Center"/>
+                        <Label Text="{Binding WheelStatus}"
+                               FontSize="11"
+                               TextColor="{Binding WheelStatusColor}"
+                               HorizontalOptions="Center"/>
+                    </StackLayout>
+                </Border>
+                
+                <!-- Récompense Quotidienne -->
+                <Border Grid.Column="2"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        StrokeShape="RoundRectangle 12"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="15">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ClaimDailyRewardCommand}"/>
+                    </Border.GestureRecognizers>
+                    <StackLayout Spacing="5" HorizontalOptions="Center">
+                        <Label Text="🎁" FontSize="40" HorizontalOptions="Center"/>
+                        <Label Text="Bonus Quotidien"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                               HorizontalOptions="Center"/>
+                        <Label Text="{Binding DailyRewardStatus}"
+                               FontSize="11"
+                               TextColor="{Binding DailyRewardStatusColor}"
+                               HorizontalOptions="Center"/>
+                    </StackLayout>
+                </Border>
+            </Grid>
+            
+            <!-- Section Défis -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="15">
+                <StackLayout Spacing="12">
+                    <Label Text="🎯 Défis du Jour"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <CollectionView ItemsSource="{Binding DailyChallenges}"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Challenge">
+                                <Border BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#2D2D2D}"
+                                        StrokeShape="RoundRectangle 10"
+                                        Stroke="Transparent"
+                                        Padding="12"
+                                        Margin="0,4">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                        <!-- Icône -->
+                                        <Label Grid.Column="0" Grid.RowSpan="2"
+                                               Text="{Binding Icon}"
+                                               FontSize="30"
+                                               VerticalOptions="Center"
+                                               Margin="0,0,12,0"/>
+                                        
+                                        <!-- Titre et description -->
+                                        <Label Grid.Column="1" Grid.Row="0"
+                                               Text="{Binding Title}"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                                        <Label Grid.Column="1" Grid.Row="1"
+                                               Text="{Binding Description}"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                                        
+                                        <!-- Récompense et progression -->
+                                        <StackLayout Grid.Column="2" Grid.RowSpan="2"
+                                                     VerticalOptions="Center"
+                                                     HorizontalOptions="End">
+                                            <Label Text="{Binding XpReward, StringFormat='+{0} XP'}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#4CAF50"
+                                                   HorizontalOptions="End"/>
+                                            <Label FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                                   HorizontalOptions="End">
+                                                <Label.Text>
+                                                    <MultiBinding StringFormat="{}{0}/{1}">
+                                                        <Binding Path="CurrentProgress"/>
+                                                        <Binding Path="RequiredCount"/>
+                                                    </MultiBinding>
+                                                </Label.Text>
+                                            </Label>
+                                        </StackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Border>
+            
+            <!-- Section Badges -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="15">
+                <StackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               Text="🏆 Mes Badges"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding BadgeCount, StringFormat='{0} débloqués'}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                    
+                    <!-- Badges débloqués -->
+                    <FlexLayout Wrap="Wrap" 
+                                JustifyContent="Start"
+                                AlignItems="Center"
+                                BindableLayout.ItemsSource="{Binding UnlockedBadges}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:BadgeDisplay">
+                                <Border BackgroundColor="{Binding RarityColor}"
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="Transparent"
+                                        Padding="10,8"
+                                        Margin="4">
+                                    <StackLayout Orientation="Horizontal" Spacing="5">
+                                        <Label Text="{Binding Icon}" FontSize="16"/>
+                                        <Label Text="{Binding Name}" 
+                                               FontSize="12" 
+                                               TextColor="White"
+                                               VerticalOptions="Center"/>
+                                    </StackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                    
+                    <!-- Message si pas de badges -->
+                    <Label Text="Continuez à utiliser l'app pour débloquer des badges !"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                           HorizontalOptions="Center"
+                           IsVisible="{Binding HasNoBadges}"/>
+                    
+                    <!-- Bouton voir tous les badges -->
+                    <Button Text="Voir tous les badges"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource DonTrocPrimary}"
+                            FontSize="14"
+                            Command="{Binding ViewAllBadgesCommand}"/>
+                </StackLayout>
+            </Border>
+            
+            <!-- Crédits Boost -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="{AppThemeBinding Light=#FFE082, Dark=#5D4037}"
+                    Padding="15">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Grid.Column="0"
+                           Text="🚀"
+                           FontSize="35"
+                           VerticalOptions="Center"/>
+                    <StackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                        <Label Text="Crédits Boost"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                        <Label Text="Utilisez-les pour mettre en avant vos annonces"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                    </StackLayout>
+                    <Border Grid.Column="2"
+                            BackgroundColor="#FF9800"
+                            StrokeShape="RoundRectangle 20"
+                            Padding="15,8"
+                            VerticalOptions="Center">
+                        <Label Text="{Binding BoostCredits}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                    </Border>
+                </Grid>
+            </Border>
+            
+            <!-- Historique XP récent -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="15"
+                    IsVisible="{Binding HasXpHistory}">
+                <StackLayout Spacing="10">
+                    <Label Text="📊 Activité Récente"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <CollectionView ItemsSource="{Binding RecentXpTransactions}"
+                                    SelectionMode="None"
+                                    HeightRequest="150">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:XpTransaction">
+                                <Grid ColumnDefinitions="*,Auto" Padding="0,5">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Reason}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Amount, StringFormat='+{0} XP'}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="#4CAF50"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Border>
+            
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+

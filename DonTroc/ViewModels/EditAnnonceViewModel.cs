@@ -18,57 +18,92 @@ namespace DonTroc.ViewModels;
 
 // ViewModel pour la page de modification d'annonce. 
 // IQueryAttributable permet de recevoir des données lors de la navigation.
-public partial class EditAnnonceViewModel : BaseViewModel, IQueryAttributable
+public class EditAnnonceViewModel : BaseViewModel, IQueryAttributable
 {
     private readonly FirebaseService _firebaseService;
-    private Annonce _annonceOriginale;
     private readonly List<FileResult> _newlySelectedPhotos = new();
-
-    public ObservableCollection<ImageSource> Photos { get; }
+    private Annonce _annonceOriginale;
+    private string _categorie;
+    private string _description;
 
     private string _titre;
-    private string _description;
     private string _type;
-    private string _categorie;
 
-    public string Titre { get => _titre; set { SetProperty(ref _titre, value); OnPropertyChanged(nameof(IsFormValid)); } }
-    public string Description { get => _description; set { SetProperty(ref _description, value); OnPropertyChanged(nameof(IsFormValid)); } }
-    public string Type { get => _type; set { SetProperty(ref _type, value); OnPropertyChanged(nameof(IsFormValid)); } }
-    public string Categorie { get => _categorie; set { SetProperty(ref _categorie, value); OnPropertyChanged(nameof(IsFormValid)); } }
-    
-    /// <summary>
-    /// Propriété qui indique si le formulaire est valide pour activer le bouton de sauvegarde
-    /// </summary>
-    public bool IsFormValid => 
-        !string.IsNullOrWhiteSpace(Titre) && 
-        !string.IsNullOrWhiteSpace(Description) && 
-        !string.IsNullOrWhiteSpace(Type) && 
-        !string.IsNullOrWhiteSpace(Categorie);
-    
-    public ICommand UpdateAnnonceCommand { get; }
-    public ICommand SelectImageCommand { get; }
-    public ICommand RemoveImageCommand { get; } // Nouvelle commande pour supprimer une image
-    public ICommand CancelCommand { get; }
-    
-    
-            // Constructeur du ViewModel corrigé pour l'injection de dépendances
+
+    // Constructeur du ViewModel corrigé pour l'injection de dépendances
     public EditAnnonceViewModel(FirebaseService firebaseService)
     {
         _firebaseService = firebaseService;
-        
+
         // Initialisation avec des valeurs par défaut
         _annonceOriginale = new Annonce();
         _titre = string.Empty;
         _description = string.Empty;
         _type = string.Empty;
         _categorie = string.Empty;
-        
+
         Photos = new ObservableCollection<ImageSource>();
         UpdateAnnonceCommand = new Command(async () => await OnUpdateAnnonce());
         SelectImageCommand = new Command(async () => await OnSelectImage());
         RemoveImageCommand = new Command<ImageSource>(OnRemoveImage); // Initialisation de la commande de suppression
         CancelCommand = new Command(OnCancel);
     }
+
+    public ObservableCollection<ImageSource> Photos { get; }
+
+    public string Titre
+    {
+        get => _titre;
+        set
+        {
+            SetProperty(ref _titre, value);
+            OnPropertyChanged(nameof(IsFormValid));
+        }
+    }
+
+    public string Description
+    {
+        get => _description;
+        set
+        {
+            SetProperty(ref _description, value);
+            OnPropertyChanged(nameof(IsFormValid));
+        }
+    }
+
+    public string Type
+    {
+        get => _type;
+        set
+        {
+            SetProperty(ref _type, value);
+            OnPropertyChanged(nameof(IsFormValid));
+        }
+    }
+
+    public string Categorie
+    {
+        get => _categorie;
+        set
+        {
+            SetProperty(ref _categorie, value);
+            OnPropertyChanged(nameof(IsFormValid));
+        }
+    }
+
+    /// <summary>
+    /// Propriété qui indique si le formulaire est valide pour activer le bouton de sauvegarde
+    /// </summary>
+    public bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(Titre) &&
+        !string.IsNullOrWhiteSpace(Description) &&
+        !string.IsNullOrWhiteSpace(Type) &&
+        !string.IsNullOrWhiteSpace(Categorie);
+
+    public ICommand UpdateAnnonceCommand { get; }
+    public ICommand SelectImageCommand { get; }
+    public ICommand RemoveImageCommand { get; } // Nouvelle commande pour supprimer une image
+    public ICommand CancelCommand { get; }
 
     // Cette méthode est appelée automatiquement lors de la navigation vers cette page
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -94,7 +129,10 @@ public partial class EditAnnonceViewModel : BaseViewModel, IQueryAttributable
     {
         if (Photos.Count >= 5)
         {
-            await App.Current.MainPage.DisplayAlert("Limite atteinte", "Vous ne pouvez avoir que 5 photos maximum.", "OK");
+            if (Application.Current == null) return;
+            if (Application.Current.MainPage != null)
+                await Application.Current.MainPage.DisplayAlert("Limite atteinte",
+                    "Vous ne pouvez avoir que 5 photos maximum.", "OK");
             return;
         }
 
@@ -149,12 +187,12 @@ public partial class EditAnnonceViewModel : BaseViewModel, IQueryAttributable
                 using var memoryStream = new MemoryStream();
                 await stream.CopyToAsync(memoryStream);
                 var imageData = memoryStream.ToArray();
-                
+
                 var fileName = $"{_annonceOriginale.UtilisateurId}_{Guid.NewGuid()}.jpg";
                 var userId = _annonceOriginale.UtilisateurId; // Récupérer l'ID de l'utilisateur
                 var imageUrl = await _firebaseService.UploadImageAsync(imageData, fileName, userId);
                 if (!string.IsNullOrEmpty(imageUrl))
-                updatedPhotoUrls.Add(imageUrl);
+                    updatedPhotoUrls.Add(imageUrl);
             }
 
             // Crée un nouvel objet Annonce avec les données mises à jour
@@ -194,7 +232,8 @@ public partial class EditAnnonceViewModel : BaseViewModel, IQueryAttributable
     private async void OnCancel() // Méthode pour annuler la modification et revenir en arrière
     {
         // Affiche une boîte de dialogue de confirmation
-        var result = await Shell.Current.DisplayAlert("Annuler", "Êtes-vous sûr de vouloir annuler les modifications ?", "Oui", "Non");
+        var result = await Shell.Current.DisplayAlert("Annuler", "Êtes-vous sûr de vouloir annuler les modifications ?",
+            "Oui", "Non");
         if (result)
         {
             // Retourne simplement à la page précédente

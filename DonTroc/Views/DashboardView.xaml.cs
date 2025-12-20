@@ -9,29 +9,27 @@ public partial class DashboardView : ContentPage
 {
     private bool _animationsInitialized = false;
 
-	// Constructeur sans paramètre pour Shell
-	public DashboardView()
-	{
-		InitializeComponent();
-	}
+    // Constructeur sans paramètre pour Shell
+    public DashboardView()
+    {
+        InitializeComponent();
+    }
 
-	// Le constructeur accepte maintenant un DashboardViewModel via l'injection de dépendances
-	public DashboardView(DashboardViewModel viewModel)
-	{
-		InitializeComponent();
+    // Le constructeur accepte maintenant un DashboardViewModel via l'injection de dépendances
+    public DashboardView(DashboardViewModel viewModel)
+    {
+        InitializeComponent();
 
-		// Définit le ViewModel comme contexte de liaison pour cette vue
-		BindingContext = viewModel;
-	}
+        // Définit le ViewModel comme contexte de liaison pour cette vue
+        BindingContext = viewModel;
+    }
 
-    protected override void OnAppearing()
+    protected override void OnAppearing() // méthode pour initialiser les animations
     {
         base.OnAppearing();
-        if (!_animationsInitialized)
-        {
-            _animationsInitialized = true;
-            StartButtonAnimations();
-        }
+        if (_animationsInitialized) return;
+        _animationsInitialized = true;
+        StartButtonAnimations();
     }
 
     private async void StartButtonAnimations() // Méthode d'annimations des boutons
@@ -50,10 +48,10 @@ public partial class DashboardView : ContentPage
         };
 
         pulseAnimation.Commit(DonnerButton, "PulsingDonner", 16, 2000, null, null, () => true);
-        
+
         // Démarrer la deuxième animation avec un léger décalage
         await Task.Delay(1000);
-        
+
         pulseAnimation2.Commit(ExplorerButton, "PulsingExplorer", 16, 2000, null, null, () => true);
     }
 }

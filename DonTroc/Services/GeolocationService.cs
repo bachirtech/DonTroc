@@ -15,13 +15,29 @@ namespace DonTroc.Services;
 // Service pour gérer la récupération de la géolocalisation
 public class GeolocationService
 {
-    private GeolocationRequest _request;
     private Location? _lastKnownLocation; // Cache de la dernière position connue
+    private GeolocationRequest _request;
 
     public GeolocationService()
     {
         // Configure la requête pour une précision élevée et un timeout plus long
         _request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(30));
+    }
+
+    // Vérifie si la géolocalisation est supportée sur l'appareil
+    public bool IsLocationSupported
+    {
+        get
+        {
+            try
+            {
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
     // Méthode principale pour obtenir la localisation
@@ -32,7 +48,7 @@ public class GeolocationService
             // 1. Vérifier si les services de localisation sont activés
             if (!IsLocationSupported)
             {
-                await Application.Current.MainPage.DisplayAlert("Service indisponible",
+                await Application.Current!.MainPage!.DisplayAlert("Service indisponible",
                     "Les services de localisation ne sont pas disponibles sur cet appareil.", "OK");
                 return _lastKnownLocation;
             }
@@ -41,13 +57,15 @@ public class GeolocationService
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
             if (status != PermissionStatus.Granted)
             {
-                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                status = await MainThread.InvokeOnMainThreadAsync(async () =>
+                    await Permissions.RequestAsync<Permissions.LocationWhenInUse>());
             }
 
             if (status != PermissionStatus.Granted)
             {
-                await Application.Current.MainPage.DisplayAlert("Permission refusée",
-                    "La permission d'accéder à la localisation a été refusée. Activez la géolocalisation dans les paramètres de l'application.", "OK");
+                await Application.Current!.MainPage!.DisplayAlert("Permission refusée",
+                    "La permission d'accéder à la localisation a été refusée. Activez la géolocalisation dans les paramètres de l'application.",
+                    "OK");
                 return _lastKnownLocation;
             }
 
@@ -61,19 +79,19 @@ public class GeolocationService
             }
             catch (FeatureNotSupportedException)
             {
-                await Application.Current.MainPage.DisplayAlert("Fonctionnalité non supportée",
+                await Application.Current!.MainPage!.DisplayAlert("Fonctionnalité non supportée",
                     "La géolocalisation n'est pas supportée sur cet appareil.", "OK");
                 return _lastKnownLocation;
             }
             catch (FeatureNotEnabledException)
             {
-                await Application.Current.MainPage.DisplayAlert("GPS désactivé",
+                await Application.Current!.MainPage!.DisplayAlert("GPS désactivé",
                     "Veuillez activer le GPS dans les paramètres de votre appareil.", "OK");
                 return _lastKnownLocation;
             }
             catch (PermissionException)
             {
-                await Application.Current.MainPage.DisplayAlert("Permission requise",
+                await Application.Current!.MainPage!.DisplayAlert("Permission requise",
                     "L'application a besoin de l'autorisation d'accéder à votre localisation.", "OK");
                 return _lastKnownLocation;
             }
@@ -113,13 +131,13 @@ public class GeolocationService
             }
             else if (_lastKnownLocation != null)
             {
-                await Application.Current.MainPage.DisplayAlert("Position approximative",
+                await Application.Current!.MainPage!.DisplayAlert("Position approximative",
                     "Impossible d'obtenir votre position actuelle. Utilisation de la dernière position connue.", "OK");
                 return _lastKnownLocation;
             }
             else
             {
-                await Application.Current.MainPage.DisplayAlert("Position introuvable",
+                await Application.Current!.MainPage!.DisplayAlert("Position introuvable",
                     "Impossible de récupérer votre position. Assurez-vous que :\n" +
                     "• Le GPS est activé\n" +
                     "• Vous êtes à l'extérieur ou près d'une fenêtre\n" +
@@ -130,7 +148,7 @@ public class GeolocationService
         }
         catch (Exception ex)
         {
-            await Application.Current.MainPage.DisplayAlert("Erreur de géolocalisation",
+            await Application.Current!.MainPage!.DisplayAlert("Erreur de géolocalisation",
                 $"Erreur technique : {ex.Message}\n\nVeuillez :\n" +
                 "• Redémarrer l'application\n" +
                 "• Vérifier vos paramètres de localisation\n" +
@@ -140,29 +158,13 @@ public class GeolocationService
     }
 
     // Vérifie si une position est valide
-    private bool IsValidLocation(Location location)
+    private bool IsValidLocation(Location? location)
     {
-        return location != null && 
-               location.Latitude != 0 && 
+        return location != null &&
+               location.Latitude != 0 &&
                location.Longitude != 0 &&
                Math.Abs(location.Latitude) <= 90 &&
                Math.Abs(location.Longitude) <= 180;
-    }
-
-    // Vérifie si la géolocalisation est supportée sur l'appareil
-    public bool IsLocationSupported
-    {
-        get
-        {
-            try
-            {
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
     }
 
     // Obtenir la dernière position en cache
@@ -244,7 +246,7 @@ public class GeolocationService
             return allAnnonces;
 
         var nearbyAnnonces = FilterAnnoncesByRadius(allAnnonces, userLocation, radiusKm);
-        
+
         // Calculer et assigner les distances
         foreach (var annonce in nearbyAnnonces)
         {
@@ -327,7 +329,7 @@ public class GeolocationService
                 continue;
 
             var locationName = await GetApproximateLocationAsync(annonce.Latitude.Value, annonce.Longitude.Value);
-            
+
             if (!groupedAnnonces.ContainsKey(locationName))
                 groupedAnnonces[locationName] = new List<Annonce>();
 

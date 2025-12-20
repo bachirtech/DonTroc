@@ -1,0 +1,16 @@
+# Configuration locale pour les mots de passe de signature
+# CE FICHIER NE DOIT JAMAIS ÊTRE VERSIONNÉ (ajouté au .gitignore)
+#
+# Copiez ce fichier en "Local.Build.props" et remplissez vos valeurs
+# OU définissez les variables d'environnement suivantes :
+#   export DONTROC_KEYSTORE_PASS="VotreMotDePasse"
+#   export DONTROC_KEY_PASS="VotreMotDePasse"
+
+<Project>
+  <PropertyGroup>
+    <!-- Mots de passe du keystore Android -->
+    <KeyStorePassword>VOTRE_MOT_DE_PASSE_ICI</KeyStorePassword>
+    <KeyPassword>VOTRE_MOT_DE_PASSE_ICI</KeyPassword>
+  </PropertyGroup>
+</Project>
+

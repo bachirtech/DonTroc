@@ -14,42 +14,13 @@ namespace DonTroc.Platforms.Android
     /// </summary>
     public class AdMobNativeService : Java.Lang.Object, IAdMobService
     {
-        private RewardedAd? _rewardedAd;
-        private InterstitialAd? _interstitialAd;
-        private TaskCompletionSource<bool>? _rewardedAdTcs;
-        private bool _isInitialized;
-
         // IDs des publicités - Utilisation des IDs de test Google
         private const string RewardedAdUnitId = "ca-app-pub-3940256099942544/5224354917";
         private const string InterstitialAdUnitId = "ca-app-pub-3940256099942544/1033173712";
-
-        /// <summary>
-        /// Récupère le contexte Android de manière fiable
-        /// </summary>
-        private static Context? GetAndroidContext()
-        {
-            try
-            {
-                // Méthode 1: Utiliser Platform.CurrentActivity
-                var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-                if (activity != null)
-                    return activity;
-
-                // Méthode 2: Récupérer via le contexte application
-                var context = global::Android.App.Application.Context;
-                if (context != null)
-                    return context;
-
-                // Méthode 3: Essayer de récupérer via le MainPage (fallback)
-                var mainContext = Microsoft.Maui.Controls.Application.Current?.MainPage?.Handler?.MauiContext?.Context;
-                return mainContext;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Erreur récupération contexte Android: {ex.Message}");
-                return null;
-            }
-        }
+        private InterstitialAd? _interstitialAd;
+        private bool _isInitialized;
+        private RewardedAd? _rewardedAd;
+        private TaskCompletionSource<bool>? _rewardedAdTcs;
 
         /// <summary>
         /// Initialise le SDK AdMob de manière sécurisée
@@ -63,18 +34,18 @@ namespace DonTroc.Platforms.Android
                 Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
                 {
                     var context = GetAndroidContext();
-                    
+
                     if (context == null)
                     {
                         System.Diagnostics.Debug.WriteLine("❌ Impossible d'obtenir le contexte Android");
                         return;
                     }
-                    
+
                     // Initialisation simple et robuste du SDK AdMob
                     MobileAds.Initialize(context);
                     _isInitialized = true;
                     System.Diagnostics.Debug.WriteLine("✅ SDK AdMob initialisé avec succès");
-                    
+
                     // Précharger les publicités
                     LoadRewardedAd();
                     LoadInterstitialAd();
@@ -98,15 +69,16 @@ namespace DonTroc.Platforms.Android
                 try
                 {
                     var context = GetAndroidContext();
-                    
+
                     if (context == null)
                     {
-                        System.Diagnostics.Debug.WriteLine("❌ Contexte Android non disponible pour charger la pub récompensée");
+                        System.Diagnostics.Debug.WriteLine(
+                            "❌ Contexte Android non disponible pour charger la pub récompensée");
                         return;
                     }
-                    
+
                     var adRequest = new AdRequest.Builder().Build();
-                    
+
                     // Utiliser le callback simplifié
                     RewardedAd.Load(context, RewardedAdUnitId, adRequest, new RewardedAdLoadCallbackWrapper(
                         onLoaded: ad => OnRewardedAdLoaded(ad),
@@ -125,27 +97,38 @@ namespace DonTroc.Platforms.Android
         /// </summary>
         public void LoadInterstitialAd()
         {
-            if (!_isInitialized) return;
+            if (!_isInitialized)
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ LoadInterstitialAd: SDK pas encore initialisé");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("🔄 LoadInterstitialAd: Début du chargement...");
 
             Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
                 {
                     var context = GetAndroidContext();
-                    
+
                     if (context == null)
                     {
-                        System.Diagnostics.Debug.WriteLine("❌ Contexte Android non disponible pour charger la pub interstitielle");
+                        System.Diagnostics.Debug.WriteLine(
+                            "❌ Contexte Android non disponible pour charger la pub interstitielle");
                         return;
                     }
-                    
+
+                    System.Diagnostics.Debug.WriteLine($"🎯 Chargement interstitiel avec ID: {InterstitialAdUnitId}");
+
                     var adRequest = new AdRequest.Builder().Build();
-                    
+
                     // Utiliser le callback simplifié
                     InterstitialAd.Load(context, InterstitialAdUnitId, adRequest, new InterstitialAdLoadCallbackWrapper(
                         onLoaded: ad => OnInterstitialAdLoaded(ad),
                         onFailed: error => OnInterstitialAdFailedToLoad(error)
                     ));
+
+                    System.Diagnostics.Debug.WriteLine("📤 Requête interstitiel envoyée au serveur AdMob");
                 }
                 catch (Exception ex)
                 {
@@ -173,7 +156,9 @@ namespace DonTroc.Platforms.Android
             {
                 try
                 {
-                    var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity as AndroidX.AppCompat.App.AppCompatActivity;
+                    var activity =
+                        Microsoft.Maui.ApplicationModel.Platform.CurrentActivity as
+                            AndroidX.AppCompat.App.AppCompatActivity;
                     if (activity == null)
                     {
                         _rewardedAdTcs.TrySetResult(false);
@@ -211,7 +196,9 @@ namespace DonTroc.Platforms.Android
             {
                 try
                 {
-                    var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity as AndroidX.AppCompat.App.AppCompatActivity;
+                    var activity =
+                        Microsoft.Maui.ApplicationModel.Platform.CurrentActivity as
+                            AndroidX.AppCompat.App.AppCompatActivity;
                     if (activity == null) return;
 
                     // Configurer les callbacks avant l'affichage
@@ -230,6 +217,34 @@ namespace DonTroc.Platforms.Android
         public void LogApiLimitation()
         {
             System.Diagnostics.Debug.WriteLine("ℹ️ Limitation API AdMob respectée");
+        }
+
+        /// <summary>
+        /// Récupère le contexte Android de manière fiable
+        /// </summary>
+        private static Context? GetAndroidContext()
+        {
+            try
+            {
+                // Méthode 1: Utiliser Platform.CurrentActivity
+                var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+                if (activity != null)
+                    return activity;
+
+                // Méthode 2: Récupérer via le contexte application
+                var context = global::Android.App.Application.Context;
+                if (context != null)
+                    return context;
+
+                // Méthode 3: Essayer de récupérer via le MainPage (fallback)
+                var mainContext = Microsoft.Maui.Controls.Application.Current?.MainPage?.Handler?.MauiContext?.Context;
+                return mainContext;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Erreur récupération contexte Android: {ex.Message}");
+                return null;
+            }
         }
 
         // Méthodes internes pour les callbacks
@@ -279,7 +294,7 @@ namespace DonTroc.Platforms.Android
         internal void OnAdFailedToShow(AdError error, bool isRewarded)
         {
             System.Diagnostics.Debug.WriteLine($"❌ Échec affichage pub: {error.Message}");
-            
+
             if (isRewarded)
             {
                 _rewardedAdTcs?.TrySetResult(false);
@@ -304,12 +319,12 @@ namespace DonTroc.Platforms.Android
 
     /// <summary>
     /// Callback pour le chargement des publicités récompensées
-    /// Version simplifiée compatible avec AdMob SDK v120.4.0
+    /// Utilise l'annotation Export pour résoudre le conflit de signature Java
     /// </summary>
     internal class RewardedAdLoadCallbackWrapper : RewardedAdLoadCallback
     {
-        private readonly Action<RewardedAd> _onLoaded;
         private readonly Action<LoadAdError> _onFailed;
+        private readonly Action<RewardedAd> _onLoaded;
 
         public RewardedAdLoadCallbackWrapper(Action<RewardedAd> onLoaded, Action<LoadAdError> onFailed)
         {
@@ -317,25 +332,29 @@ namespace DonTroc.Platforms.Android
             _onFailed = onFailed;
         }
 
-        public void OnAdLoaded(RewardedAd ad)
+        // Utiliser la nouvelle signature avec le type spécifique via Export
+        [Java.Interop.Export("onAdLoaded")]
+        public void OnRewardedAdLoaded(RewardedAd ad)
         {
+            System.Diagnostics.Debug.WriteLine("📢 RewardedAdLoadCallback.OnAdLoaded appelé");
             _onLoaded?.Invoke(ad);
         }
 
         public override void OnAdFailedToLoad(LoadAdError error)
         {
+            System.Diagnostics.Debug.WriteLine($"📢 RewardedAdLoadCallback.OnAdFailedToLoad: {error?.Message}");
             _onFailed?.Invoke(error);
         }
     }
 
     /// <summary>
     /// Callback pour le chargement des publicités interstitielles
-    /// Version simplifiée compatible avec AdMob SDK v120.4.0
+    /// Utilise l'annotation Export pour résoudre le conflit de signature Java
     /// </summary>
     internal class InterstitialAdLoadCallbackWrapper : InterstitialAdLoadCallback
     {
-        private readonly Action<InterstitialAd> _onLoaded;
         private readonly Action<LoadAdError> _onFailed;
+        private readonly Action<InterstitialAd> _onLoaded;
 
         public InterstitialAdLoadCallbackWrapper(Action<InterstitialAd> onLoaded, Action<LoadAdError> onFailed)
         {
@@ -343,13 +362,17 @@ namespace DonTroc.Platforms.Android
             _onFailed = onFailed;
         }
 
-        public void OnAdLoaded(InterstitialAd ad)
+        // Utiliser la nouvelle signature avec le type spécifique via Export
+        [Java.Interop.Export("onAdLoaded")]
+        public void OnInterstitialAdLoaded(InterstitialAd ad)
         {
+            System.Diagnostics.Debug.WriteLine("📢 InterstitialAdLoadCallback.OnAdLoaded appelé");
             _onLoaded?.Invoke(ad);
         }
 
         public override void OnAdFailedToLoad(LoadAdError error)
         {
+            System.Diagnostics.Debug.WriteLine($"📢 InterstitialAdLoadCallback.OnAdFailedToLoad: {error?.Message}");
             _onFailed?.Invoke(error);
         }
     }
@@ -359,8 +382,8 @@ namespace DonTroc.Platforms.Android
     /// </summary>
     internal class FullScreenContentCallbackImpl : FullScreenContentCallback
     {
-        private readonly AdMobNativeService _service;
         private readonly bool _isRewarded;
+        private readonly AdMobNativeService _service;
 
         public FullScreenContentCallbackImpl(AdMobNativeService service, bool isRewarded)
         {
@@ -404,4 +427,3 @@ namespace DonTroc.Platforms.Android
 
     #endregion
 }
-

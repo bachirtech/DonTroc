@@ -1,4 +1,4 @@
-﻿using DonTroc.Services;
+﻿﻿﻿using DonTroc.Services;
 using DonTroc.Views;
 using System.ComponentModel;
 using DonTroc.ViewModels;
@@ -42,6 +42,12 @@ public partial class AppShell : Shell
         // Enregistre la route pour la vue carte interactive
         Routing.RegisterRoute(nameof(MapView), typeof(MapView));
         Routing.RegisterRoute(nameof(LoginViewModel), typeof(LoginViewModel));
+        // Enregistre la route pour la page de récompenses et gamification
+        Routing.RegisterRoute(nameof(RewardsPage), typeof(RewardsPage));
+        // Enregistre la route pour la page de quiz
+        Routing.RegisterRoute(nameof(QuizPage), typeof(QuizPage));
+        // Enregistre la route pour la roue de la fortune
+        Routing.RegisterRoute(nameof(WheelOfFortunePage), typeof(WheelOfFortunePage));
 
         UpdateMessagesBadge();
     }

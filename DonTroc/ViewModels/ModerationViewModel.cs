@@ -10,9 +10,6 @@ namespace DonTroc.ViewModels
     public class ModerationViewModel : BaseViewModel
     {
         private readonly ReportService _reportService;
-        public ObservableCollection<Report> Reports { get; } = new ObservableCollection<Report>();
-        public ICommand LoadReportsCommand { get; }
-        public ICommand UpdateReportStatusCommand { get; }
 
         public ModerationViewModel(ReportService reportService)
         {
@@ -20,6 +17,10 @@ namespace DonTroc.ViewModels
             LoadReportsCommand = new Command(async void () => await LoadReports());
             UpdateReportStatusCommand = new Command<Report>(async void (report) => await UpdateReportStatus(report));
         }
+
+        public ObservableCollection<Report> Reports { get; } = new ObservableCollection<Report>();
+        public ICommand LoadReportsCommand { get; }
+        public ICommand UpdateReportStatusCommand { get; }
 
         private async Task LoadReports()
         {
@@ -51,18 +52,18 @@ namespace DonTroc.ViewModels
             // This is a simplified version. In a real app, you would show a dialog
             // to the moderator to enter notes and select a new status.
             string newStatus = await Application.Current?.MainPage?.DisplayActionSheet(
-                "Update Status", 
-                "Cancel", 
-                null, 
+                "Update Status",
+                "Cancel",
+                null,
                 "Pending", "Reviewed", "ActionTaken")!;
 
             if (newStatus != "Cancel")
             {
-                string notes = await Application.Current?.MainPage?.DisplayPromptAsync("Notes", "Enter moderation notes:")!;
+                string notes =
+                    await Application.Current.MainPage?.DisplayPromptAsync("Notes", "Enter moderation notes:")!;
                 await _reportService.UpdateReportStatus(report.Id, newStatus, notes);
                 await LoadReports(); // Refresh the list
             }
         }
     }
 }
-

@@ -1,114 +1,218 @@
 using System;
 using System.Threading.Tasks;
-using Android.Content;
 using Android.Gms.Ads;
+using Android.Views;
+using Microsoft.Maui;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
-using Microsoft.Maui.Controls;
+using View = Microsoft.Maui.Controls.View;
 
-namespace DonTroc.Platforms.Android
+namespace DonTroc
 {
     /// <summary>
-    /// Handler natif Android pour AdBannerView
-    /// Remplace le contenu MAUI par une vraie bannière AdMob native
+    /// Handler natif Android pour AdBannerView.
+    /// 
+    /// Ce handler remplace le contenu MAUI par une vraie bannière AdMob native.
+    /// Il gère :
+    /// - L'initialisation de l'AdView avec les bonnes dimensions
+    /// - Le chargement de la publicité
+    /// - Les événements de succès/échec
+    /// - La destruction propre des ressources
     /// </summary>
     public class AdMobBannerHandler : ContentViewHandler
     {
+        // ID de test Google officiel pour les bannières (à remplacer par l'ID de production)
+        private const string TestBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111";
+        
         private AdView? _adView;
+        private ContentViewGroup? _container;
+        private float _density;
+        private bool _isInitialized;
         private bool _isLoaded;
 
-        // ID de test pour bannière AdMob (à remplacer par votre vraie ID en production)
-        private const string BannerAdUnitId = "ca-app-pub-3940256099942544/6300978111";
-
-        protected override ContentViewGroup CreatePlatformView()
+        public AdMobBannerHandler() : base(new PropertyMapper<IContentView, IContentViewHandler>(),
+            new CommandMapper<IContentView, IContentViewHandler>())
         {
-            var container = base.CreatePlatformView();
-            LoadAdMobBanner(container);
-            return container;
         }
 
-        private void LoadAdMobBanner(ContentViewGroup container)
+        private static string BannerAdUnitId => TestBannerAdUnitId;
+
+        /// <summary>
+        /// Appelé quand le handler est connecté à une vue.
+        /// Initialise la bannière AdMob avec un léger délai pour laisser le layout MAUI se stabiliser.
+        /// </summary>
+        protected override void ConnectHandler(ContentViewGroup platformView)
+        {
+            base.ConnectHandler(platformView);
+
+            if (_isInitialized) return;
+            _isInitialized = true;
+            _container = platformView;
+
+            _ = InitializeWithDelayAsync(platformView);
+        }
+
+        /// <summary>
+        /// Initialise l'AdView avec un délai pour permettre au layout parent de s'établir.
+        /// </summary>
+        private async Task InitializeWithDelayAsync(ContentViewGroup platformView)
+        {
+            try
+            {
+                await Task.Delay(100);
+                MainThread.BeginInvokeOnMainThread(() => InitializeAdView(platformView));
+            }
+            catch (Exception)
+            {
+                // Ignorer les erreurs d'initialisation silencieusement
+            }
+        }
+
+        /// <summary>
+        /// Crée et configure l'AdView native Android.
+        /// 
+        /// Processus :
+        /// 1. Calcule les dimensions en pixels basées sur la densité d'écran
+        /// 2. Configure le container parent avec les dimensions appropriées
+        /// 3. Crée l'AdView avec l'ID de bannière et la taille standard (320x50dp)
+        /// 4. Attache un listener pour gérer les événements de chargement
+        /// 5. Lance la requête de publicité
+        /// </summary>
+        private void InitializeAdView(ContentViewGroup container)
         {
             try
             {
                 var context = container.Context;
                 if (context == null) return;
 
-                // Créer la vue publicitaire
+                _density = context.Resources?.DisplayMetrics?.Density ?? 2.75f;
+                var bannerWidthPx = (int)(320 * _density);
+                var bannerHeightPx = (int)(50 * _density);
+
+                // Configurer le container parent
+                container.RemoveAllViews();
+                container.SetBackgroundColor(Android.Graphics.Color.Transparent);
+                container.SetMinimumHeight(bannerHeightPx);
+                container.SetMinimumWidth(bannerWidthPx);
+
+                var containerParams = new Android.Widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MatchParent,
+                    bannerHeightPx
+                );
+                container.LayoutParameters = containerParams;
+
+                // Créer l'AdView avec dimensions fixes
                 _adView = new AdView(context)
                 {
                     AdUnitId = BannerAdUnitId,
                     AdSize = AdSize.Banner
                 };
 
-                // Configurer les callbacks
-                _adView.AdListener = new AdMobBannerListener(this);
+                var adLayoutParams = new Android.Widget.FrameLayout.LayoutParams(
+                    bannerWidthPx,
+                    bannerHeightPx
+                )
+                {
+                    Gravity = GravityFlags.CenterHorizontal | GravityFlags.Top
+                };
+                _adView.LayoutParameters = adLayoutParams;
+                _adView.SetMinimumWidth(bannerWidthPx);
+                _adView.SetMinimumHeight(bannerHeightPx);
 
-                // Créer et charger la requête publicitaire
+                _adView.AdListener = new AdMobBannerListener(this);
+                container.AddView(_adView);
+
+                // Charger la publicité
                 var adRequest = new AdRequest.Builder().Build();
                 _adView.LoadAd(adRequest);
 
-                // Ajouter la vue à notre container
-                container.AddView(_adView);
-
-                System.Diagnostics.Debug.WriteLine("✅ Bannière AdMob créée et chargement en cours...");
+                // Configurer le VirtualView MAUI
+                if (VirtualView is View mauiView)
+                {
+                    mauiView.HeightRequest = 50;
+                    mauiView.MinimumHeightRequest = 50;
+                    mauiView.BackgroundColor = Colors.Transparent;
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine("❌ Erreur création bannière AdMob: " + ex.Message);
+                // Ignorer les erreurs silencieusement
             }
         }
 
+        /// <summary>
+        /// Nettoie les ressources quand le handler est déconnecté.
+        /// </summary>
         protected override void DisconnectHandler(ContentViewGroup platformView)
         {
             try
             {
-                if (_adView != null)
-                {
-                    _adView.Destroy();
-                    _adView = null;
-                    System.Diagnostics.Debug.WriteLine("🗑️ Bannière AdMob détruite");
-                }
+                _adView?.Destroy();
+                _adView = null;
+                _isInitialized = false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine("❌ Erreur destruction bannière: " + ex.Message);
+                // Ignorer les erreurs de destruction
             }
 
             base.DisconnectHandler(platformView);
         }
 
+        /// <summary>
+        /// Appelé quand la publicité est chargée avec succès.
+        /// Force le layout et la visibilité de l'AdView.
+        /// </summary>
         internal void OnAdLoaded()
         {
             _isLoaded = true;
-            System.Diagnostics.Debug.WriteLine("✅ Bannière AdMob chargée avec succès");
+
+            if (_adView != null && _container != null)
+            {
+                var bannerWidthPx = (int)(320 * _density);
+                var bannerHeightPx = (int)(50 * _density);
+
+                _adView.Visibility = ViewStates.Visible;
+                _adView.BringToFront();
+
+                // Forcer la mesure et le layout avec les dimensions exactes
+                var widthSpec = Android.Views.View.MeasureSpec.MakeMeasureSpec(bannerWidthPx, MeasureSpecMode.Exactly);
+                var heightSpec = Android.Views.View.MeasureSpec.MakeMeasureSpec(bannerHeightPx, MeasureSpecMode.Exactly);
+                _adView.Measure(widthSpec, heightSpec);
+                _adView.Layout(0, 0, bannerWidthPx, bannerHeightPx);
+
+                _adView.RequestLayout();
+                _adView.Invalidate();
+                _container.RequestLayout();
+                _container.Invalidate();
+            }
         }
 
+        /// <summary>
+        /// Appelé quand le chargement de la publicité échoue.
+        /// Réessaie automatiquement après 30 secondes pour les erreurs réseau.
+        /// </summary>
         internal void OnAdFailedToLoad(LoadAdError error)
         {
             _isLoaded = false;
-            System.Diagnostics.Debug.WriteLine("❌ Échec chargement bannière AdMob: " + error.Message);
-            
-            // Retry après 30 secondes en cas d'échec
-            Task.Delay(30000).ContinueWith(_ =>
+
+            // Retry après 30 secondes pour erreurs réseau (code 2) ou no fill (code 3)
+            if (error.Code == 2 || error.Code == 3)
             {
-                Application.Current?.Dispatcher.Dispatch(() =>
+                Task.Delay(30000).ContinueWith(_ =>
                 {
-                    try
+                    MainThread.BeginInvokeOnMainThread(() =>
                     {
                         if (_adView != null && !_isLoaded)
                         {
                             var adRequest = new AdRequest.Builder().Build();
                             _adView.LoadAd(adRequest);
-                            System.Diagnostics.Debug.WriteLine("🔄 Retry chargement bannière AdMob");
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine("❌ Erreur retry bannière: " + ex.Message);
-                    }
+                    });
                 });
-            });
+            }
         }
     }
 
@@ -136,22 +240,8 @@ namespace DonTroc.Platforms.Android
             _handler.OnAdFailedToLoad(error);
         }
 
-        public override void OnAdClicked()
-        {
-            base.OnAdClicked();
-            System.Diagnostics.Debug.WriteLine("👆 Bannière AdMob cliquée");
-        }
-
-        public override void OnAdClosed()
-        {
-            base.OnAdClosed();
-            System.Diagnostics.Debug.WriteLine("❌ Bannière AdMob fermée");
-        }
-
-        public override void OnAdOpened()
-        {
-            base.OnAdOpened();
-            System.Diagnostics.Debug.WriteLine("📖 Bannière AdMob ouverte");
-        }
+        public override void OnAdClicked() => base.OnAdClicked();
+        public override void OnAdOpened() => base.OnAdOpened();
+        public override void OnAdImpression() => base.OnAdImpression();
     }
 }

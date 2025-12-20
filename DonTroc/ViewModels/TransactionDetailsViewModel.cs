@@ -12,10 +12,10 @@ using Microsoft.Maui.Controls;
 namespace DonTroc.ViewModels;
 
 [QueryProperty(nameof(TransactionId), "transactionId")]
-public partial class TransactionDetailsViewModel : INotifyPropertyChanged, IQueryAttributable
+public class TransactionDetailsViewModel : INotifyPropertyChanged, IQueryAttributable
 {
-    private readonly TransactionService _transactionService;
     private readonly RatingService _ratingService;
+    private readonly TransactionService _transactionService;
     private Transaction? _transaction;
     private string? _transactionId;
 
@@ -23,7 +23,7 @@ public partial class TransactionDetailsViewModel : INotifyPropertyChanged, IQuer
     {
         _transactionService = transactionService;
         _ratingService = ratingService;
-        
+
         MarquerTermineeCommand = new Command(async () => await MarquerTermineeAsync());
         LaisserAvisCommand = new Command(async () => await LaisserAvisAsync());
     }
@@ -51,16 +51,18 @@ public partial class TransactionDetailsViewModel : INotifyPropertyChanged, IQuer
         }
     }
 
-    public bool HasMessages => Transaction != null && 
-                              (!string.IsNullOrEmpty(Transaction.MessageDemandeur) || 
-                               !string.IsNullOrEmpty(Transaction.MessageProprietaire));
+    public bool HasMessages => Transaction != null &&
+                               (!string.IsNullOrEmpty(Transaction.MessageDemandeur) ||
+                                !string.IsNullOrEmpty(Transaction.MessageProprietaire));
 
-    public bool HasRendezVousInfo => Transaction != null && 
-                                    (!string.IsNullOrEmpty(Transaction.LieuRendezVous) || 
-                                     Transaction.DateRendezVous.HasValue);
+    public bool HasRendezVousInfo => Transaction != null &&
+                                     (!string.IsNullOrEmpty(Transaction.LieuRendezVous) ||
+                                      Transaction.DateRendezVous.HasValue);
 
     public ICommand MarquerTermineeCommand { get; }
     public ICommand LaisserAvisCommand { get; }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -81,7 +83,8 @@ public partial class TransactionDetailsViewModel : INotifyPropertyChanged, IQuer
         }
         catch (Exception ex)
         {
-            await Application.Current?.MainPage?.DisplayAlert("Erreur", $"Impossible de charger la transaction: {ex.Message}", "OK");
+            await Application.Current?.MainPage?.DisplayAlert("Erreur",
+                $"Impossible de charger la transaction: {ex.Message}", "OK");
         }
     }
 
@@ -94,12 +97,13 @@ public partial class TransactionDetailsViewModel : INotifyPropertyChanged, IQuer
             await _transactionService.MarquerCommeTermineeAsync(Transaction.Id);
             Transaction.Statut = StatutTransaction.Terminee;
             OnPropertyChanged(nameof(Transaction));
-            
+
             await Application.Current?.MainPage?.DisplayAlert("Succès", "Transaction marquée comme terminée", "OK");
         }
         catch (Exception ex)
         {
-            await Application.Current?.MainPage?.DisplayAlert("Erreur", $"Impossible de mettre à jour la transaction: {ex.Message}", "OK");
+            await Application.Current?.MainPage?.DisplayAlert("Erreur",
+                $"Impossible de mettre à jour la transaction: {ex.Message}", "OK");
         }
     }
 
@@ -114,11 +118,10 @@ public partial class TransactionDetailsViewModel : INotifyPropertyChanged, IQuer
         }
         catch (Exception ex)
         {
-            await Application.Current?.MainPage?.DisplayAlert("Erreur", $"Impossible d'ouvrir la page d'évaluation: {ex.Message}", "OK");
+            await Application.Current?.MainPage?.DisplayAlert("Erreur",
+                $"Impossible d'ouvrir la page d'évaluation: {ex.Message}", "OK");
         }
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {

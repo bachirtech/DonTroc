@@ -17,13 +17,21 @@ namespace DonTroc.Views
 
         public AdBannerView()
         {
-            // Définir des dimensions fixes pour la bannière AdMob standard
+            // Dimensions standard bannière AdMob (320x50 dp)
             HeightRequest = 50;
+            MinimumHeightRequest = 50;
             WidthRequest = 320;
-            HorizontalOptions = LayoutOptions.Center;
-            VerticalOptions = LayoutOptions.Center;
-            
+            MinimumWidthRequest = 320;
+            HorizontalOptions = LayoutOptions.Fill;
+            VerticalOptions = LayoutOptions.Start;
+            BackgroundColor = Colors.Transparent;
+
+            // Ne pas charger de placeholder sur Android - le handler natif gère tout
+#if !ANDROID
             LoadPlaceholder();
+#endif
+
+            System.Diagnostics.Debug.WriteLine("📱 AdBannerView MAUI créée: HeightRequest=50, Width=320");
         }
 
         /// <summary>

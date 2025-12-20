@@ -1,0 +1,17 @@
+🧹 Nettoyage complet des anciens builds...
+📦 Vérification de la configuration...
+		<AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
+		<AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
+
+🔨 Lancement du build AAB signé avec API 35...
+================================================
+  Identification des projets à restaurer...
+  Tous les projets sont à jour pour la restauration.
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000: System.Xml.XmlException: Data at the root level is invalid. Line 1, position 1. [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at System.Xml.XmlTextReaderImpl.Throw(Exception e) [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at System.Xml.XmlTextReaderImpl.Throw(String res, String arg) [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at System.Xml.XmlTextReaderImpl.ParseRootLevelWhitespace() [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at System.Xml.XmlTextReaderImpl.ParseDocumentContent() [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at System.Xml.XmlReader.MoveToContent() [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at Xamarin.Android.Tasks.GetAndroidPackageName.RunTask() [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]
+/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/34.0.154/tools/Xamarin.Android.Common.targets(621,3): error XAGAP7000:    at Microsoft.Android.Build.Tasks.AndroidTask.Execute() in /Users/runner/work/1/s/xamarin-android/external/xamarin-android-tools/src/Microsoft.Android.Build.BaseTasks/AndroidTask.cs:line 25 [/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj::TargetFramework=net8.0-android]

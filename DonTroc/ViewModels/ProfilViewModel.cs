@@ -19,62 +19,20 @@ public class ProfilViewModel : BaseViewModel
 {
     private readonly AuthService _authService;
     private readonly FirebaseService _firebaseService;
-    private readonly PremiumFeaturesViewModel _premiumFeaturesViewModel; // Service pour les fonctionnalités premium
-    private readonly ThemeService _themeService; // Service de gestion des thèmes
     private readonly ILogger<ProfilViewModel> _logger;
+    private readonly PremiumFeaturesViewModel _premiumFeaturesViewModel; // Service pour les fonctionnalités premium
     private readonly IServiceProvider _serviceProvider;
+    private readonly ThemeService _themeService; // Service de gestion des thèmes
 
     private string _userEmail;
-    public string UserEmail // Propriété pour stocker l'email de l'utilisateur
-    {
-        get => _userEmail;
-        set => SetProperty(ref _userEmail, value);
-    }
-    
+
     private UserProfile _userProfile;
-   
 
-    public UserProfile UserProfile
-    {
-        get => _userProfile;
-        private set => SetProperty(ref _userProfile, value);
-    }
-
-    // Collection pour stocker les annonces de l'utilisateur
-    public ObservableCollection<Annonce> MesAnnonces { get; }
-
-    // Commande pour la déconnexion
-    public ICommand SignOutCommand { get; }
-    // Commande pour charger les annonces de l'utilisateur
-    public ICommand LoadMesAnnoncesCommand { get; }
-    // Commandes pour la modification et la suppression (renommées pour correspondre au XAML)
-    public ICommand EditAnnonceCommand { get; }
-    public ICommand DeleteAnnonceCommand { get; }
-    // Commande pour naviguer vers les conversations de l'utilisateur
-    public ICommand GoToConversationsCommand { get; }
-    // Commande pour naviguer vers la page de modification du profil
-    public ICommand EditProfileCommand { get; }
-    // Commande pour booster une annonce
-    public ICommand BoostAnnonceCommand { get; }
-    
-    // Nouvelles commandes pour l'accès rapide
-    public ICommand NavigateToMapCommand { get; }
-    public ICommand NavigateToTransactionsCommand { get; }
-    
-    // Propriétés pour le sélecteur de thème
-    public string CurrentThemeName => _themeService.GetThemeDisplayName();
-    public string CurrentThemeIcon => _themeService.GetThemeIcon();
-    public List<string> AvailableThemes { get; } = new List<string> { "Mode clair", "Mode sombre", "Automatique" };
-    
-    // Commande pour changer le thème
-    public ICommand ChangeThemeCommand { get; }
-    
-    // Commande pour supprimer le compte utilisateur
-    public ICommand DeleteAccountCommand { get; }
-    
 
     // Constructeur avec injection des services uniquement
-    public ProfilViewModel(AuthService authService, FirebaseService firebaseService, PremiumFeaturesViewModel premiumFeaturesViewModel, ThemeService themeService, ILogger<ProfilViewModel> logger, IServiceProvider serviceProvider)
+    public ProfilViewModel(AuthService authService, FirebaseService firebaseService,
+        PremiumFeaturesViewModel premiumFeaturesViewModel, ThemeService themeService, ILogger<ProfilViewModel> logger,
+        IServiceProvider serviceProvider)
     {
         _authService = authService;
         _firebaseService = firebaseService;
@@ -82,7 +40,7 @@ public class ProfilViewModel : BaseViewModel
         _themeService = themeService; // Injection du service de gestion des thèmes
         _logger = logger;
         _serviceProvider = serviceProvider;
-        
+
         // Initialisation avec des valeurs par défaut
         _userEmail = string.Empty;
         _userProfile = new UserProfile
@@ -110,13 +68,71 @@ public class ProfilViewModel : BaseViewModel
         // Initialisation des nouvelles commandes pour l'accès rapide
         NavigateToMapCommand = new Command(async void () => await OnNavigateToMap());
         NavigateToTransactionsCommand = new Command(async void () => await OnNavigateToTransactions());
+        NavigateToRewardsCommand = new Command(async void () => await OnNavigateToRewards());
         // Initialisation de la commande pour supprimer le compte
         DeleteAccountCommand = new Command(async void () => await OnDeleteAccount());
+        // Initialisation de la commande pour faire un don au développeur
+        DonateToDevCommand = new Command(async void () => await OnDonateToDevAsync());
 
         _ = LoadUserProfile();
         // Exécute la commande pour charger les annonces au démarrage du ViewModel
         LoadMesAnnoncesCommand.Execute(null);
     }
+
+    public string UserEmail // Propriété pour stocker l'email de l'utilisateur
+    {
+        get => _userEmail;
+        set => SetProperty(ref _userEmail, value);
+    }
+
+
+    public UserProfile UserProfile
+    {
+        get => _userProfile;
+        private set => SetProperty(ref _userProfile, value);
+    }
+
+    // Collection pour stocker les annonces de l'utilisateur
+    public ObservableCollection<Annonce> MesAnnonces { get; }
+
+    // Commande pour la déconnexion
+    public ICommand SignOutCommand { get; }
+
+    // Commande pour charger les annonces de l'utilisateur
+    public ICommand LoadMesAnnoncesCommand { get; }
+
+    // Commandes pour la modification et la suppression (renommées pour correspondre au XAML)
+    public ICommand EditAnnonceCommand { get; }
+
+    public ICommand DeleteAnnonceCommand { get; }
+
+    // Commande pour naviguer vers les conversations de l'utilisateur
+    public ICommand GoToConversationsCommand { get; }
+
+    // Commande pour naviguer vers la page de modification du profil
+    public ICommand EditProfileCommand { get; }
+
+    // Commande pour booster une annonce
+    public ICommand BoostAnnonceCommand { get; }
+
+    // Nouvelles commandes pour l'accès rapide
+    public ICommand NavigateToMapCommand { get; }
+    public ICommand NavigateToTransactionsCommand { get; }
+    public ICommand NavigateToRewardsCommand { get; }
+
+    // Propriétés pour le sélecteur de thème
+    public string CurrentThemeName => _themeService.GetThemeDisplayName();
+    public string CurrentThemeIcon => _themeService.GetThemeIcon();
+    public List<string> AvailableThemes { get; } = new List<string> { "Mode clair", "Mode sombre", "Automatique" };
+
+    // Commande pour changer le thème
+    public ICommand ChangeThemeCommand { get; }
+
+    // Commande pour supprimer le compte utilisateur
+    public ICommand DeleteAccountCommand { get; }
+
+    // Commande pour faire un don au développeur
+    public ICommand DonateToDevCommand { get; }
 
     private async Task OnBoostAnnonce(Annonce? annonce) // Méthode pour booster une annonce
     {
@@ -138,13 +154,14 @@ public class ProfilViewModel : BaseViewModel
             try
             {
                 IsBusy = true;
-                
+
                 // Utiliser un crédit de boost
                 _premiumFeaturesViewModel.UseBoostCredit();
-                
+
                 // Appeler le service pour mettre à jour l'annonce dans Firebase
                 await _firebaseService.BoostAnnonceAsync(annonce.Id);
-                await Shell.Current.DisplayAlert("Succès !", "Votre annonce a été boostée et sera mise en avant.", "Génial !");
+                await Shell.Current.DisplayAlert("Succès !", "Votre annonce a été boostée et sera mise en avant.",
+                    "Génial !");
             }
             catch (Exception ex)
             {
@@ -205,7 +222,8 @@ public class ProfilViewModel : BaseViewModel
         }
         catch (UnauthorizedAccessException)
         {
-            System.Diagnostics.Debug.WriteLine("[ProfilViewModel] Utilisateur non authentifié, chargement des annonces ignoré.");
+            System.Diagnostics.Debug.WriteLine(
+                "[ProfilViewModel] Utilisateur non authentifié, chargement des annonces ignoré.");
             // Silencieux: ne pas afficher d'alerte pour ce cas
         }
         catch (Exception ex)
@@ -227,7 +245,8 @@ public class ProfilViewModel : BaseViewModel
         if (annonce == null!) return;
 
         // Demande de confirmation à l'utilisateur
-        bool confirm = await Application.Current?.MainPage?.DisplayAlert("Confirmer", $"Êtes-vous sûr de vouloir supprimer l'annonce \"{annonce.Titre}\" ?", "Oui", "Non")!;
+        bool confirm = await Application.Current?.MainPage?.DisplayAlert("Confirmer",
+            $"Êtes-vous sûr de vouloir supprimer l'annonce \"{annonce.Titre}\" ?", "Oui", "Non")!;
 
         if (confirm)
         {
@@ -238,9 +257,10 @@ public class ProfilViewModel : BaseViewModel
                 // Supprime l'annonce de la liste affichée
                 MesAnnonces.Remove(annonce);
             }
-            catch (Exception )
+            catch (Exception)
             {
-                await Application.Current.MainPage.DisplayAlert("Erreur", "Une erreur est survenue lors de la suppression.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Erreur",
+                    "Une erreur est survenue lors de la suppression.", "OK");
             }
         }
     }
@@ -292,19 +312,20 @@ public class ProfilViewModel : BaseViewModel
             else
             {
                 // Si aucun profil n'est trouvé, initialiser avec des valeurs par défaut sans sauvegarder dans Firebase.
-                UserProfile = new UserProfile 
-                { 
-                    Id = userId, 
-                    Name = "Utilisateur", 
-                    Email = await _authService.GetUserEmailAsync() ?? string.Empty, 
-                    ProfilePictureUrl = "default_profile_icon.png" 
+                UserProfile = new UserProfile
+                {
+                    Id = userId,
+                    Name = "Utilisateur",
+                    Email = await _authService.GetUserEmailAsync(),
+                    ProfilePictureUrl = "default_profile_icon.png"
                 };
                 UserEmail = UserProfile.Email;
             }
         }
         else
         {
-            UserProfile = new UserProfile { Name = "Utilisateur inconnu", ProfilePictureUrl = "default_profile_icon.png" };
+            UserProfile = new UserProfile
+                { Name = "Utilisateur inconnu", ProfilePictureUrl = "default_profile_icon.png" };
             UserEmail = string.Empty;
         }
     }
@@ -368,6 +389,19 @@ public class ProfilViewModel : BaseViewModel
         }
     }
 
+    private async Task OnNavigateToRewards() // Méthode pour naviguer vers les récompenses
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(RewardsPage));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers les récompenses");
+            await Application.Current.MainPage.DisplayAlert("Erreur", "Impossible d'accéder aux récompenses.", "OK");
+        }
+    }
+
     private async Task OnDeleteAccount() // Méthode pour supprimer le compte utilisateur
     {
         // Confirmation de l'utilisateur avec un second avertissement
@@ -428,7 +462,8 @@ public class ProfilViewModel : BaseViewModel
                     // Vérification avant d'afficher l'alerte
                     if (true)
                     {
-                        await Shell.Current.DisplayAlert("✅ Compte supprimé", "Votre compte et toutes vos données ont été supprimés avec succès.", "OK");
+                        await Shell.Current.DisplayAlert("✅ Compte supprimé",
+                            "Votre compte et toutes vos données ont été supprimés avec succès.", "OK");
                     }
                 }
                 catch (Exception navEx)
@@ -449,11 +484,32 @@ public class ProfilViewModel : BaseViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la suppression du compte utilisateur");
-            await Shell.Current.DisplayAlert("❌ Erreur", "Une erreur est survenue lors de la suppression de votre compte. Veuillez réessayer plus tard.", "OK");
+            await Shell.Current.DisplayAlert("❌ Erreur",
+                "Une erreur est survenue lors de la suppression de votre compte. Veuillez réessayer plus tard.", "OK");
         }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Affiche le popup de donation pour soutenir le développeur
+    /// </summary>
+    private async Task OnDonateToDevAsync()
+    {
+        try
+        {
+            var donationPopup = new DonationPopup();
+            await Shell.Current.Navigation.PushModalAsync(donationPopup, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de l'ouverture du popup de donation");
+            await Shell.Current.DisplayAlert(
+                "Erreur",
+                "Impossible d'ouvrir la page de donation. Veuillez réessayer.",
+                "OK");
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿﻿using System;
 using CommunityToolkit.Maui;
 using DonTroc.Services;
 using DonTroc.ViewModels;
@@ -15,6 +15,7 @@ using Syncfusion.Maui.Core.Hosting;
 #if ANDROID
 using Plugin.Firebase.Bundled.Platforms.Android;
 #endif
+
 #if IOS
 using Plugin.Firebase.Bundled.Platforms.iOS;
 #endif
@@ -52,12 +53,14 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("Poppins-Regular.ttf", "PoppinsRegular");
+                fonts.AddFont("Poppins-Bold.ttf", "PoppinsBold");
             })
             .ConfigureMauiHandlers(handlers =>
             {
 #if ANDROID
                 // Enregistrer le handler personnalisé pour AdBannerView sur Android
-                handlers.AddHandler<DonTroc.Views.AdBannerView, DonTroc.Platforms.Android.AdMobBannerHandler>();
+                handlers.AddHandler<DonTroc.Views.AdBannerView, AdMobBannerHandler>();
 #endif
             });
 
@@ -80,7 +83,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<CacheService>();
         builder.Services.AddSingleton<ThemeService>();
         builder.Services.AddSingleton<PerformanceService>();
-        
+
         // Services externes (doivent être enregistrés avant FirebaseService)
         builder.Services.AddSingleton<CloudinaryConfigService>();
         builder.Services.AddSingleton<SecureCloudinaryService>();
@@ -102,6 +105,9 @@ public static class MauiProgram
 
         // Autres services
         builder.Services.AddSingleton<GamificationService>();
+        builder.Services.AddSingleton<IGamificationService>(sp => sp.GetRequiredService<GamificationService>());
+        builder.Services.AddSingleton<QuizService>();
+        builder.Services.AddSingleton<IQuizService>(sp => sp.GetRequiredService<QuizService>());
         builder.Services.AddSingleton<NotificationService>();
         builder.Services.AddSingleton<PushNotificationService>();
         builder.Services.AddSingleton<SmartNotificationService>();
@@ -121,8 +127,8 @@ public static class MauiProgram
 #if ANDROID
         // Service pour les notifications Push FCM
         builder.Services.AddSingleton<FcmService>();
-        builder.Services.AddSingleton<IFirebaseCloudMessagingDelegate>(
-            provider => provider.GetRequiredService<FcmService>());
+        builder.Services.AddSingleton<IFirebaseCloudMessagingDelegate>(provider =>
+            provider.GetRequiredService<FcmService>());
 #endif
 
         // ViewModels (enregistrés en tant que transitoires pour un cycle de vie propre)
@@ -145,6 +151,9 @@ public static class MauiProgram
         builder.Services.AddTransient<BaseViewModel>();
         builder.Services.AddTransient<PremiumFeaturesViewModel>();
         builder.Services.AddTransient<ModerationViewModel>();
+        builder.Services.AddTransient<RewardsViewModel>();
+        builder.Services.AddTransient<QuizViewModel>();
+        builder.Services.AddTransient<WheelOfFortuneViewModel>();
 
         // Vues
         builder.Services.AddSingleton<MainPage>();
@@ -165,6 +174,9 @@ public static class MauiProgram
         builder.Services.AddTransient<MapView>();
         builder.Services.AddTransient<ImageViewerView>();
         builder.Services.AddTransient<ModerationPage>();
+        builder.Services.AddTransient<RewardsPage>();
+        builder.Services.AddTransient<QuizPage>();
+        builder.Services.AddTransient<WheelOfFortunePage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

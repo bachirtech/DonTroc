@@ -2,6 +2,24 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "build-android-debug",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"${workspaceFolder}/DonTroc/DonTroc.csproj",
+				"-f",
+				"net8.0-android",
+				"-c",
+				"Debug"
+			],
+			"problemMatcher": "$msCompile",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
 			"type": "maui",
 			"problemMatcher": [
 				"$msCompile",

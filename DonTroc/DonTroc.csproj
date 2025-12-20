@@ -7,8 +7,10 @@
 	<Import Project="ExcludeUMP.targets" Condition="Exists('ExcludeUMP.targets')" />
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- Cible Android uniquement pour éviter les erreurs de signature iOS sans certificats -->
+		<!-- Pour activer iOS/MacCatalyst : remplacer par net9.0-android;net9.0-ios;net9.0-maccatalyst -->
+		<TargetFrameworks>net9.0-android</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<NoWarn>$(NoWarn);NU1603</NoWarn>
 
 		<OutputType>Exe</OutputType>
@@ -33,7 +35,7 @@
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
 		<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
-		<ApplicationVersion>3</ApplicationVersion>
+		<ApplicationVersion>9</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -41,17 +43,24 @@
 
 		<!-- Versions minimales des plateformes - Mise à jour pour compatibilité AdMob -->
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
+		<!-- API cible 35 requis par Google Play depuis août 2024 -->
+		<AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 
 	<!-- Configuration du trimming (par défaut pour Android et iOS) -->
-	<PublishTrimmed>false</PublishTrimmed>
+		<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">false</PublishTrimmed>
+	<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">true</PublishTrimmed>
+	<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">true</PublishTrimmed>
 	<TrimMode>full</TrimMode>
 	<EnableCompressionInSingleFile Condition="'$(Configuration)' == 'Release'">false</EnableCompressionInSingleFile>
 	<!-- Désactiver le trimming des ressources satellites pour éviter les erreurs XA8000 et XABBA7023 -->
 	<TrimmerSingleWarn>false</TrimmerSingleWarn>
+		<!-- Configuration MtouchLink pour iOS et MacCatalyst -->
+		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">SdkOnly</MtouchLink>
+	<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">SdkOnly</MtouchLink>
 
 		<!-- Optimisations de performance pour Release (simplifiées) -->
 		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
@@ -60,8 +69,8 @@
 		<GenerateDocumentationFile>false</GenerateDocumentationFile>
 
 		<!-- Configuration spécifique pour les permissions Android -->
-		<AndroidManifestMerger Condition="'$(TargetFramework)' == 'net8.0-android'">manifestmerger</AndroidManifestMerger>
-		<AndroidEnableMultiDex Condition="'$(TargetFramework)' == 'net8.0-android'">true</AndroidEnableMultiDex>
+		<AndroidManifestMerger Condition="'$(TargetFramework)' == 'net9.0-android'">manifestmerger</AndroidManifestMerger>
+		<AndroidEnableMultiDex Condition="'$(TargetFramework)' == 'net9.0-android'">true</AndroidEnableMultiDex>
 
 		<!-- Propriétés de signature chargées depuis un fichier externe -->
 		<!-- COMMENTÉ POUR DEBUG: Pas besoin de mots de passe de signature en mode Debug -->
@@ -95,9 +104,13 @@
 		<AndroidEnableMultiDex>true</AndroidEnableMultiDex>
 	</PropertyGroup>
 
-	<!-- Configuration pour Release uniquement -->
+	<!-- Configuration pour Release uniquement - Optimisée pour test interne -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<!-- API cible 35 requis par Google Play (obligatoire depuis août 2024) -->
+		<AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
+		
+		<!-- AAB pour Google Play Store (requis pour les nouvelles apps) -->
+		<AndroidPackageFormat>aab</AndroidPackageFormat>
 		<AndroidUseAapt2>true</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
 		
@@ -107,18 +120,23 @@
 		
 		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
 		
-		<!-- Désactiver le linking agressif -->
-		<AndroidLinkMode>None</AndroidLinkMode>
+		<!-- Linking SdkOnly : supprime le code non utilisé du SDK mais garde tout le code app -->
+		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
 		
-		<!-- Désactiver complètement le trimming pour éviter les erreurs XABBA7023 -->
-		<PublishTrimmed>false</PublishTrimmed>
-		<TrimMode>full</TrimMode>
+		<!-- Trimming ACTIVÉ (requis pour AOT) avec mode conservateur -->
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>partial</TrimMode>
+		<TrimmerDefaultAction>link</TrimmerDefaultAction>
 		
-		<!-- Désactiver AOT -->
-		<RunAOTCompilation>false</RunAOTCompilation>
+		<!-- AOT ACTIVÉ : Améliore les performances de démarrage et d'exécution -->
+		<!-- Utilise le profil AOT par défaut pour un bon équilibre taille/performance -->
+		<RunAOTCompilation>true</RunAOTCompilation>
+		<AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+		<!-- LLVM désactivé : plus stable, AOT standard suffit -->
 		<EnableLLVM>false</EnableLLVM>
 		
-		<!-- Désactiver ProGuard/R8 complètement -->
+		<!-- ProGuard DÉSACTIVÉ : évite les crashs avec Firebase/MAUI/Reflection -->
+		<!-- R8 fait déjà l'optimisation DEX, ProGuard n'est pas nécessaire -->
 		<AndroidEnableProguard>false</AndroidEnableProguard>
 		<AndroidR8IgnoreWarnings>true</AndroidR8IgnoreWarnings>
 		
@@ -128,16 +146,17 @@
 	</PropertyGroup>
 
 	<!-- Configuration de signature pour la production Android -->
-	<PropertyGroup Condition=" '$(Configuration)' == 'Release' AND '$(TargetFramework)' == 'net8.0-android' ">
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' AND '$(TargetFramework)' == 'net9.0-android' ">
 		<AndroidKeyStore>true</AndroidKeyStore>
 		<AndroidSigningKeyStore>$(MSBuildProjectDirectory)/../keystore/dontroc-release.keystore</AndroidSigningKeyStore>
 		<AndroidSigningKeyAlias>dontroc</AndroidSigningKeyAlias>
-		<!-- Utiliser les variables d'environnement en priorité, sinon fallback -->
-		<AndroidSigningStorePassword Condition="'$(AndroidSigningStorePassword)' == ''">$(StorePass)</AndroidSigningStorePassword>
-		<AndroidSigningKeyPassword Condition="'$(AndroidSigningKeyPassword)' == ''">$(KeyPass)</AndroidSigningKeyPassword>
-		<!-- Variables d'environnement pour éviter les erreurs KeyPass -->
-		<KeyPass Condition="'$(KeyPass)' == ''">DonTroc2024!1007</KeyPass>
-		<StorePass Condition="'$(StorePass)' == ''">DonTroc2024!1007</StorePass>
+		<!-- SÉCURITÉ: Utiliser des variables d'environnement pour les mots de passe -->
+		<!-- Définir avant le build: export DONTROC_KEYSTORE_PASS="VotreMotDePasse" -->
+		<AndroidSigningStorePass Condition="'$(DONTROC_KEYSTORE_PASS)' != ''">$(DONTROC_KEYSTORE_PASS)</AndroidSigningStorePass>
+		<AndroidSigningKeyPass Condition="'$(DONTROC_KEY_PASS)' != ''">$(DONTROC_KEY_PASS)</AndroidSigningKeyPass>
+		<!-- Fallback pour le développement local (à supprimer en production) -->
+		<AndroidSigningStorePass Condition="'$(AndroidSigningStorePass)' == ''">$(KeyStorePassword)</AndroidSigningStorePass>
+		<AndroidSigningKeyPass Condition="'$(AndroidSigningKeyPass)' == ''">$(KeyPassword)</AndroidSigningKeyPass>
 	</PropertyGroup>
 
 	<!-- Configuration par défaut pour la clé Google Maps (doit être remplacée par la vraie clé) -->
@@ -162,10 +181,9 @@
 	</Target>
 
 	<!-- Configuration de sécurité renforcée pour Android -->
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
-		<!-- Sécurité réseau -->
-		<AndroidUseHttpClientHandler>true</AndroidUseHttpClientHandler>
-		<AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+		<!-- Note: AndroidHttpClientHandlerType supprimé car obsolète dans .NET 9 -->
+		<!-- .NET 9 utilise automatiquement le meilleur handler HTTP disponible -->
 
 		<!-- Sécurisation des ressources -->
 		<AndroidResgenExtraArgs>--auto-add-overlay</AndroidResgenExtraArgs>
@@ -210,67 +228,46 @@
 
 	<!-- Packages NuGet optimisés pour la production -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" Condition="'$(Configuration)' == 'Debug'" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.20" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" Condition="'$(Configuration)' == 'Debug'" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
 		<PackageReference Include="FirebaseAuthentication.net" Version="4.1.0" />
 		<PackageReference Include="FirebaseDatabase.net" Version="4.2.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Maui.Controls.Core" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.100" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls.Core" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Maui.Graphics" Version="9.0.40" />
 		<PackageReference Include="Plugin.Firebase" Version="3.1.4" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
 		<PackageReference Include="Syncfusion.Maui.Core" Version="31.1.21" />
 		<PackageReference Include="Syncfusion.Maui.ImageEditor" Version="31.1.21" />
-		<PackageReference Include="System.Text.Json" Version="9.0.9" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 		<PackageReference Include="CloudinaryDotNet" Version="1.27.7" />
-		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="8.0.100" />
+		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="9.0.40" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
 		
 	</ItemGroup>
 
 	<!-- Packages spécifiques à Android -->
-	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
-		<!-- Forcer des versions cohérentes des packages AndroidX pour éviter les conflits -->
-		<!-- IMPORTANT : Activity en premier pour avoir la priorité sur les dépendances transitives -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+		<!-- SkiaSharp pour le rendu graphique -->
 		<PackageReference Include="SkiaSharp" Version="3.119.1" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
-		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.9.1" />
-		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.9.1" />
-		
-		<!-- Collection 1.4.2 requis par Activity 1.9.1 -->
-		<PackageReference Include="Xamarin.AndroidX.Collection" Version="1.4.2" />
-		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.4.2" />
-		<PackageReference Include="Xamarin.AndroidX.Collection.Jvm" Version="1.4.2" />
-		
-		<!-- Forcer une version unique et cohérente des packages Lifecycle - Version 2.8.4 requise par Activity 1.9.1 -->
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.8.4" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.8.4" />
-		
-		<!-- AdMob version 120.4.0 - Version stable compatible avec nos callbacks -->
-		<!-- Cette version utilise les signatures classiques des callbacks -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="120.4.0" />
-		
-		<!-- User Messaging Platform DÉSACTIVÉ - Package non disponible pour .NET MAUI 8 -->
-		<!-- Pour la gestion du consentement GDPR, utilisez une implémentation personnalisée -->
-		<!-- <PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="2.2.0" /> -->
-		
-		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.4.0" />
 
-		<!-- Forcer l'inclusion des ressources SkiaSharp -->
+		<!-- AdMob - MAUI gère automatiquement les dépendances AndroidX transitives -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="120.4.0" />
+		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.4.0" />
 	</ItemGroup>
+
+	<!-- Désactiver les warnings de downgrade de packages pour éviter les conflits transitifs -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+		<NoWarn>$(NoWarn);NU1605</NoWarn>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
@@ -304,7 +301,7 @@
 	</ItemGroup>
 
 	<!-- Configuration des services Google -->
-	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 		<GoogleServicesJson Include="Platforms\Android\google-services.json" />
 		<!-- Configuration Firebase Crashlytics Build Tools -->
 		<AndroidJavaLibrary Include="Platforms\Android\firebase-crashlytics-buildtools.jar" Condition="Exists('Platforms\Android\firebase-crashlytics-buildtools.jar')" />
@@ -328,7 +325,7 @@
 		<!-- <AndroidResource Include="**\*.axml" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" /> -->
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
 		<BundleResource Include="Platforms/iOS/GoogleService-Info.plist" />
 		<LinkDescription Include="Platforms/iOS/Linker.xml" />
 	</ItemGroup>
@@ -362,6 +359,8 @@
 
 	<!-- Configuration spécifique pour Debug iOS -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios'))">
+		<!-- iOS exige PublishTrimmed=true - MtouchLink=None désactive le trimming pour tous les assemblies -->
+		<PublishTrimmed>true</PublishTrimmed>
 		<MtouchLink>None</MtouchLink>
 		<MtouchDebug>true</MtouchDebug>
 		<MtouchUseLlvm>false</MtouchUseLlvm>
@@ -378,7 +377,9 @@
 
 	<!-- Configuration spécifique pour Release iOS -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-ios'))">
-		<MtouchLink>SdkOnly</MtouchLink>
+		<!-- iOS exige PublishTrimmed=true - MtouchLink=None désactive le trimming pour tous les assemblies -->
+		<PublishTrimmed>true</PublishTrimmed>
+		<MtouchLink>None</MtouchLink>
 		<MtouchDebug>false</MtouchDebug>
 		<MtouchUseLlvm>true</MtouchUseLlvm>
 		<MtouchFloat32>true</MtouchFloat32>
@@ -389,12 +390,10 @@
 	</PropertyGroup>
 
 	<!-- Configuration spécifique pour MacCatalyst - OBLIGATOIRE -->
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-maccatalyst'">
-		<!-- MacCatalyst exige PublishTrimmed=true, mais on peut désactiver le trimming avec MtouchLink=None -->
-		<PublishTrimmed Condition="'$(Configuration)' != 'Debug'">true</PublishTrimmed>
-		<PublishTrimmed Condition="'$(Configuration)' == 'Debug'">true</PublishTrimmed>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-maccatalyst'">
+		<!-- MacCatalyst exige PublishTrimmed=true - MtouchLink=None désactive le trimming pour tous les assemblies -->
+		<PublishTrimmed>true</PublishTrimmed>
 		<MtouchLink>None</MtouchLink>
-		<TrimMode Condition="'$(Configuration)' != 'Debug'">partial</TrimMode>
 		<!-- Désactiver l'optimisation pour éviter les problèmes -->
 		<EnableLLVMCompiler>false</EnableLLVMCompiler>
 		<UseInterpreter>false</UseInterpreter>

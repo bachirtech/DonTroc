@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace DonTroc.Models;
 
@@ -13,8 +15,14 @@ public enum StatutAnnonce
 }
 
 // Modèle de données pour une annonce
-public class Annonce
+public class Annonce : INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+    
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
     // Identifiant unique de l'annonce (généré par Firebase)
     public string Id { get; set; } = string.Empty;
 
@@ -107,7 +115,19 @@ public class Annonce
     public StatutAnnonce Statut { get; set; } = StatutAnnonce.Disponible;
     
     // Propriété pour indiquer si l'annonce est en favoris (pour l'UI)
-    public bool IsFavorite { get; set; } = false;
+    private bool _isFavorite = false;
+    public bool IsFavorite 
+    { 
+        get => _isFavorite;
+        set
+        {
+            if (_isFavorite != value)
+            {
+                _isFavorite = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     // Nombre de vues de l'annonce
     public int NombreVues { get; set; } = 0;

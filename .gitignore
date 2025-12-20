@@ -28,6 +28,9 @@ keystore/*.jks
 google-services.json
 GoogleService-Info.plist
 firebase_private_key.json
+dontroc-55570-*.json
+Local.Build.props
+**/Local.Build.props
 
 # Clés API et secrets
 *.key

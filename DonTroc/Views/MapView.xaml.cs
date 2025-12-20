@@ -18,7 +18,7 @@ namespace DonTroc.Views
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = _viewModel;
-            
+
             // Initialiser les événements et la carte
             InitializeMapEvents();
         }
@@ -26,10 +26,10 @@ namespace DonTroc.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            
+
             // Initialiser le ViewModel quand la page apparaît
             await _viewModel.InitializeAsync();
-            
+
             // Mettre à jour les pins sur la carte
             UpdateMapPins();
         }
@@ -38,7 +38,7 @@ namespace DonTroc.Views
         {
             // S'abonner aux changements du ViewModel
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-            
+
             // S'abonner aux changements de la collection d'annonces
             if (_viewModel.NearbyAnnouncements != null)
             {
@@ -63,6 +63,7 @@ namespace DonTroc.Views
                     {
                         _viewModel.NearbyAnnouncements.CollectionChanged += OnAnnouncementsChanged;
                     }
+
                     break;
             }
         }
@@ -95,7 +96,7 @@ namespace DonTroc.Views
             GoogleMap.Pins.Clear();
 
             // Ajouter des pins pour chaque annonce
-            foreach (var annonce in _viewModel.NearbyAnnouncements ?? new System.Collections.ObjectModel.ObservableCollection<Annonce>())
+            foreach (var annonce in _viewModel.NearbyAnnouncements)
             {
                 // Vérifier que les coordonnées sont valides et non nulles
                 if (!annonce.Latitude.HasValue || !annonce.Longitude.HasValue)
@@ -114,7 +115,7 @@ namespace DonTroc.Views
 
                 // Personnaliser l'apparence selon le type d'annonce
                 pin.MarkerClicked += (s, args) => OnPinClicked(annonce);
-                
+
                 GoogleMap.Pins.Add(pin);
             }
 
@@ -128,7 +129,7 @@ namespace DonTroc.Views
                     Type = PinType.Generic,
                     Location = new Location(_viewModel.UserLocation.Latitude, _viewModel.UserLocation.Longitude)
                 };
-                
+
                 GoogleMap.Pins.Add(userPin);
             }
         }
@@ -137,7 +138,7 @@ namespace DonTroc.Views
         {
             // Créer le texte de distance formaté
             string distanceText = FormatDistance(annonce.DistanceFromUser);
-            
+
             // Afficher les détails de l'annonce dans une popup
             var action = await DisplayActionSheet(
                 $"{annonce.Titre}",
@@ -168,22 +169,22 @@ namespace DonTroc.Views
         {
             if (!distance.HasValue || distance == double.MaxValue)
                 return "Distance inconnue";
-                
+
             if (distance < 1)
                 return $"{(int)(distance * 1000)} m"; // Afficher en mètres si < 1km
-                
+
             return $"{distance:F1} km";
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            
+
             // Se désabonner des événements pour éviter les fuites mémoire
             if (_viewModel != null)
             {
                 _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-                
+
                 if (_viewModel.NearbyAnnouncements != null)
                 {
                     _viewModel.NearbyAnnouncements.CollectionChanged -= OnAnnouncementsChanged;

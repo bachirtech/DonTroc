@@ -8,19 +8,20 @@ namespace DonTroc.Services
 {
     public class FileLoggerService
     {
-        private readonly string _logFilePath;
         private readonly string? _externalLogFilePath;
+        private readonly string _logFilePath;
 
         public FileLoggerService()
         {
-            var appData = FileSystem.AppDataDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var appData = FileSystem.AppDataDirectory;
             _logFilePath = Path.Combine(appData, "dontroc_crash.log");
 
 #if ANDROID
             try
             {
                 // Tenter d'écrire également dans le dossier public Téléchargements pour faciliter adb pull
-                var downloads = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
+                var downloads = Android.OS.Environment
+                    .GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
                 if (!string.IsNullOrEmpty(downloads))
                 {
                     _externalLogFilePath = Path.Combine(downloads, "dontroc_crash.log");

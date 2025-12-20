@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Fichier: DonTroc/Views/DonationPopup.xaml -->
+<!-- Popup élégant pour faire un don au développeur -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DonTroc.Views.DonationPopup"
+             BackgroundColor="Transparent"
+             Shell.PresentationMode="ModalAnimated">
+    
+    <Grid BackgroundColor="#80000000" 
+          Padding="20"
+          RowDefinitions="*">
+        <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                StrokeShape="RoundRectangle 20"
+                Stroke="Transparent"
+                Padding="20"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                MaximumWidthRequest="400"
+                MaximumHeightRequest="650">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,4" Radius="15" Opacity="0.3"/>
+            </Border.Shadow>
+            
+            <ScrollView VerticalScrollBarVisibility="Always">
+                <VerticalStackLayout Spacing="12">
+                    
+                    <!-- Bouton fermer -->
+                    <Button Text="✕"
+                            BackgroundColor="Transparent"
+                            TextColor="{AppThemeBinding Light=#888888, Dark=#AAAAAA}"
+                            FontSize="18"
+                            HorizontalOptions="End"
+                            WidthRequest="35"
+                            HeightRequest="35"
+                            Padding="0"
+                            Clicked="OnCloseClicked"/>
+
+                    <!-- Icône et titre -->
+                    <StackLayout HorizontalOptions="Center" Spacing="10">
+                        <Label Text="❤️"
+                               FontSize="50"
+                               HorizontalOptions="Center"/>
+
+                        <Label Text="Soutenir le développeur"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                               HorizontalOptions="Center"/>
+                    </StackLayout>
+
+                    <!-- Message de gratitude -->
+                    <Label Text="Merci de votre intérêt pour DonTroc ! Votre soutien aide à maintenir l'application gratuite et à ajouter de nouvelles fonctionnalités."
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#333333, Dark=#E0E0E0}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,0,0,10"/>
+
+                    <!-- Séparateur -->
+                    <BoxView HeightRequest="1"
+                             Color="{AppThemeBinding Light=#E0E0E0, Dark=#444444}"
+                             Margin="0,5"/>
+
+                    <!-- Options de don -->
+                    <Label Text="Choisissez votre méthode de soutien :"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#333333, Dark=#E0E0E0}"
+                           HorizontalOptions="Center"/>
+
+                    <!-- Info: Pas de compte requis -->
+                    <Label Text="💡 Paiement simple par carte bancaire - Aucune inscription requise"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,0,0,5"/>
+
+                    <!-- Bouton Ko-fi (Carte bancaire directe) -->
+                    <Button x:Name="KofiButton"
+                            Text="☕  Ko-fi (Carte bancaire)"
+                            Clicked="OnKofiClicked"
+                            BackgroundColor="#FF5E5B"
+                            TextColor="White"
+                            CornerRadius="12"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            HeightRequest="50"
+                            Padding="15,0"/>
+
+                    <!-- Bouton PayPal -->
+                    <Button x:Name="PayPalButton"
+                            Text="🅿️  PayPal"
+                            Clicked="OnPayPalClicked"
+                            BackgroundColor="#0070BA"
+                            TextColor="White"
+                            CornerRadius="12"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            HeightRequest="50"
+                            Padding="15,0"/>
+
+                    <!-- Séparateur avec texte -->
+                    <Grid ColumnDefinitions="*,Auto,*" Margin="0,10">
+                        <BoxView Grid.Column="0" HeightRequest="1" Color="{AppThemeBinding Light=#E0E0E0, Dark=#444444}" VerticalOptions="Center"/>
+                        <Label Grid.Column="1" Text=" ou gratuitement " FontSize="12" TextColor="{AppThemeBinding Light=#888888, Dark=#AAAAAA}" VerticalOptions="Center"/>
+                        <BoxView Grid.Column="2" HeightRequest="1" Color="{AppThemeBinding Light=#E0E0E0, Dark=#444444}" VerticalOptions="Center"/>
+                    </Grid>
+
+                    <!-- Options gratuites -->
+                    <Border BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark=#14532D}"
+                            Stroke="{AppThemeBinding Light=#86EFAC, Dark=#22C55E}"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="15">
+                        <StackLayout Spacing="10">
+                            <Label Text="🌟 Aidez-nous gratuitement !"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}"
+                                   HorizontalOptions="Center"/>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Button Grid.Column="0"
+                                        Text="⭐ Noter l'app"
+                                        Clicked="OnRateAppClicked"
+                                        BackgroundColor="{AppThemeBinding Light=#22C55E, Dark=#16A34A}"
+                                        TextColor="White"
+                                        CornerRadius="8"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        Padding="8,10"
+                                        HeightRequest="45"/>
+
+                                <Button Grid.Column="1"
+                                        Text="📤 Partager"
+                                        Clicked="OnShareAppClicked"
+                                        BackgroundColor="{AppThemeBinding Light=#22C55E, Dark=#16A34A}"
+                                        TextColor="White"
+                                        CornerRadius="8"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        Padding="8,10"
+                                        HeightRequest="45"/>
+                            </Grid>
+                            
+                            <Label Text="Votre avis sur le store et vos partages nous aident énormément !"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}"
+                                   HorizontalTextAlignment="Center"
+                                   Opacity="0.8"/>
+                        </StackLayout>
+                    </Border>
+
+                    <!-- Message final -->
+                    <Label Text="Chaque geste compte, merci ! 🙏"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,10,0,5"/>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+    </Grid>
+</ContentPage>
+

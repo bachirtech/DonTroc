@@ -1,0 +1,9 @@
+{
+    "dotnet-meteor.androidSdkPath": "/Users/aa1/Library/Android/sdk",
+    "dotnet-meteor.jdkPath": "/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home",
+    "terminal.integrated.env.osx": {
+        "ANDROID_HOME": "/Users/aa1/Library/Android/sdk",
+        "ANDROID_SDK_ROOT": "/Users/aa1/Library/Android/sdk",
+        "JAVA_HOME": "/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
+    }
+}

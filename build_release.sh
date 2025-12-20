@@ -1,82 +1,62 @@
 #!/bin/bash
+set -e
 
-# Script de build et signature automatique pour DonTroc
-# Ce script compile et signe votre application pour la production
+echo "=============================================="
+echo "  DonTroc - Build AAB Signé"
+echo "  .NET 9 MAUI - Android API 35"
+echo "=============================================="
 
-set -e  # Arrêter en cas d'erreur
+PROJECT_DIR="/Users/aa1/RiderProjects/DonTroc/DonTroc"
+OUTPUT_DIR="/Users/aa1/RiderProjects/DonTroc/output"
+KEYSTORE="/Users/aa1/RiderProjects/DonTroc/keystore/dontroc-release.keystore"
+ALIAS="dontroc"
+PASS="DonTroc2024!1007"
 
-echo "🚀 Build et signature automatique de DonTroc"
-echo "============================================="
+cd "$PROJECT_DIR"
 
-# Configuration
-PROJECT_PATH="./DonTroc/DonTroc.csproj"
-SIGNING_FILE="./keystore/signing.properties"
-BUILD_CONFIG="Release"
-TARGET_FRAMEWORK="net8.0-android"
+echo ""
+echo "1. Nettoyage complet..."
+rm -rf bin obj 2>/dev/null || true
 
-# Vérifications préliminaires
-echo "🔍 Vérifications préliminaires..."
+echo ""
+echo "2. Restauration des packages..."
+/usr/local/share/dotnet/dotnet restore
 
-# Vérifier que le projet existe
-if [ ! -f "$PROJECT_PATH" ]; then
-    echo "❌ Projet non trouvé : $PROJECT_PATH"
-    exit 1
-fi
-
-# Vérifier que le keystore existe
-if [ ! -f "$SIGNING_FILE" ]; then
-    echo "❌ Configuration de signature non trouvée"
-    echo "🔧 Exécutez d'abord : ./generate_keystore.sh"
-    exit 1
-fi
-
-# Charger les variables de signature
-echo "🔐 Chargement de la configuration de signature..."
-source "$SIGNING_FILE"
-
-# Exporter les variables d'environnement pour MSBuild
-export AndroidSigningStorePassword="$AndroidSigningStorePassword"
-export AndroidSigningKeyPassword="$AndroidSigningKeyPassword"
-
-# Vérifier que les variables sont correctement chargées
-if [ -z "$AndroidSigningStorePassword" ] || [ -z "$AndroidSigningKeyPassword" ]; then
-    echo "❌ Erreur: Variables de signature non trouvées dans $SIGNING_FILE"
-    exit 1
-fi
-
-echo "✅ Configuration de signature chargée"
-
-# Nettoyer les builds précédents
-echo "🧹 Nettoyage des builds précédents..."
-dotnet clean "$PROJECT_PATH" -c "$BUILD_CONFIG" -f "$TARGET_FRAMEWORK"
-
-# Restaurer les packages NuGet
-echo "📦 Restauration des packages NuGet..."
-dotnet restore "$PROJECT_PATH"
-
-# Publier directement avec signature (sans build séparé pour éviter NETSDK1085)
-echo "📱 Publication avec signature..."
-dotnet publish "$PROJECT_PATH" \
-    -c "$BUILD_CONFIG" \
-    -f "$TARGET_FRAMEWORK" \
+echo ""
+echo "3. Compilation Release avec signature..."
+/usr/local/share/dotnet/dotnet publish \
+    -f net9.0-android \
+    -c Release \
     -p:AndroidPackageFormat=aab \
-    --no-restore
+    -p:AndroidKeyStore=true \
+    -p:AndroidSigningKeyStore="$KEYSTORE" \
+    -p:AndroidSigningKeyAlias="$ALIAS" \
+    -p:AndroidSigningStorePass="$PASS" \
+    -p:AndroidSigningKeyPass="$PASS"
 
-# Vérifier que les fichiers ont été générés
-OUTPUT_DIR="./DonTroc/bin/$BUILD_CONFIG/$TARGET_FRAMEWORK/publish"
-if [ -d "$OUTPUT_DIR" ]; then
+echo ""
+echo "4. Recherche du fichier AAB..."
+mkdir -p "$OUTPUT_DIR"
+
+AAB_FILE=$(find "$PROJECT_DIR/bin/Release" -name "*.aab" -type f 2>/dev/null | head -1)
+
+if [ -n "$AAB_FILE" ] && [ -f "$AAB_FILE" ]; then
+    cp "$AAB_FILE" "$OUTPUT_DIR/"
+    FINAL_AAB="$OUTPUT_DIR/$(basename "$AAB_FILE")"
     echo ""
-    echo "✅ Build terminé avec succès !"
-    echo "📂 Fichiers générés dans : $OUTPUT_DIR"
-    echo ""
-    ls -la "$OUTPUT_DIR"/*.aab 2>/dev/null || echo "   Recherche dans les sous-dossiers..."
-    find "$OUTPUT_DIR" -name "*.aab" -type f 2>/dev/null || echo "   Fichier AAB recherché..."
-    echo ""
-    echo "🏪 Prêt pour le Google Play Store !"
-    echo "   Uploadez le fichier .aab sur la Google Play Console"
+    echo "=============================================="
+    echo "✅ BUILD RÉUSSI!"
+    echo "=============================================="
+    echo "📁 Fichier AAB: $FINAL_AAB"
+    echo "📏 Taille: $(du -h "$FINAL_AAB" | cut -f1)"
+    ls -la "$FINAL_AAB"
 else
-    echo "❌ Erreur : Répertoire de sortie non trouvé"
-    echo "🔍 Recherche des fichiers AAB..."
-    find "./DonTroc/bin/$BUILD_CONFIG" -name "*.aab" -type f 2>/dev/null || echo "   Aucun fichier AAB trouvé"
-    exit 1
+    echo ""
+    echo "❌ Aucun fichier AAB trouvé"
+    echo "Recherche dans bin/Release/..."
+    find "$PROJECT_DIR/bin" -name "*.aab" -o -name "*.apk" 2>/dev/null
 fi
+
+echo ""
+echo "=============================================="
+

@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
@@ -11,69 +12,75 @@
 
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
         <ScrollView>
-            <VerticalStackLayout Padding="20" Spacing="20">
+            <VerticalStackLayout Padding="20,0,20,20" Spacing="20">
 
                 <!-- Bannière publicitaire en haut -->
-                <views:AdBannerView />
+                <views:AdBannerView
+                    HeightRequest="60"
+                    MinimumHeightRequest="60"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Start"
+                    BackgroundColor="LightGray"
+                    Margin="0,10,0,0" />
 
                 <!-- En-tête avec logo et message d'accueil -->
-                <Frame BackgroundColor="White" 
-                       CornerRadius="15" 
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
                        HasShadow="True"
                        Padding="20">
                     <VerticalStackLayout Spacing="15">
                         <Image Source="logotroc.png"
                                HeightRequest="120"
-                               Aspect="AspectFit"/>
-                        
+                               Aspect="AspectFit" />
+
                         <Label Text="{Binding MessageAccueil}"
                                FontSize="16"
                                TextColor="{StaticResource Ardoise}"
                                HorizontalTextAlignment="Center"
-                               FontAttributes="Bold"/>
+                               FontAttributes="Bold" />
                     </VerticalStackLayout>
                 </Frame>
 
                 <!-- Statistiques utilisateur -->
-                <Frame BackgroundColor="White" 
-                       CornerRadius="15" 
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
                        HasShadow="True"
                        Padding="20">
                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-                        
-                        <VerticalStackLayout Grid.Column="0" 
-                                           HorizontalOptions="Center"
-                                           Spacing="5">
+
+                        <VerticalStackLayout Grid.Column="0"
+                                             HorizontalOptions="Center"
+                                             Spacing="5">
                             <Label Text="{Binding NombreMesAnnonces}"
                                    FontSize="28"
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource Terracotta}"
-                                   HorizontalTextAlignment="Center"/>
+                                   HorizontalTextAlignment="Center" />
                             <Label Text="Mes annonces"
                                    FontSize="14"
                                    TextColor="{StaticResource Ardoise}"
-                                   HorizontalTextAlignment="Center"/>
+                                   HorizontalTextAlignment="Center" />
                         </VerticalStackLayout>
 
-                        <VerticalStackLayout Grid.Column="1" 
-                                           HorizontalOptions="Center"
-                                           Spacing="5">
+                        <VerticalStackLayout Grid.Column="1"
+                                             HorizontalOptions="Center"
+                                             Spacing="5">
                             <Label Text="{Binding NombreConversations}"
                                    FontSize="28"
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource VertSauge}"
-                                   HorizontalTextAlignment="Center"/>
+                                   HorizontalTextAlignment="Center" />
                             <Label Text="Conversations"
                                    FontSize="14"
                                    TextColor="{StaticResource Ardoise}"
-                                   HorizontalTextAlignment="Center"/>
+                                   HorizontalTextAlignment="Center" />
                         </VerticalStackLayout>
                     </Grid>
                 </Frame>
 
                 <!-- Actions rapides -->
-                <Frame BackgroundColor="White" 
-                       CornerRadius="15" 
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
                        HasShadow="True"
                        Padding="20">
                     <VerticalStackLayout Spacing="15">
@@ -81,8 +88,8 @@
                                FontSize="18"
                                FontAttributes="Bold"
                                TextColor="{StaticResource Ardoise}"
-                               HorizontalTextAlignment="Center"/>
-                        
+                               HorizontalTextAlignment="Center" />
+
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
                             <Button Grid.Column="0"
                                     x:Name="DonnerButton"
@@ -92,7 +99,7 @@
                                     TextColor="White"
                                     CornerRadius="25"
                                     HeightRequest="50"
-                                    FontAttributes="Bold"/>
+                                    FontAttributes="Bold" />
 
                             <Button Grid.Column="1"
                                     x:Name="ExplorerButton"
@@ -102,14 +109,14 @@
                                     TextColor="White"
                                     CornerRadius="25"
                                     HeightRequest="50"
-                                    FontAttributes="Bold"/>
+                                    FontAttributes="Bold" />
                         </Grid>
                     </VerticalStackLayout>
                 </Frame>
 
                 <!-- Section des offres récentes -->
-                <Frame BackgroundColor="White" 
-                       CornerRadius="15" 
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
                        HasShadow="True"
                        Padding="20">
                     <VerticalStackLayout Spacing="15">
@@ -119,24 +126,24 @@
                                    FontSize="18"
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource Ardoise}"
-                                   VerticalTextAlignment="Center"/>
-                            
+                                   VerticalTextAlignment="Center" />
+
                             <Button Grid.Column="1"
                                     Text="Voir tout"
                                     Command="{Binding GoToAnnoncesCommand}"
                                     BackgroundColor="Transparent"
                                     TextColor="{StaticResource Terracotta}"
                                     FontSize="14"
-                                    Padding="0"/>
+                                    Padding="0" />
                         </Grid>
 
                         <!-- Liste des annonces récentes -->
                         <CollectionView ItemsSource="{Binding AnnoncesRecentes}"
                                         HeightRequest="300">
                             <CollectionView.ItemsLayout>
-                                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+                                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
                             </CollectionView.ItemsLayout>
-                            
+
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:Annonce">
                                     <Frame BackgroundColor="{StaticResource BeigeClair}"
@@ -144,10 +151,11 @@
                                            Padding="15"
                                            HasShadow="False">
                                         <Frame.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:DashboardViewModel}}, Path=VoirAnnonceCommand}"
-                                                                  CommandParameter="{Binding .}"/>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:DashboardViewModel}}, Path=VoirAnnonceCommand}"
+                                                CommandParameter="{Binding .}" />
                                         </Frame.GestureRecognizers>
-                                        
+
                                         <Grid ColumnDefinitions="60,*,Auto" ColumnSpacing="15">
                                             <!-- Image de l'annonce ou icône par défaut -->
                                             <Frame Grid.Column="0"
@@ -162,7 +170,7 @@
                                                        TextColor="White"
                                                        HorizontalTextAlignment="Center"
                                                        VerticalTextAlignment="Center"
-                                                       FontAttributes="Bold"/>
+                                                       FontAttributes="Bold" />
                                             </Frame>
 
                                             <!-- Informations de l'annonce -->
@@ -171,18 +179,18 @@
                                                        FontSize="16"
                                                        FontAttributes="Bold"
                                                        TextColor="{StaticResource Ardoise}"
-                                                       LineBreakMode="TailTruncation"/>
-                                                
+                                                       LineBreakMode="TailTruncation" />
+
                                                 <Label Text="{Binding Description}"
                                                        FontSize="14"
                                                        TextColor="{StaticResource Ardoise}"
                                                        LineBreakMode="TailTruncation"
-                                                       MaxLines="2"/>
-                                                
+                                                       MaxLines="2" />
+
                                                 <Label Text="{Binding Categorie}"
                                                        FontSize="12"
                                                        TextColor="{StaticResource Terracotta}"
-                                                       FontAttributes="Italic"/>
+                                                       FontAttributes="Italic" />
                                             </VerticalStackLayout>
 
                                             <!-- Badge du type d'annonce -->
@@ -194,28 +202,28 @@
                                                 <Label Text="{Binding Type}"
                                                        FontSize="12"
                                                        TextColor="White"
-                                                       FontAttributes="Bold"/>
+                                                       FontAttributes="Bold" />
                                             </Frame>
                                         </Grid>
                                     </Frame>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
-                            
+
                             <!-- Message si aucune annonce -->
                             <CollectionView.EmptyView>
                                 <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
                                     <Label Text="🏷️"
                                            FontSize="50"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                     <Label Text="Aucune annonce récente"
                                            FontSize="16"
                                            TextColor="{StaticResource Ardoise}"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                     <Label Text="Soyez le premier à publier !"
                                            FontSize="14"
                                            TextColor="{StaticResource Ardoise}"
                                            HorizontalTextAlignment="Center"
-                                           FontAttributes="Italic"/>
+                                           FontAttributes="Italic" />
                                 </VerticalStackLayout>
                             </CollectionView.EmptyView>
                         </CollectionView>
@@ -223,8 +231,8 @@
                 </Frame>
 
                 <!-- Section Fonctionnalités Premium -->
-                <Frame BackgroundColor="White" 
-                       CornerRadius="15" 
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
                        HasShadow="True"
                        Padding="20">
                     <VerticalStackLayout Spacing="15">
@@ -232,16 +240,16 @@
                                FontSize="18"
                                FontAttributes="Bold"
                                TextColor="{StaticResource Terracotta}"
-                               HorizontalTextAlignment="Center"/>
-                        
+                               HorizontalTextAlignment="Center" />
+
                         <Label Text="Regardez une courte publicité pour débloquer des avantages !"
                                FontSize="14"
                                TextColor="{StaticResource Ardoise}"
-                               HorizontalTextAlignment="Center"/>
-                        
+                               HorizontalTextAlignment="Center" />
+
                         <!-- Grille des fonctionnalités premium -->
                         <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                            
+
                             <!-- Bouton pour 2h sans pub -->
                             <Frame Grid.Column="0" Grid.Row="0"
                                    BackgroundColor="{StaticResource BeigeClair}"
@@ -254,19 +262,19 @@
                                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                                     <Label Text="🚫"
                                            FontSize="24"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                     <Label Text="2h sans pub"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource Ardoise}"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                     <Label Text="📺 Regarder"
                                            FontSize="10"
                                            TextColor="{StaticResource Terracotta}"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                 </VerticalStackLayout>
                             </Frame>
-                            
+
                             <!-- Bouton pour crédits boost -->
                             <Frame Grid.Column="1" Grid.Row="0"
                                    BackgroundColor="{StaticResource BeigeClair}"
@@ -279,19 +287,19 @@
                                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                                     <Label Text="🚀"
                                            FontSize="24"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                     <Label Text="Boost annonce"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource Ardoise}"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                     <Label Text="📺 Regarder"
                                            FontSize="10"
                                            TextColor="{StaticResource Terracotta}"
-                                           HorizontalTextAlignment="Center"/>
+                                           HorizontalTextAlignment="Center" />
                                 </VerticalStackLayout>
                             </Frame>
-                            
+
                             <!-- Bouton pour statistiques -->
                             <Frame Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
                                    BackgroundColor="{StaticResource BeigeClair}"
@@ -304,33 +312,34 @@
                                 <StackLayout Orientation="Horizontal" Spacing="10" HorizontalOptions="Center">
                                     <Label Text="📊"
                                            FontSize="24"
-                                           VerticalTextAlignment="Center"/>
+                                           VerticalTextAlignment="Center" />
                                     <StackLayout Spacing="2">
                                         <Label Text="Statistiques avancées (24h)"
                                                FontSize="12"
                                                FontAttributes="Bold"
-                                               TextColor="{StaticResource Ardoise}"/>
+                                               TextColor="{StaticResource Ardoise}" />
                                         <Label Text="📺 Regarder une publicité"
                                                FontSize="10"
-                                               TextColor="{StaticResource Terracotta}"/>
+                                               TextColor="{StaticResource Terracotta}" />
                                     </StackLayout>
                                 </StackLayout>
                             </Frame>
                         </Grid>
-                        
+
                         <!-- Statut premium actuel -->
                         <Border BackgroundColor="{StaticResource VertSauge}"
                                 Stroke="{StaticResource VertSauge}"
                                 StrokeThickness="1"
                                 Padding="10,5"
                                 IsVisible="{Binding IsAdFreeActive}">
-                            <Label Text="{Binding AdFreeUntil, StringFormat=&quot;✨ Mode sans pub actif jusqu&apos;à {0:HH:mm}&quot;}"
-                                   TextColor="White"
-                                   FontSize="12"
-                                   FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
+                            <Label
+                                Text="{Binding AdFreeUntil, StringFormat=&quot;✨ Mode sans pub actif jusqu&apos;à {0:HH:mm}&quot;}"
+                                TextColor="White"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="Center" />
                         </Border>
-                        
+
                         <Border BackgroundColor="{StaticResource Terracotta}"
                                 Stroke="{StaticResource Terracotta}"
                                 StrokeThickness="1"
@@ -340,7 +349,7 @@
                                    TextColor="White"
                                    FontSize="12"
                                    FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
+                                   HorizontalTextAlignment="Center" />
                         </Border>
                     </VerticalStackLayout>
                 </Frame>

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DonTroc.ViewModels"
+             x:Class="DonTroc.Views.WheelOfFortunePage"
+             x:DataType="vm:WheelOfFortuneViewModel"
+             Title="Roue de la Fortune"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="20">
+        
+        <!-- En-tête -->
+        <VerticalStackLayout Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+            <Label Text="🎡 Roue de la Fortune"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light=#333333, Dark=#FFFFFF}"/>
+            <Label Text="Tournez la roue pour gagner des récompenses !"
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"/>
+        </VerticalStackLayout>
+        
+        <!-- Zone de la Roue -->
+        <Grid Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center">
+            
+            <!-- Roue avec segments qui tournent -->
+            <Grid x:Name="WheelContainer"
+                  WidthRequest="300"
+                  HeightRequest="300"
+                  AnchorX="0.5"
+                  AnchorY="0.5"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                
+                <!-- Fond de la roue -->
+                <Ellipse WidthRequest="300"
+                         HeightRequest="300"
+                         Fill="#FF9800"
+                         Stroke="#E65100"
+                         StrokeThickness="4"/>
+                
+                <!-- Segments de la roue (8 segments colorés) -->
+                <!-- Segment 1 - Haut (0°) -->
+                <Border BackgroundColor="#4CAF50"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        VerticalOptions="Start"
+                        HorizontalOptions="Center"
+                        Margin="0,25,0,0">
+                    <Label Text="+10 XP" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                
+                <!-- Segment 2 - Haut-Droit (45°) -->
+                <Border BackgroundColor="#8BC34A"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        Rotation="45"
+                        TranslationX="75"
+                        TranslationY="-75"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                    <Label Text="+25 XP" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" Rotation="-45"/>
+                </Border>
+                
+                <!-- Segment 3 - Droite (90°) -->
+                <Border BackgroundColor="#CDDC39"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        VerticalOptions="Center"
+                        HorizontalOptions="End"
+                        Margin="0,0,15,0">
+                    <Label Text="+50 XP" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                
+                <!-- Segment 4 - Bas-Droit (135°) -->
+                <Border BackgroundColor="#FFEB3B"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        Rotation="-45"
+                        TranslationX="75"
+                        TranslationY="75"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                    <Label Text="🎁 Bonus" FontSize="10" FontAttributes="Bold" TextColor="#333" HorizontalOptions="Center" VerticalOptions="Center" Rotation="45"/>
+                </Border>
+                
+                <!-- Segment 5 - Bas (180°) -->
+                <Border BackgroundColor="#FF9800"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        VerticalOptions="End"
+                        HorizontalOptions="Center"
+                        Margin="0,0,0,25">
+                    <Label Text="+100 XP" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                
+                <!-- Segment 6 - Bas-Gauche (225°) -->
+                <Border BackgroundColor="#FF5722"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        Rotation="45"
+                        TranslationX="-75"
+                        TranslationY="75"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                    <Label Text="+1 Boost" FontSize="10" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" Rotation="-45"/>
+                </Border>
+                
+                <!-- Segment 7 - Gauche (270°) -->
+                <Border BackgroundColor="#E91E63"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        Margin="15,0,0,0">
+                    <Label Text="x2 XP" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                
+                <!-- Segment 8 - Haut-Gauche (315°) -->
+                <Border BackgroundColor="#9C27B0"
+                        StrokeShape="RoundRectangle 8"
+                        WidthRequest="70"
+                        HeightRequest="35"
+                        Rotation="-45"
+                        TranslationX="-75"
+                        TranslationY="-75"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                    <Label Text="🍀 Chance" FontSize="10" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" Rotation="45"/>
+                </Border>
+                
+                <!-- Centre de la roue -->
+                <Ellipse WidthRequest="80"
+                         HeightRequest="80"
+                         Fill="#FFFFFF"
+                         Stroke="#E0E0E0"
+                         StrokeThickness="3"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"/>
+                
+                <Label Text="🎰"
+                       FontSize="35"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Grid>
+            
+            <!-- Indicateur (flèche) - FIXE, ne tourne pas -->
+            <Label Text="▼"
+                   FontSize="40"
+                   TextColor="#E91E63"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Start"
+                   Margin="0,-30,0,0"/>
+        </Grid>
+        
+        <!-- Zone des boutons et résultats -->
+        <VerticalStackLayout Grid.Row="2" Spacing="15">
+            
+            <!-- Résultat de la roue -->
+            <Border StrokeShape="RoundRectangle 15"
+                    BackgroundColor="{Binding ResultBackgroundColor}"
+                    Padding="20"
+                    IsVisible="{Binding ShowResult}">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <Label Text="{Binding ResultIcon}"
+                           FontSize="50"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding ResultTitle}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#333333, Dark=#FFFFFF}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding ResultMessage}"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+            </Border>
+            
+            <!-- Bouton tourner -->
+            <Button x:Name="SpinButton"
+                    Text="{Binding SpinButtonText}"
+                    Command="{Binding SpinCommand}"
+                    IsEnabled="{Binding CanSpin}"
+                    BackgroundColor="{Binding CanSpin, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#FF9800|#BDBDBD'}"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    HeightRequest="55"
+                    CornerRadius="15"
+                    Margin="0,10,0,0"/>
+            
+            <!-- Message si déjà joué -->
+            <Label Text="⏰ Revenez demain pour un nouveau tour !"
+                   IsVisible="{Binding CanSpin, Converter={StaticResource InverseBoolConverter}}"
+                   FontSize="14"
+                   TextColor="#FF9800"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+            
+            <!-- Bouton seconde chance avec pub -->
+            <Border StrokeShape="RoundRectangle 15"
+                    BackgroundColor="#4CAF50"
+                    Padding="15,10"
+                    IsVisible="{Binding CanWatchAdForSecondChance}"
+                    Margin="0,10,0,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding WatchAdForSecondChanceCommand}"/>
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                    <Label Text="🎬" FontSize="20" VerticalOptions="Center"/>
+                    <VerticalStackLayout>
+                        <Label Text="{Binding SecondChanceButtonText}"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        <Label Text="Regardez une pub pour un tour bonus !"
+                               FontSize="11"
+                               TextColor="#E8F5E9"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Bouton retour -->
+            <Button Text="← Retour"
+                    Command="{Binding CloseCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                    FontSize="14"/>
+            
+        </VerticalStackLayout>
+        
+        <!-- Indicateur de chargement pendant l'animation -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsSpinning}"
+                           IsVisible="{Binding IsSpinning}"
+                           Color="#FF9800"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+    </Grid>
+</ContentPage>
+

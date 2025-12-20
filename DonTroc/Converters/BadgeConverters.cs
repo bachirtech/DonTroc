@@ -283,9 +283,9 @@ namespace DonTroc.Converters
     }
 
     /// <summary>
-    /// Convertit un booléen en couleur
+    /// Convertit un booléen en couleur simple (vert si true, gris si false)
     /// </summary>
-    public class BoolToColorConverter : IValueConverter
+    public class BoolToSimpleColorConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
         {
@@ -675,6 +675,127 @@ namespace DonTroc.Converters
                 return !boolValue;
             }
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Convertit un index (0,1,2,3) en lettre (A,B,C,D)
+    /// </summary>
+    public class IndexToLetterConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is int index)
+            {
+                return ((char)('A' + index)).ToString();
+            }
+            return "?";
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un entier en couleur basé sur un seuil
+    /// Format du paramètre: "seuil|couleurBasse|couleurHaute"
+    /// Ex: "10|#FF5722|#4CAF50" -> rouge si < 10, vert sinon
+    /// </summary>
+    public class IntToColorConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is int intValue && parameter is string paramStr)
+            {
+                var parts = paramStr.Split('|');
+                if (parts.Length == 3 && int.TryParse(parts[0], out int threshold))
+                {
+                    var colorStr = intValue < threshold ? parts[1] : parts[2];
+                    return Color.FromArgb(colorStr);
+                }
+            }
+            return Colors.Gray;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un booléen en texte basé sur un paramètre
+    /// Format: "texteVrai|texteFaux"
+    /// </summary>
+    public class BoolToTextConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is bool boolValue && parameter is string paramStr)
+            {
+                var parts = paramStr.Split('|');
+                if (parts.Length == 2)
+                {
+                    return boolValue ? parts[0] : parts[1];
+                }
+            }
+            return string.Empty;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un booléen en couleur basé sur un paramètre
+    /// Format: "couleurVrai|couleurFaux"
+    /// Si pas de paramètre: vert si true, gris si false
+    /// </summary>
+    public class BoolToColorConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is bool boolValue)
+            {
+                // Avec paramètre format "couleurVrai|couleurFaux"
+                if (parameter is string paramStr && paramStr.Contains('|'))
+                {
+                    var parts = paramStr.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        var colorStr = boolValue ? parts[0] : parts[1];
+                        return Color.FromArgb(colorStr);
+                    }
+                }
+                // Sans paramètre : comportement par défaut
+                return boolValue ? Colors.Green : Colors.Gray;
+            }
+            return Colors.Gray;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit null en bool (true si non-null)
+    /// </summary>
+    public class NullToBoolConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            return value != null;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

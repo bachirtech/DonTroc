@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
@@ -9,108 +10,107 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource DonTrocBackground}">
 
-    
+
     <ScrollView>
         <Grid RowSpacing="0" Padding="30,0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <!-- Header avec Logo et Titre -->
-            <VerticalStackLayout Grid.Row="0" Spacing="-45" >
+            <VerticalStackLayout Grid.Row="0" Spacing="-45">
                 <Label Text="Bienvenue"
                        FontSize="40"
                        Margin="0,30,0,1"
-                       FontFamily="Comic Sans MS"
+                       FontFamily="PoppinsBold"
                        FontAttributes="Bold"
                        TextColor="#8B4513"
-                       HorizontalOptions="Center"/>
+                       HorizontalOptions="Center" />
                 <Image Source="logotroc.png"
                        HeightRequest="250"
-                       HorizontalOptions="Center"/>
-                
+                       HorizontalOptions="Center" />
+
             </VerticalStackLayout>
 
             <!-- Formulaire -->
             <VerticalStackLayout Grid.Row="1" Spacing="15" Padding="0,-27,0,1">
                 <!-- Email -->
-                <Label Text="Adresse e-mail" 
-                       FontAttributes="Bold"/>
+                <Label Text="Adresse e-mail"
+                       FontAttributes="Bold" />
                 <Border Style="{StaticResource InputContainer}">
-                    <Entry Placeholder="votre.email@exemple.com" 
-                           Keyboard="Email" 
+                    <Entry Placeholder="votre.email@exemple.com"
+                           Keyboard="Email"
                            Text="{Binding Email}"
                            ReturnType="Next">
                         <Entry.Behaviors>
-                            <behaviors:EmailValidationBehavior 
+                            <behaviors:EmailValidationBehavior
                                 InvalidStyle="{StaticResource InvalidEntryStyle}"
-                                ValidStyle="{StaticResource ValidEntryStyle}"/>
+                                ValidStyle="{StaticResource ValidEntryStyle}" />
                         </Entry.Behaviors>
                     </Entry>
                 </Border>
 
                 <!-- Mot de passe -->
-                <Label Text="Mot de passe" 
-                       FontAttributes="Bold"/>
+                <Label Text="Mot de passe"
+                       FontAttributes="Bold" />
                 <Border Style="{StaticResource InputContainer}">
                     <Grid ColumnDefinitions="*,Auto">
                         <Entry Grid.Column="0"
                                x:Name="PasswordEntry"
-                               Placeholder="********" 
-                               IsPassword="{Binding IsPasswordVisible, Converter={StaticResource InvertedBoolConverter}}" 
+                               Placeholder="********"
+                               IsPassword="{Binding IsPasswordVisible, Converter={StaticResource InvertedBoolConverter}}"
                                Text="{Binding Password}"
                                ReturnType="Done">
                             <Entry.Behaviors>
-                                <behaviors:PasswordValidationBehavior 
+                                <behaviors:PasswordValidationBehavior
                                     MinimumLength="6"
                                     InvalidStyle="{StaticResource InvalidEntryStyle}"
-                                    ValidStyle="{StaticResource ValidEntryStyle}"/>
+                                    ValidStyle="{StaticResource ValidEntryStyle}" />
                             </Entry.Behaviors>
                         </Entry>
-                        
+
                         <Button Grid.Column="1"
                                 Text="{Binding IsPasswordVisible, Converter={StaticResource PasswordVisibilityIconConverter}}"
-                                FontFamily="MaterialIcons"
                                 FontSize="20"
                                 BackgroundColor="Transparent"
                                 TextColor="{StaticResource Gray600}"
                                 Command="{Binding TogglePasswordVisibilityCommand}"
                                 Padding="10,0"
-                                VerticalOptions="Center"/>
+                                VerticalOptions="Center" />
                     </Grid>
                 </Border>
 
                 <!-- Mot de passe oublié -->
-                <Label Text="Mot de passe oublié ?" 
+                <Label Text="Mot de passe oublié ?"
                        TextColor="{StaticResource Primary}"
                        HorizontalOptions="End"
                        TextDecorations="Underline">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}"/>
+                        <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}" />
                     </Label.GestureRecognizers>
                 </Label>
 
                 <!-- Se souvenir de moi -->
                 <HorizontalStackLayout Spacing="10">
-                    <CheckBox IsChecked="{Binding RememberMe}"/>
-                    <Label Text="Se souvenir de moi" 
-                           VerticalOptions="Center"/>
+                    <CheckBox IsChecked="{Binding RememberMe}" />
+                    <Label Text="Se souvenir de moi"
+                           VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
                 <!-- Boutons -->
-                <Button Text="Se connecter" 
+                <Button Text="Se connecter"
                         FontAttributes="Bold"
                         BackgroundColor="{StaticResource Secondary}"
                         Command="{Binding SignInCommand}"
                         IsEnabled="{Binding IsNotBusy}"
                         Margin="0,20,0,0">
-                    
+
                     <Button.Shadow>
                         <Shadow Brush="{StaticResource Primary}"
                                 Offset="0,2"
                                 Radius="4"
-                                Opacity="0.5"/>
+                                Opacity="0.5" />
                     </Button.Shadow>
                 </Button>
 
@@ -118,15 +118,15 @@
                         BackgroundColor="{StaticResource Primary}"
                         Command="{Binding SignUpCommand}"
                         Style="{StaticResource SecondaryButton}"
-                        IsEnabled="{Binding IsNotBusy}"/>
-                
+                        IsEnabled="{Binding IsNotBusy}" />
+
 
                 <!-- Indicateur de chargement -->
                 <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                 IsVisible="{Binding IsBusy}"
-                                 Color="{StaticResource Primary}"
-                                 HorizontalOptions="Center"
-                                 Margin="0,10,0,0"/>
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   HorizontalOptions="Center"
+                                   Margin="0,10,0,0" />
             </VerticalStackLayout>
         </Grid>
     </ScrollView>

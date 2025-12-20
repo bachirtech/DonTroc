@@ -177,7 +177,7 @@ namespace DonTroc.Services
         /// <summary>
         /// Notification de défi quotidien/hebdomadaire
         /// </summary>
-        public async Task SendChallengeNotificationAsync(string userId, Challenge challenge)
+        public async Task SendChallengeNotificationAsync(string userId, NotificationChallenge challenge)
         {
             try
             {
@@ -313,7 +313,7 @@ namespace DonTroc.Services
         public bool IsUnlocked { get; set; }
     }
 
-    public class Challenge
+    public class NotificationChallenge
     {
         public required string Id { get; set; }
         public string Title { get; set; } = "";

@@ -100,12 +100,39 @@ namespace DonTroc.Services
             {
                 _platformService?.LoadRewardedAd();
                 _platformService?.LoadInterstitialAd();
-                System.Diagnostics.Debug.WriteLine("🔄 Chargement des publicités demandé");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Erreur LoadAds: {ex.Message}");
                 _platformService?.LogApiLimitation();
+            }
+        }
+
+        // Compteur de navigation pour limiter la fréquence des interstitiels
+        private int _navigationCount = 0;
+        private const int InterstitialFrequency = 3; // Afficher toutes les 3 navigations
+
+        /// <summary>
+        /// Tente d'afficher un interstitiel lors d'une navigation, avec limitation de fréquence.
+        /// Affiche l'interstitiel toutes les X navigations pour ne pas gêner l'utilisateur.
+        /// </summary>
+        /// <param name="pageName">Nom de la page pour le tracking (optionnel)</param>
+        public async Task TryShowInterstitialOnNavigationAsync(string pageName = "")
+        {
+            try
+            {
+                _navigationCount++;
+                
+                // Afficher seulement toutes les X navigations
+                if (_navigationCount >= InterstitialFrequency && IsInterstitialAdReady())
+                {
+                    _navigationCount = 0;
+                    await ShowInterstitialAdAsync();
+                }
+            }
+            catch (Exception)
+            {
+                // Ignorer les erreurs silencieusement pour ne pas bloquer la navigation
             }
         }
     }

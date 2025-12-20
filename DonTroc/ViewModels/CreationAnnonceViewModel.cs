@@ -23,29 +23,57 @@ namespace DonTroc.ViewModels;
 // ViewModel pour la page de création d'annonce
 public class CreationAnnonceViewModel : BaseViewModel
 {
-    private string _titre = string.Empty;
-    private string _description = string.Empty;
-    private string _type = string.Empty;
-    private string _categorie = string.Empty;
-    private bool _isFormValid; // Champ de support pour la propriété IsFormValid
-    private readonly FirebaseService _firebaseService; // Service pour interagir avec Firebase
-    private readonly AuthService _authService; // Service pour l'authentification
-    private readonly GeolocationService _geolocationService; // Service pour la géolocalisation
-    private readonly ILogger<CreationAnnonceViewModel> _logger;
-    private readonly GamificationService _gamificationService; // Service de gamification
-    private readonly SmartNotificationService _smartNotificationService; // Service de notifications intelligentes
     private readonly AsyncImageUploadService _asyncImageUploadService; // Nouveau service d'upload asynchrone
-    
-    // Nouvelles propriétés pour l'indicateur de progression
-    private string _statusMessage = "Préparation...";
+    private readonly AuthService _authService; // Service pour l'authentification
+    private readonly FirebaseService _firebaseService; // Service pour interagir avec Firebase
+    private readonly GamificationService _gamificationService; // Service de gamification
+    private readonly GeolocationService _geolocationService; // Service pour la géolocalisation
+
+    private readonly ILogger<CreationAnnonceViewModel> _logger;
+
+    // Liste pour stocker les données d'images originales
+    private readonly List<byte[]> _originalImagesData;
+    private readonly SmartNotificationService _smartNotificationService; // Service de notifications intelligentes
+    private string _categorie = string.Empty;
+    private string _description = string.Empty;
+    private bool _isFormValid; // Champ de support pour la propriété IsFormValid
     private int _progressPercentage;
     private double _progressValue;
     private bool _showProgress;
 
+    // Nouvelles propriétés pour l'indicateur de progression
+    private string _statusMessage = "Préparation...";
+    private string _titre = string.Empty;
+    private string _type = string.Empty;
+
+    // Le constructeur reçoit maintenant les nouveaux services pour l'optimisation progressive
+    public CreationAnnonceViewModel(FirebaseService firebaseService, AuthService authService,
+        GeolocationService geolocationService, ILogger<CreationAnnonceViewModel> logger,
+        GamificationService gamificationService, SmartNotificationService smartNotificationService,
+        AsyncImageUploadService asyncImageUploadService)
+    {
+        _firebaseService = firebaseService;
+        _authService = authService;
+        _geolocationService = geolocationService;
+        _logger = logger;
+        _gamificationService = gamificationService;
+        _smartNotificationService = smartNotificationService;
+        _asyncImageUploadService = asyncImageUploadService;
+
+        _logger.LogInformation("CreationAnnonceViewModel initialisé.");
+
+        Photos = new ObservableCollection<ImageSource>();
+        _originalImagesData = new List<byte[]>();
+
+        PublierAnnonceCommand = new Command(ExecutePublierAnnonceCommand);
+        SelectImageCommand = new Command(ExecuteSelectImageCommand);
+        RemoveImageCommand = new Command<ImageSource>(OnRemoveImage);
+
+        ValidateForm(); // Valide le formulaire à l'initialisation
+    }
+
     // Collection pour l'aperçu des images dans l'UI
     public ObservableCollection<ImageSource> Photos { get; }
-    // Liste pour stocker les données d'images originales
-    private readonly List<byte[]> _originalImagesData;
 
     // Propriété pour le titre de l'annonce
     public string Titre
@@ -97,26 +125,26 @@ public class CreationAnnonceViewModel : BaseViewModel
         get => _isFormValid;
         set => SetProperty(ref _isFormValid, value);
     }
-    
+
     // Nouvelles propriétés pour l'indicateur de progression
     public string StatusMessage
     {
         get => _statusMessage;
         set => SetProperty(ref _statusMessage, value);
     }
-    
+
     public int ProgressPercentage
     {
         get => _progressPercentage;
         set => SetProperty(ref _progressPercentage, value);
     }
-    
+
     public double ProgressValue
     {
         get => _progressValue;
         set => SetProperty(ref _progressValue, value);
     }
-    
+
     public bool ShowProgress
     {
         get => _showProgress;
@@ -127,29 +155,6 @@ public class CreationAnnonceViewModel : BaseViewModel
     public Command PublierAnnonceCommand { get; }
     public ICommand SelectImageCommand { get; }
     public ICommand RemoveImageCommand { get; } // Nouvelle commande pour supprimer une image
-
-    // Le constructeur reçoit maintenant les nouveaux services pour l'optimisation progressive
-    public CreationAnnonceViewModel(FirebaseService firebaseService, AuthService authService, GeolocationService geolocationService, ILogger<CreationAnnonceViewModel> logger, GamificationService gamificationService, SmartNotificationService smartNotificationService, AsyncImageUploadService asyncImageUploadService)
-    {
-        _firebaseService = firebaseService;
-        _authService = authService;
-        _geolocationService = geolocationService;
-        _logger = logger;
-        _gamificationService = gamificationService;
-        _smartNotificationService = smartNotificationService;
-        _asyncImageUploadService = asyncImageUploadService;
-
-        _logger.LogInformation("CreationAnnonceViewModel initialisé.");
-
-        Photos = new ObservableCollection<ImageSource>();
-        _originalImagesData = new List<byte[]>();
-
-        PublierAnnonceCommand = new Command(ExecutePublierAnnonceCommand);
-        SelectImageCommand = new Command(ExecuteSelectImageCommand);
-        RemoveImageCommand = new Command<ImageSource>(OnRemoveImage);
-        
-        ValidateForm(); // Valide le formulaire à l'initialisation
-    }
 
     // Méthodes d'exécution pour éviter les async void
     private async void ExecutePublierAnnonceCommand()
@@ -203,6 +208,7 @@ public class CreationAnnonceViewModel : BaseViewModel
                 await ShowErrorAlert("Erreur de localisation", "Impossible de récupérer votre position.");
                 return;
             }
+
             UpdateProgress(20);
 
             // 2. Vérifier l'utilisateur connecté
@@ -215,21 +221,22 @@ public class CreationAnnonceViewModel : BaseViewModel
 
             // 3. Générer un ID unique pour l'annonce
             var annonceId = Guid.NewGuid().ToString();
-            
+
             // 4. Upload des images avec validation renforcée
             StatusMessage = "Téléversement des images...";
             var imageUrls = new List<string>();
 
             if (_originalImagesData.Count > 0)
             {
-                _logger.LogInformation("Upload de {Count} images pour l'annonce {AnnonceId}", _originalImagesData.Count, annonceId);
-                
+                _logger.LogInformation("Upload de {Count} images pour l'annonce {AnnonceId}", _originalImagesData.Count,
+                    annonceId);
+
                 for (int i = 0; i < _originalImagesData.Count; i++)
                 {
                     try
                     {
                         StatusMessage = $"Téléversement image {i + 1}/{_originalImagesData.Count}...";
-                        
+
                         // Tentative d'upload avec possibilité de réessayer
                         int attempt = 0;
                         const int maxAttempts = 2;
@@ -245,7 +252,7 @@ public class CreationAnnonceViewModel : BaseViewModel
                                     _originalImagesData[i], annonceId, i);
 
                                 // Validation stricte de l'URL
-                                if (!string.IsNullOrEmpty(imageUrl) && 
+                                if (!string.IsNullOrEmpty(imageUrl) &&
                                     Uri.IsWellFormedUriString(imageUrl, UriKind.Absolute) &&
                                     !imageUrl.Contains("placeholder"))
                                 {
@@ -286,13 +293,17 @@ public class CreationAnnonceViewModel : BaseViewModel
                                 // Réessayer une fois de plus
                                 try
                                 {
-                                    imageUrl = await _asyncImageUploadService.FastUploadWithProgressiveOptimizationAsync(
-                                        _originalImagesData[i], annonceId, i);
+                                    imageUrl =
+                                        await _asyncImageUploadService.FastUploadWithProgressiveOptimizationAsync(
+                                            _originalImagesData[i], annonceId, i);
 
-                                    if (!string.IsNullOrEmpty(imageUrl) && Uri.IsWellFormedUriString(imageUrl, UriKind.Absolute) && !imageUrl.Contains("placeholder"))
+                                    if (!string.IsNullOrEmpty(imageUrl) &&
+                                        Uri.IsWellFormedUriString(imageUrl, UriKind.Absolute) &&
+                                        !imageUrl.Contains("placeholder"))
                                     {
                                         imageUrls.Add(imageUrl);
-                                        _logger.LogInformation("Image {Index} uploadée avec succès après réessai: {Url}", i, imageUrl);
+                                        _logger.LogInformation(
+                                            "Image {Index} uploadée avec succès après réessai: {Url}", i, imageUrl);
                                     }
                                     else
                                     {
@@ -302,7 +313,8 @@ public class CreationAnnonceViewModel : BaseViewModel
                                 catch (Exception ex)
                                 {
                                     _logger.LogError(ex, "Réessai échoué pour l'image {Index}", i);
-                                    await ShowErrorAlert("Erreur", $"Impossible d'uploader l'image {i + 1}: {ex.Message}");
+                                    await ShowErrorAlert("Erreur",
+                                        $"Impossible d'uploader l'image {i + 1}: {ex.Message}");
                                     throw new Exception($"Impossible d'uploader l'image {i + 1}: {ex.Message}");
                                 }
                             }
@@ -316,7 +328,9 @@ public class CreationAnnonceViewModel : BaseViewModel
                             else
                             {
                                 // Annuler la publication
-                                _logger.LogInformation("Publication annulée par l'utilisateur suite à l'échec d'upload de l'image {Index}", i);
+                                _logger.LogInformation(
+                                    "Publication annulée par l'utilisateur suite à l'échec d'upload de l'image {Index}",
+                                    i);
                                 throw new Exception($"Publication annulée : échec de l'upload de l'image {i + 1}");
                             }
                         }
@@ -326,10 +340,10 @@ public class CreationAnnonceViewModel : BaseViewModel
                         _logger.LogError(ex, "Erreur lors de l'upload de l'image {Index}", i);
                         throw new Exception($"Impossible d'uploader l'image {i + 1}: {ex.Message}");
                     }
-                    
+
                     UpdateProgress(20 + (i + 1) * 40 / _originalImagesData.Count);
                 }
-                
+
                 // Vérification finale des images uploadées
                 if (imageUrls.Count != _originalImagesData.Count)
                 {
@@ -340,7 +354,7 @@ public class CreationAnnonceViewModel : BaseViewModel
                     }
                 }
             }
-            
+
             UpdateProgress(60);
 
             // 5. Créer l'annonce avec validation des données
@@ -360,8 +374,9 @@ public class CreationAnnonceViewModel : BaseViewModel
                 DateCreationTimestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds()
             };
 
-            _logger.LogInformation("Sauvegarde de l'annonce {AnnonceId} avec {ImageCount} images", annonceId, imageUrls.Count);
-            
+            _logger.LogInformation("Sauvegarde de l'annonce {AnnonceId} avec {ImageCount} images", annonceId,
+                imageUrls.Count);
+
             // 6. Sauvegarder l'annonce
             await _firebaseService.AddAnnonceAsync(annonce);
             UpdateProgress(80);
@@ -369,7 +384,7 @@ public class CreationAnnonceViewModel : BaseViewModel
             // 7. Vérifier que l'annonce a été sauvegardée correctement
             StatusMessage = "Vérification de la publication...";
             await Task.Delay(1000); // Délai pour permettre la synchronisation
-            
+
             try
             {
                 var savedAnnonce = await _firebaseService.GetAnnonceAsync(annonceId);
@@ -377,16 +392,16 @@ public class CreationAnnonceViewModel : BaseViewModel
                 {
                     throw new Exception("L'annonce n'a pas été sauvegardée correctement");
                 }
-                
+
                 if (imageUrls.Count > 0 && (savedAnnonce.PhotosUrls?.Count != imageUrls.Count))
                 {
                     _logger.LogWarning("Problème de synchronisation des images. Tentative de correction...");
-                    
+
                     // Tentative de correction
                     savedAnnonce.PhotosUrls = imageUrls;
                     await _firebaseService.UpdateAnnonceAsync(annonceId, savedAnnonce);
                 }
-                
+
                 _logger.LogInformation("Annonce {AnnonceId} vérifiée et correctement sauvegardée", annonceId);
             }
             catch (Exception verifyEx)
@@ -401,7 +416,7 @@ public class CreationAnnonceViewModel : BaseViewModel
             {
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    await _gamificationService.OnUserActionAfterConfirmationAsync(userId, "annonce_created", new { annonceId = annonce.Id, category = annonce.Categorie });
+                    await _gamificationService.OnUserActionAfterConfirmationAsync(userId, "annonce_created");
                     await _smartNotificationService.SendProximityNotificationAsync(annonce);
                 }
             }
@@ -409,15 +424,15 @@ public class CreationAnnonceViewModel : BaseViewModel
             {
                 _logger.LogWarning("Erreur lors de la gamification: {Error}", gamEx.Message);
             }
-            
+
             UpdateProgress(100);
             await Task.Delay(500);
 
             // 9. Afficher le succès avec détails
-            var successMessage = imageUrls.Count > 0 
+            var successMessage = imageUrls.Count > 0
                 ? $"Votre annonce a été publiée avec {imageUrls.Count} image(s)."
                 : "Votre annonce a été publiée.";
-                
+
             await ShowSuccessAlert("Succès", successMessage);
             await Shell.Current.GoToAsync("..");
         }
@@ -451,17 +466,19 @@ public class CreationAnnonceViewModel : BaseViewModel
             PermissionStatus status;
             try
             {
-                status = await Permissions.RequestAsync<Permissions.Photos>();
+                status = await MainThread.InvokeOnMainThreadAsync(async () =>
+                    await Permissions.RequestAsync<Permissions.Photos>());
             }
             catch (Exception)
             {
                 // Fallback pour les plateformes qui ne supportent pas cette permission
                 status = PermissionStatus.Granted;
             }
-            
+
             if (status != PermissionStatus.Granted)
             {
-                await ShowErrorAlert("Permission requise", "L'accès aux photos est nécessaire pour sélectionner une image.");
+                await ShowErrorAlert("Permission requise",
+                    "L'accès aux photos est nécessaire pour sélectionner une image.");
                 return;
             }
 
@@ -485,14 +502,14 @@ public class CreationAnnonceViewModel : BaseViewModel
 
                     // 2. Ajouter immédiatement les données originales pour garantir la disponibilité
                     _originalImagesData.Add(originalImageData);
-                    
+
                     // 3. Créer l'aperçu immédiat à partir des données copiées
                     var previewImageSource = ImageSource.FromStream(() => new MemoryStream(originalImageData));
                     Photos.Add(previewImageSource);
-                    
+
                     // 4. Obtenir l'index de l'image ajoutée pour l'optimisation
                     var imageIndex = _originalImagesData.Count - 1;
-                    
+
                     // 5. Optimisation en arrière-plan avec remplacement des données
                     _ = Task.Run(async () =>
                     {
@@ -500,37 +517,42 @@ public class CreationAnnonceViewModel : BaseViewModel
                         {
                             // Optimisation aggressive pour respecter les limites de Cloudinary
                             byte[] optimizedData = originalImageData; // Initialisation avec les données originales
-                            
+
                             // Cloudinary limite à 10MB, on vise 8MB pour la sécurité
                             const int maxFileSize = 8 * 1024 * 1024; // 8MB
-                            
+
                             if (originalImageData.Length <= maxFileSize)
                             {
                                 optimizedData = originalImageData;
-                                _logger.LogInformation("Image déjà dans la limite, taille: {Size} bytes", originalImageData.Length);
+                                _logger.LogInformation("Image déjà dans la limite, taille: {Size} bytes",
+                                    originalImageData.Length);
                             }
                             else
                             {
                                 // Optimisation progressive jusqu'à respecter la limite
                                 using var image = SixLabors.ImageSharp.Image.Load(originalImageData);
-                                _logger.LogInformation("Image originale: {Width}x{Height}, taille: {Size} bytes", image.Width, image.Height, originalImageData.Length);
-                                
+                                _logger.LogInformation("Image originale: {Width}x{Height}, taille: {Size} bytes",
+                                    image.Width, image.Height, originalImageData.Length);
+
                                 // Commencer avec une qualité plus basse pour les très grosses images
-                                int quality = originalImageData.Length > 20 * 1024 * 1024 ? 50 : 75; // 50% si > 20MB, sinon 75%
+                                int quality =
+                                    originalImageData.Length > 20 * 1024 * 1024 ? 50 : 75; // 50% si > 20MB, sinon 75%
                                 int currentMaxDimension = 1080; // Variable locale pour éviter la capture
-                                
+
                                 // Réduction progressive jusqu'à obtenir une taille acceptable
                                 for (int attempt = 0; attempt < 5; attempt++)
                                 {
                                     // Cloner l'image pour cette tentative avec le type de pixel explicite
                                     using var workingImage = image.CloneAs<SixLabors.ImageSharp.PixelFormats.Rgba32>();
-                                    
+
                                     // Redimensionner si nécessaire
-                                    if (workingImage.Width > currentMaxDimension || workingImage.Height > currentMaxDimension)
+                                    if (workingImage.Width > currentMaxDimension ||
+                                        workingImage.Height > currentMaxDimension)
                                     {
                                         workingImage.Mutate(x => x.Resize(new ResizeOptions
                                         {
-                                            Size = new SixLabors.ImageSharp.Size(currentMaxDimension, currentMaxDimension),
+                                            Size = new SixLabors.ImageSharp.Size(currentMaxDimension,
+                                                currentMaxDimension),
                                             Mode = SixLabors.ImageSharp.Processing.ResizeMode.Max,
                                             Sampler = KnownResamplers.Box
                                         }));
@@ -539,18 +561,22 @@ public class CreationAnnonceViewModel : BaseViewModel
                                     using var testStream = new MemoryStream();
                                     await workingImage.SaveAsync(testStream, new JpegEncoder { Quality = quality });
                                     var testData = testStream.ToArray();
-                                    
-                                    _logger.LogInformation("Tentative {Attempt}: dimensions {Width}x{Height}, qualité {Quality}%, taille: {Size} bytes", 
+
+                                    _logger.LogInformation(
+                                        "Tentative {Attempt}: dimensions {Width}x{Height}, qualité {Quality}%, taille: {Size} bytes",
                                         attempt + 1, workingImage.Width, workingImage.Height, quality, testData.Length);
-                                    
+
                                     if (testData.Length <= maxFileSize)
                                     {
                                         optimizedData = testData;
-                                        _logger.LogInformation("Optimisation réussie! Taille finale: {Size} bytes (réduction de {Reduction}%)", 
-                                            testData.Length, Math.Round((1 - (double)testData.Length / originalImageData.Length) * 100, 1));
+                                        _logger.LogInformation(
+                                            "Optimisation réussie! Taille finale: {Size} bytes (réduction de {Reduction}%)",
+                                            testData.Length,
+                                            Math.Round((1 - (double)testData.Length / originalImageData.Length) * 100,
+                                                1));
                                         break;
                                     }
-                                    
+
                                     // Si encore trop gros, réduire plus agressivement
                                     if (attempt < 4)
                                     {
@@ -560,7 +586,9 @@ public class CreationAnnonceViewModel : BaseViewModel
                                         }
                                         else
                                         {
-                                            currentMaxDimension = Math.Max(800, (int)(currentMaxDimension * 0.8)); // Réduire les dimensions
+                                            currentMaxDimension =
+                                                Math.Max(800,
+                                                    (int)(currentMaxDimension * 0.8)); // Réduire les dimensions
                                         }
                                     }
                                     else
@@ -572,20 +600,23 @@ public class CreationAnnonceViewModel : BaseViewModel
                                             Mode = SixLabors.ImageSharp.Processing.ResizeMode.Max,
                                             Sampler = KnownResamplers.Box
                                         }));
-                                        
+
                                         using var finalStream = new MemoryStream();
                                         await workingImage.SaveAsync(finalStream, new JpegEncoder { Quality = 30 });
                                         optimizedData = finalStream.ToArray();
-                                        
-                                        _logger.LogWarning("Optimisation finale très agressive: {Size} bytes", optimizedData.Length);
+
+                                        _logger.LogWarning("Optimisation finale très agressive: {Size} bytes",
+                                            optimizedData.Length);
                                         break;
                                     }
                                 }
-                                
+
                                 // Vérification finale
                                 if (optimizedData.Length > maxFileSize)
                                 {
-                                    _logger.LogError("Impossible d'optimiser l'image sous {MaxSize} bytes. Taille finale: {FinalSize} bytes", maxFileSize, optimizedData.Length);
+                                    _logger.LogError(
+                                        "Impossible d'optimiser l'image sous {MaxSize} bytes. Taille finale: {FinalSize} bytes",
+                                        maxFileSize, optimizedData.Length);
                                     // En dernier recours, utiliser l'image originale et laisser Cloudinary gérer l'erreur
                                     optimizedData = originalImageData;
                                 }
@@ -600,7 +631,8 @@ public class CreationAnnonceViewModel : BaseViewModel
                                     if (imageIndex < _originalImagesData.Count)
                                     {
                                         _originalImagesData[imageIndex] = optimizedData;
-                                        _logger.LogInformation("Données d'image mises à jour à l'index {Index}", imageIndex);
+                                        _logger.LogInformation("Données d'image mises à jour à l'index {Index}",
+                                            imageIndex);
                                     }
                                 }
                                 catch (Exception ex)
@@ -611,13 +643,15 @@ public class CreationAnnonceViewModel : BaseViewModel
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Erreur lors de l'optimisation en arrière-plan - les données originales seront utilisées");
+                            _logger.LogError(ex,
+                                "Erreur lors de l'optimisation en arrière-plan - les données originales seront utilisées");
                             // En cas d'erreur, les données originales restent dans _originalImagesData
                         }
                     });
 
                     ValidateForm();
-                    _logger.LogInformation("Image ajoutée. Total: {PhotoCount} photos, {DataCount} données", Photos.Count, _originalImagesData.Count);
+                    _logger.LogInformation("Image ajoutée. Total: {PhotoCount} photos, {DataCount} données",
+                        Photos.Count, _originalImagesData.Count);
                 }
                 catch (Exception ex)
                 {
@@ -661,6 +695,7 @@ public class CreationAnnonceViewModel : BaseViewModel
         {
             return await currentPage.DisplayActionSheet(title, cancel, null, buttons);
         }
+
         return cancel;
     }
 
@@ -698,7 +733,7 @@ public class CreationAnnonceViewModel : BaseViewModel
         UpdateProgress(0);
         StatusMessage = "Préparation...";
     }
-    
+
     private void UpdateProgress(int percentage)
     {
         ProgressPercentage = percentage;

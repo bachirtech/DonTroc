@@ -26,26 +26,48 @@
                            FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
                     
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
                         <!-- Bouton Carte -->
-                        <Button Grid.Column="0"
+                        <Button Grid.Column="0" Grid.Row="0"
                                 Text="🗺️ Carte"
                                 BackgroundColor="{StaticResource Terracotta}"
                                 TextColor="White"
                                 CornerRadius="10"
-                                FontSize="14"
-                                Padding="10"
+                                FontSize="13"
+                                Padding="8,10"
                                 Command="{Binding NavigateToMapCommand}" />
                         
                         <!-- Bouton Transactions -->
-                        <Button Grid.Column="1"
+                        <Button Grid.Column="1" Grid.Row="0"
                                 Text="💰 Transactions"
                                 BackgroundColor="{StaticResource Terracotta}"
                                 TextColor="White"
                                 CornerRadius="10"
-                                FontSize="14"
-                                Padding="10"
+                                FontSize="13"
+                                Padding="8,10"
                                 Command="{Binding NavigateToTransactionsCommand}" />
+                        
+                        <!-- Bouton Récompenses / Gamification -->
+                        <Button Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
+                                Text="🎮 Récompenses &amp; Défis"
+                                BackgroundColor="#9C27B0"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Padding="10"
+                                Command="{Binding NavigateToRewardsCommand}" />
+                        
+                        <!-- Bouton Don au développeur -->
+                        <Button Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"
+                                Text="❤️ Soutenir le développeur"
+                                BackgroundColor="OliveDrab"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Padding="10"
+                                Command="{Binding DonateToDevCommand}" />
                     </Grid>
                 </StackLayout>
             </Frame>
