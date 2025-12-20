@@ -12,7 +12,7 @@ namespace DonTroc.Services
     {
         private readonly IAdMobService _platformService;
 
-        // IDs des unités publicitaires (Production - remplacer par vos vrais IDs)
+        // IDs de production AdMob
         public const string RewardedAdUnitId = "ca-app-pub-5085236088670848/1650434769";
         public const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8273475447";
         public const string BannerAdUnitId = "ca-app-pub-5085236088670848/2349645674";

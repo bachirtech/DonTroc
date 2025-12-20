@@ -14,9 +14,9 @@ namespace DonTroc.Platforms.Android
     /// </summary>
     public class AdMobNativeService : Java.Lang.Object, IAdMobService
     {
-        // IDs des publicités - Utilisation des IDs de test Google
-        private const string RewardedAdUnitId = "ca-app-pub-3940256099942544/5224354917";
-        private const string InterstitialAdUnitId = "ca-app-pub-3940256099942544/1033173712";
+        // IDs de production
+        private const string RewardedAdUnitId = "ca-app-pub-5085236088670848/1650434769";
+        private const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8273475447";
         private InterstitialAd? _interstitialAd;
         private bool _isInitialized;
         private RewardedAd? _rewardedAd;

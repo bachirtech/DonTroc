@@ -23,8 +23,8 @@ namespace DonTroc
     /// </summary>
     public class AdMobBannerHandler : ContentViewHandler
     {
-        // ID de test Google officiel pour les bannières (à remplacer par l'ID de production)
-        private const string TestBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111";
+        // ID de production AdMob pour les bannières
+        private const string TestBannerAdUnitId = "ca-app-pub-5085236088670848/2349645674";
         
         private AdView? _adView;
         private ContentViewGroup? _container;
