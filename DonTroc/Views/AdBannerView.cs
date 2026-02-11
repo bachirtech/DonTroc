@@ -17,6 +17,15 @@ namespace DonTroc.Views
 
         public AdBannerView()
         {
+            // ⚠️ Vérifier si les publicités sont désactivées (suspension AdMob)
+            if (!DonTroc.Services.AdMobConfiguration.ADS_ENABLED)
+            {
+                IsVisible = false;
+                HeightRequest = 0;
+                System.Diagnostics.Debug.WriteLine(DonTroc.Services.AdMobConfiguration.GetStatusMessage());
+                return;
+            }
+
             // Dimensions standard bannière AdMob (320x50 dp)
             HeightRequest = 50;
             MinimumHeightRequest = 50;

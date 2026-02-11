@@ -10,124 +10,224 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource DonTrocBackground}">
 
+    <ScrollView VerticalScrollBarVisibility="Never">
+        <VerticalStackLayout HorizontalOptions="Fill"
+                             VerticalOptions="CenterAndExpand"
+                             Padding="{OnIdiom Phone='28,10,28,30', Tablet='40,20,40,40', Desktop='40,20,40,40'}">
+            
+            <!-- Conteneur avec largeur limitée et centré -->
+            <VerticalStackLayout Spacing="0"
+                                 MaximumWidthRequest="{OnIdiom Phone=400, Tablet=420, Desktop=450}"
+                                 HorizontalOptions="Center">
+                
+                <!-- Header avec Logo et Titre -->
+                <VerticalStackLayout Spacing="-35"
+                                     HorizontalOptions="Center">
+                    <Label Text="Bienvenue"
+                           FontSize="{OnIdiom Phone=34, Tablet=42, Desktop=46}"
+                           Margin="{OnIdiom Phone='0,15,0,0', Tablet='0,20,0,0'}"
+                           FontFamily="PoppinsBold"
+                           FontAttributes="Bold"
+                           TextColor="#8B4513"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                    <Image Source="logotroc.png"
+                           HeightRequest="{OnIdiom Phone=180, Tablet=200, Desktop=220}"
+                           Aspect="AspectFit"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
 
-    <ScrollView>
-        <Grid RowSpacing="0" Padding="30,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+                <!-- Formulaire -->
+                <VerticalStackLayout Spacing="{OnIdiom Phone=14, Tablet=16, Desktop=18}" 
+                                     Margin="{OnIdiom Phone='0,-15,0,0', Tablet='0,5,0,0'}"
+                                     HorizontalOptions="Fill">
+                    
+                    <!-- Email -->
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Fill">
+                        <Label Text="Adresse e-mail"
+                               FontAttributes="Bold"
+                               FontSize="{OnIdiom Phone=14, Tablet=15, Desktop=16}" />
+                        <Border Style="{StaticResource InputContainer}"
+                                HeightRequest="{OnIdiom Phone=50, Tablet=52, Desktop=54}">
+                            <Entry Placeholder="votre.email@exemple.com"
+                                   Keyboard="Email"
+                                   Text="{Binding Email}"
+                                   FontSize="{OnIdiom Phone=15, Tablet=16, Desktop=16}"
+                                   ReturnType="Next"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Fill">
+                                <Entry.Behaviors>
+                                    <behaviors:EmailValidationBehavior
+                                        InvalidStyle="{StaticResource InvalidEntryStyle}"
+                                        ValidStyle="{StaticResource ValidEntryStyle}" />
+                                </Entry.Behaviors>
+                            </Entry>
+                        </Border>
+                    </VerticalStackLayout>
 
-            <!-- Header avec Logo et Titre -->
-            <VerticalStackLayout Grid.Row="0" Spacing="-45">
-                <Label Text="Bienvenue"
-                       FontSize="40"
-                       Margin="0,30,0,1"
-                       FontFamily="PoppinsBold"
-                       FontAttributes="Bold"
-                       TextColor="#8B4513"
-                       HorizontalOptions="Center" />
-                <Image Source="logotroc.png"
-                       HeightRequest="250"
-                       HorizontalOptions="Center" />
+                    <!-- Mot de passe -->
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Fill">
+                        <Label Text="Mot de passe"
+                               FontAttributes="Bold"
+                               FontSize="{OnIdiom Phone=14, Tablet=15, Desktop=16}" />
+                        <Border Style="{StaticResource InputContainer}"
+                                HeightRequest="{OnIdiom Phone=50, Tablet=52, Desktop=54}">
+                            <Grid ColumnDefinitions="*,Auto" HorizontalOptions="Fill">
+                                <Entry Grid.Column="0"
+                                       x:Name="PasswordEntry"
+                                       Placeholder="********"
+                                       IsPassword="{Binding IsPasswordVisible, Converter={StaticResource InvertedBoolConverter}}"
+                                       Text="{Binding Password}"
+                                       FontSize="{OnIdiom Phone=15, Tablet=16, Desktop=16}"
+                                       ReturnType="Done"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Fill">
+                                    <Entry.Behaviors>
+                                        <behaviors:PasswordValidationBehavior
+                                            MinimumLength="6"
+                                            InvalidStyle="{StaticResource InvalidEntryStyle}"
+                                            ValidStyle="{StaticResource ValidEntryStyle}" />
+                                    </Entry.Behaviors>
+                                </Entry>
 
-            </VerticalStackLayout>
+                                <Button Grid.Column="1"
+                                        Text="{Binding IsPasswordVisible, Converter={StaticResource PasswordVisibilityIconConverter}}"
+                                        FontSize="{OnIdiom Phone=18, Tablet=20, Desktop=22}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{StaticResource Gray600}"
+                                        Command="{Binding TogglePasswordVisibilityCommand}"
+                                        Padding="8,0"
+                                        MinimumWidthRequest="44"
+                                        VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
 
-            <!-- Formulaire -->
-            <VerticalStackLayout Grid.Row="1" Spacing="15" Padding="0,-27,0,1">
-                <!-- Email -->
-                <Label Text="Adresse e-mail"
-                       FontAttributes="Bold" />
-                <Border Style="{StaticResource InputContainer}">
-                    <Entry Placeholder="votre.email@exemple.com"
-                           Keyboard="Email"
-                           Text="{Binding Email}"
-                           ReturnType="Next">
-                        <Entry.Behaviors>
-                            <behaviors:EmailValidationBehavior
-                                InvalidStyle="{StaticResource InvalidEntryStyle}"
-                                ValidStyle="{StaticResource ValidEntryStyle}" />
-                        </Entry.Behaviors>
-                    </Entry>
-                </Border>
-
-                <!-- Mot de passe -->
-                <Label Text="Mot de passe"
-                       FontAttributes="Bold" />
-                <Border Style="{StaticResource InputContainer}">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Entry Grid.Column="0"
-                               x:Name="PasswordEntry"
-                               Placeholder="********"
-                               IsPassword="{Binding IsPasswordVisible, Converter={StaticResource InvertedBoolConverter}}"
-                               Text="{Binding Password}"
-                               ReturnType="Done">
-                            <Entry.Behaviors>
-                                <behaviors:PasswordValidationBehavior
-                                    MinimumLength="6"
-                                    InvalidStyle="{StaticResource InvalidEntryStyle}"
-                                    ValidStyle="{StaticResource ValidEntryStyle}" />
-                            </Entry.Behaviors>
-                        </Entry>
-
-                        <Button Grid.Column="1"
-                                Text="{Binding IsPasswordVisible, Converter={StaticResource PasswordVisibilityIconConverter}}"
-                                FontSize="20"
-                                BackgroundColor="Transparent"
-                                TextColor="{StaticResource Gray600}"
-                                Command="{Binding TogglePasswordVisibilityCommand}"
-                                Padding="10,0"
-                                VerticalOptions="Center" />
+                    <!-- Ligne avec "Se souvenir de moi" et "Mot de passe oublié" -->
+                    <Grid ColumnDefinitions="*,Auto" 
+                          Margin="0,2,0,0"
+                          HorizontalOptions="Fill">
+                        <!-- Se souvenir de moi -->
+                        <HorizontalStackLayout Grid.Column="0" 
+                                               Spacing="6" 
+                                               VerticalOptions="Center">
+                            <CheckBox IsChecked="{Binding RememberMe}" 
+                                      Scale="{OnIdiom Phone=0.85, Tablet=0.95, Desktop=1}"
+                                      VerticalOptions="Center" />
+                            <Label Text="Se souvenir de moi"
+                                   FontSize="{OnIdiom Phone=13, Tablet=14, Desktop=15}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        
+                        <!-- Mot de passe oublié -->
+                        <Label Grid.Column="1"
+                               Text="Mot de passe oublié ?"
+                               TextColor="{StaticResource Primary}"
+                               FontSize="{OnIdiom Phone=13, Tablet=14, Desktop=15}"
+                               VerticalOptions="Center"
+                               TextDecorations="Underline">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Grid>
-                </Border>
 
-                <!-- Mot de passe oublié -->
-                <Label Text="Mot de passe oublié ?"
-                       TextColor="{StaticResource Primary}"
-                       HorizontalOptions="End"
-                       TextDecorations="Underline">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}" />
-                    </Label.GestureRecognizers>
-                </Label>
+                    <!-- Bouton Se connecter -->
+                    <Button Text="Se connecter"
+                            FontAttributes="Bold"
+                            FontSize="{OnIdiom Phone=16, Tablet=17, Desktop=18}"
+                            BackgroundColor="{StaticResource Secondary}"
+                            Command="{Binding SignInCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            HeightRequest="{OnIdiom Phone=50, Tablet=52, Desktop=54}"
+                            CornerRadius="10"
+                            Margin="{OnIdiom Phone='0,12,0,0', Tablet='0,18,0,0'}"
+                            HorizontalOptions="Fill">
+                        <Button.Shadow>
+                            <Shadow Brush="{StaticResource Primary}"
+                                    Offset="0,2"
+                                    Radius="4"
+                                    Opacity="0.5" />
+                        </Button.Shadow>
+                    </Button>
 
-                <!-- Se souvenir de moi -->
-                <HorizontalStackLayout Spacing="10">
-                    <CheckBox IsChecked="{Binding RememberMe}" />
-                    <Label Text="Se souvenir de moi"
-                           VerticalOptions="Center" />
-                </HorizontalStackLayout>
+                    <!-- Bouton Créer un compte -->
+                    <Button Text="Créer un compte"
+                            BackgroundColor="{StaticResource Primary}"
+                            Command="{Binding SignUpCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            FontSize="{OnIdiom Phone=16, Tablet=17, Desktop=18}"
+                            HeightRequest="{OnIdiom Phone=50, Tablet=52, Desktop=54}"
+                            CornerRadius="10"
+                            IsEnabled="{Binding IsNotBusy}"
+                            HorizontalOptions="Fill" />
 
-                <!-- Boutons -->
-                <Button Text="Se connecter"
-                        FontAttributes="Bold"
-                        BackgroundColor="{StaticResource Secondary}"
-                        Command="{Binding SignInCommand}"
-                        IsEnabled="{Binding IsNotBusy}"
-                        Margin="0,20,0,0">
+                    <!-- Séparateur "OU" 
+                    <Grid ColumnDefinitions="*,Auto,*" 
+                          Margin="{OnIdiom Phone='0,16,0,16', Tablet='0,20,0,20'}"
+                          HorizontalOptions="Fill">
+                        <BoxView Grid.Column="0" 
+                                 HeightRequest="1" 
+                                 Color="{StaticResource Gray400}"
+                                 VerticalOptions="Center" />
+                        <Label Grid.Column="1" 
+                               Text="OU" 
+                               FontSize="{OnIdiom Phone=13, Tablet=14, Desktop=15}"
+                               TextColor="{StaticResource Gray600}"
+                               Margin="12,0" 
+                               VerticalOptions="Center" />
+                        <BoxView Grid.Column="2" 
+                                 HeightRequest="1" 
+                                 Color="{StaticResource Gray400}"
+                                 VerticalOptions="Center" />
+                    </Grid> -->
 
-                    <Button.Shadow>
-                        <Shadow Brush="{StaticResource Primary}"
-                                Offset="0,2"
-                                Radius="4"
-                                Opacity="0.5" />
-                    </Button.Shadow>
-                </Button>
+                    <!-- GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+                    <Border BackgroundColor="#FFFFFF"
+                            Stroke="#DADCE0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            HeightRequest="{OnIdiom Phone=50, Tablet=52, Desktop=54}"
+                            HorizontalOptions="Fill"
+                            IsEnabled="{Binding IsNotBusy}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SignInWithGoogleCommand}" />
+                        </Border.GestureRecognizers>
+                        <Border.Shadow>
+                            <Shadow Brush="#000000"
+                                    Offset="0,1"
+                                    Radius="2"
+                                    Opacity="0.1" />
+                        </Border.Shadow>
+                        <HorizontalStackLayout HorizontalOptions="Center" 
+                                               VerticalOptions="Center"
+                                               Spacing="10">
+                            <Grid WidthRequest="24" HeightRequest="24">
+                                <Label Text="G"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="#4285F4"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Grid>
+                            <Label Text="Continuer avec Google"
+                                   TextColor="#5F6368"
+                                   FontSize="{OnIdiom Phone=15, Tablet=16, Desktop=17}"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    FIN GOOGLE SIGN-IN DÉSACTIVÉ -->
 
-                <Button Text="Créer un compte"
-                        BackgroundColor="{StaticResource Primary}"
-                        Command="{Binding SignUpCommand}"
-                        Style="{StaticResource SecondaryButton}"
-                        IsEnabled="{Binding IsNotBusy}" />
-
-
-                <!-- Indicateur de chargement -->
-                <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                   IsVisible="{Binding IsBusy}"
-                                   Color="{StaticResource Primary}"
-                                   HorizontalOptions="Center"
-                                   Margin="0,10,0,0" />
+                    <!-- Indicateur de chargement -->
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}"
+                                       HorizontalOptions="Center"
+                                       Scale="{OnIdiom Phone=1, Tablet=1.1, Desktop=1.2}"
+                                       Margin="0,12,0,0" />
+                </VerticalStackLayout>
             </VerticalStackLayout>
-        </Grid>
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -27,6 +27,7 @@ public class AnnoncesViewModel : BaseViewModel
     private readonly GamificationService _gamificationService; // Service de gamification
     private readonly SmartNotificationService _smartNotificationService; // Service de notifications intelligentes
     private readonly ReportService _reportService; // Service pour les signalements
+    private readonly GlobalNotificationService _globalNotificationService; // Service de notifications en temps réel
     private readonly ILogger<AnnoncesViewModel> _logger; // Ajout du logger manquant
     private List<Annonce> _allAnnonces = new List<Annonce>();
     private Location? _userLocation; // Stocke la position de l'utilisateur
@@ -131,7 +132,7 @@ public class AnnoncesViewModel : BaseViewModel
     public ICommand ReportAnnonceCommand { get; }
 
     // Constructeur avec injection des services
-    public AnnoncesViewModel(FirebaseService firebaseService, GeolocationService geolocationService, AuthService authService, TransactionService transactionService, AdMobService adMobService, FavoritesService favoritesService, SocialService socialService, GamificationService gamificationService, SmartNotificationService smartNotificationService, ReportService reportService, ILogger<AnnoncesViewModel> logger)
+    public AnnoncesViewModel(FirebaseService firebaseService, GeolocationService geolocationService, AuthService authService, TransactionService transactionService, AdMobService adMobService, FavoritesService favoritesService, SocialService socialService, GamificationService gamificationService, SmartNotificationService smartNotificationService, ReportService reportService, GlobalNotificationService globalNotificationService, ILogger<AnnoncesViewModel> logger)
     {
         _firebaseService = firebaseService;
         _geolocationService = geolocationService;
@@ -143,17 +144,18 @@ public class AnnoncesViewModel : BaseViewModel
         _gamificationService = gamificationService; // Injection du service de gamification
         _smartNotificationService = smartNotificationService; // Injection du service de notifications intelligentes
         _reportService = reportService; // Injection du service de signalement
+        _globalNotificationService = globalNotificationService; // Injection du service de notifications en temps réel
         _logger = logger;
         Annonces = new ObservableCollection<Annonce>();
-        LoadAnnoncesCommand = new Command(async () => await ExecuteLoadAnnoncesCommand());
+        LoadAnnoncesCommand = new Command(() => SafeExecuteAsync(ExecuteLoadAnnoncesCommand));
         // La commande de tri bascule maintenant le mode et réapplique les filtres
         SortByDistanceCommand = new Command(ToggleSortByDistance, () => !IsBusy);
-        GoToChatCommand = new Command<Annonce>(async (annonce) => await ExecuteGoToChatCommand(annonce));
+        GoToChatCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteGoToChatCommand(annonce)));
         // Initialisation de la commande pour ouvrir le visualiseur d'images
-        OpenImageViewerCommand = new Command<Annonce>(async (annonce) => await ExecuteOpenImageViewerCommand(annonce));
-        ToggleFavoriteCommand = new Command<Annonce>(async (annonce) => await ExecuteToggleFavoriteCommand(annonce));
-        ShareAnnonceCommand = new Command<Annonce>(async (annonce) => await ExecuteShareAnnonceCommand(annonce));
-        ReportAnnonceCommand = new Command<Annonce>(async (annonce) => await ExecuteReportAnnonceCommand(annonce));
+        OpenImageViewerCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteOpenImageViewerCommand(annonce)));
+        ToggleFavoriteCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteToggleFavoriteCommand(annonce)));
+        ShareAnnonceCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteShareAnnonceCommand(annonce)));
+        ReportAnnonceCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteReportAnnonceCommand(annonce)));
 
         // Initialiser les filtres
         _selectedType = "Tous";
@@ -161,9 +163,29 @@ public class AnnoncesViewModel : BaseViewModel
         _maxDistance = 1000; // Valeur par défaut à 1000 km
     }
 
+    /// <summary>
+    /// Exécute une tâche async de manière sécurisée en capturant les exceptions
+    /// </summary>
+    private async void SafeExecuteAsync(Func<Task> task)
+    {
+        try
+        {
+            await task();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"❌ [SafeExecuteAsync] Exception non gérée: {ex.Message}");
+            Debug.WriteLine($"❌ StackTrace: {ex.StackTrace}");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await Shell.Current.DisplayAlert("Erreur", "Une erreur inattendue s'est produite.", "OK");
+            });
+        }
+    }
+
     public void OnAppearing()
     {
-        Task.Run(async () => await ExecuteLoadAnnoncesCommand());
+        SafeExecuteAsync(ExecuteLoadAnnoncesCommand);
     }
 
     private void ApplyFilters() // Méthode pour appliquer les filtres sur la liste des annonces
@@ -207,13 +229,21 @@ public class AnnoncesViewModel : BaseViewModel
     /// </summary>
     private async Task ExecuteReportAnnonceCommand(Annonce annonce)
     {
-        if (annonce == null) return;
+        Debug.WriteLine($"🔵 [ReportAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
+        if (annonce == null)
+        {
+            Debug.WriteLine("❌ [ReportAnnonceCommand] Annonce est NULL");
+            return;
+        }
 
         var reason = await Shell.Current.DisplayPromptAsync("Signaler l'annonce", "Pourquoi signalez-vous cette annonce ?", "Envoyer", "Annuler", "Ex: Contenu inapproprié");
+        Debug.WriteLine($"🔵 [ReportAnnonceCommand] Raison saisie: {reason ?? "NULL/Annulé"}");
 
         if (!string.IsNullOrWhiteSpace(reason))
         {
             var currentUserId = _authService.GetUserId();
+            Debug.WriteLine($"🔵 [ReportAnnonceCommand] UserId: {currentUserId ?? "NULL"}");
             if (string.IsNullOrEmpty(currentUserId))
             {
                 await Shell.Current.DisplayAlert("Erreur", "Vous devez être connecté pour signaler une annonce.", "OK");
@@ -257,10 +287,13 @@ public class AnnoncesViewModel : BaseViewModel
     {
         // Vérifie si une annonce a bien été passée en paramètre
         if (annonce == null!)
+        {
             return;
+        }
 
         // S'assurer que l'utilisateur est authentifié avant toute opération Firebase
         var userId = _authService.GetUserId();
+        
         if (string.IsNullOrEmpty(userId))
         {
             var signedIn = await _authService.TryAutoSignInAsync();
@@ -271,7 +304,7 @@ public class AnnoncesViewModel : BaseViewModel
                 await Shell.Current.GoToAsync("//LoginView");
                 return;
             }
-            _authService.GetUserId();
+            userId = _authService.GetUserId();
         }
 
         // Empêche un utilisateur de démarrer un chat avec lui-même
@@ -281,25 +314,34 @@ public class AnnoncesViewModel : BaseViewModel
             return;
         }
 
-        if (IsBusy) return;
+        if (IsBusy)
+        {
+            return;
+        }
 
         try
         {
             IsBusy = true;
 
-            // Récupère les IDs nécessaires pour la conversation
-            var annonceId = annonce.Id;
-            var sellerId = annonce.UtilisateurId;
-            var buyerId = _authService.GetUserId();
-
             // Crée ou récupère la conversation
             var conversation = await _firebaseService.GetOrCreateConversationAsync(annonce.Id);
+            
+            // Vérifier que la conversation a un ID valide
+            if (conversation == null || string.IsNullOrEmpty(conversation.Id))
+            {
+                await Shell.Current.DisplayAlert("Erreur", "Impossible de créer la conversation. Veuillez réessayer.", "OK");
+                return;
+            }
+
+            // Ajouter la conversation au service de notifications en temps réel
+            _globalNotificationService.AddConversation(conversation.Id);
 
             // Créer automatiquement une transaction si elle n'existe pas déjà
             await CreerTransactionAutomatiqueAsync(annonce);
 
             // Navigue vers la page de chat en passant l'identifiant de la conversation
-            await Shell.Current.GoToAsync($"ChatView?conversationId={conversation.Id}");
+            var encodedConversationId = Uri.EscapeDataString(conversation.Id);
+            await Shell.Current.GoToAsync($"ChatView?conversationId={encodedConversationId}");
 
             // Incrémente le compteur de clics sur le chat
             _chatClickCount++;
@@ -316,7 +358,7 @@ public class AnnoncesViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Erreur lors du d��marrage du chat : {ex.Message}");
+            Debug.WriteLine($"Erreur lors du démarrage du chat : {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible de démarrer la conversation.", "OK");
         }
         finally
@@ -457,13 +499,18 @@ public class AnnoncesViewModel : BaseViewModel
     // Méthode pour ouvrir le visualiseur d'images
     private async Task ExecuteOpenImageViewerCommand(Annonce annonce)
     {
+        Debug.WriteLine($"🔵 [OpenImageViewerCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
         try
         {
             if (annonce?.PhotosUrls == null || !annonce.PhotosUrls.Any())
             {
+                Debug.WriteLine("❌ [OpenImageViewerCommand] Pas de photos dans l'annonce");
                 await Shell.Current.DisplayAlert("Aucune image", "Cette annonce ne contient aucune image.", "OK");
                 return;
             }
+
+            Debug.WriteLine($"🔵 [OpenImageViewerCommand] {annonce.PhotosUrls.Count} photos trouvées");
 
             // Enregistrer l'action de l'utilisateur pour les suggestions
             var userId = _authService.GetUserId();
@@ -487,11 +534,13 @@ public class AnnoncesViewModel : BaseViewModel
 
             if (!validUrls.Any())
             {
+                Debug.WriteLine("❌ [OpenImageViewerCommand] Aucune URL valide trouvée");
                 await Shell.Current.DisplayAlert("Images invalides", "Les images de cette annonce ne sont pas disponibles.", "OK");
                 return;
             }
 
             _logger.LogInformation("Ouverture du visualiseur d'images pour l'annonce {AnnonceId} avec {Count} images", annonce.Id, validUrls.Count);
+            Debug.WriteLine($"✅ [OpenImageViewerCommand] Navigation avec {validUrls.Count} URLs valides");
 
             // CORRECTION: Ne pas encoder les URLs - les passer directement
             // Les URLs Cloudinary sont déjà bien formées et l'encodage les corrompait
@@ -499,9 +548,11 @@ public class AnnoncesViewModel : BaseViewModel
 
             // Naviguer vers le visualiseur d'images en passant les URLs
             await Shell.Current.GoToAsync($"ImageViewerView?imageUrls={urlsParameter}");
+            Debug.WriteLine("✅ [OpenImageViewerCommand] Navigation réussie");
         }
         catch (Exception ex)
         {
+            Debug.WriteLine($"❌ [OpenImageViewerCommand] Exception: {ex.Message}");
             _logger.LogError(ex, "Erreur lors de l'ouverture du visualiseur d'images pour l'annonce {AnnonceId}", annonce?.Id);
             await Shell.Current.DisplayAlert("Erreur", "Impossible d'ouvrir les images. Veuillez réessayer.", "OK");
         }
@@ -510,11 +561,20 @@ public class AnnoncesViewModel : BaseViewModel
     // Méthode pour ajouter ou retirer une annonce des favoris
     private async Task ExecuteToggleFavoriteCommand(Annonce annonce)
     {
-        if (annonce == null) return;
+        Debug.WriteLine($"🔵 [ToggleFavoriteCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
+        if (annonce == null)
+        {
+            Debug.WriteLine("❌ [ToggleFavoriteCommand] Annonce est NULL");
+            return;
+        }
 
         var userId = _authService.GetUserId();
+        Debug.WriteLine($"🔵 [ToggleFavoriteCommand] UserId: {userId ?? "NULL"}");
+        
         if (string.IsNullOrEmpty(userId))
         {
+            Debug.WriteLine("❌ [ToggleFavoriteCommand] Utilisateur non connecté");
             await Shell.Current.DisplayAlert("Connexion requise", "Vous devez être connecté pour gérer vos favoris.", "OK");
             await Shell.Current.GoToAsync("//LoginView");
             return;
@@ -523,20 +583,24 @@ public class AnnoncesViewModel : BaseViewModel
         try
         {
             annonce.IsFavorite = !annonce.IsFavorite; // Mettre à jour l'UI immédiatement
+            Debug.WriteLine($"🔵 [ToggleFavoriteCommand] IsFavorite changé à: {annonce.IsFavorite}");
 
             if (annonce.IsFavorite)
             {
-                await _favoritesService.AddFavoriteAsync(userId, annonce.Id);
+                // Passer l'annonce complète pour sauvegarder toutes les données (titre, image, etc.)
+                await _favoritesService.AddToFavoritesAsync(annonce);
                 await _gamificationService.OnUserActionAsync(userId, "add_favorite"); // GAMIFICATION
+                Debug.WriteLine("✅ [ToggleFavoriteCommand] Ajouté aux favoris");
             }
             else
             {
                 await _favoritesService.RemoveFavoriteAsync(userId, annonce.Id);
+                Debug.WriteLine("✅ [ToggleFavoriteCommand] Retiré des favoris");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Erreur lors de la mise à jour des favoris: {ex.Message}");
+            Debug.WriteLine($"❌ [ToggleFavoriteCommand] Exception: {ex.Message}");
             // Annuler le changement visuel en cas d'erreur
             annonce.IsFavorite = !annonce.IsFavorite;
             await Shell.Current.DisplayAlert("Erreur", "Impossible de mettre à jour vos favoris.", "OK");
@@ -546,19 +610,30 @@ public class AnnoncesViewModel : BaseViewModel
     // Méthode pour partager une annonce
     private async Task ExecuteShareAnnonceCommand(Annonce annonce)
     {
-        if (annonce == null) return;
-
-        var userId = _authService.GetUserId();
-        if (string.IsNullOrEmpty(userId)) return; // Ne pas bloquer si l'utilisateur n'est pas connecté
+        Debug.WriteLine($"🔵 [ShareAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
+        if (annonce == null)
+        {
+            Debug.WriteLine("❌ [ShareAnnonceCommand] Annonce est NULL");
+            return;
+        }
 
         try
         {
+            Debug.WriteLine($"🔵 [ShareAnnonceCommand] Partage de: {annonce.Titre}");
             await _socialService.ShareAnnonceAsync(annonce);
-            await _gamificationService.OnUserActionAsync(userId, "share_annonce"); // GAMIFICATION
+            Debug.WriteLine("✅ [ShareAnnonceCommand] Partage réussi");
+            
+            // GAMIFICATION uniquement si l'utilisateur est connecté
+            var userId = _authService.GetUserId();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await _gamificationService.OnUserActionAsync(userId, "share_annonce");
+            }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Erreur lors du partage de l'annonce: {ex.Message}");
+            Debug.WriteLine($"❌ [ShareAnnonceCommand] Exception: {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible de partager cette annonce.", "OK");
         }
     }

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="bdoekvSHxnzHtxElGrt6o7hdejZN_nATh3Zkx88emoA" />
+    <title>DonTroc - Application de dons et d'échanges</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            color: white;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            opacity: 0.95;
+        }
+        .logo {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .feature-card h3 {
+            color: #512BD4;
+            margin-bottom: 10px;
+        }
+        .cta-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            margin-top: 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .cta-section h2 {
+            color: #512BD4;
+            margin-bottom: 20px;
+        }
+        .store-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .store-btn {
+            background: #333;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s ease;
+        }
+        .store-btn:hover {
+            background: #512BD4;
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            opacity: 0.9;
+        }
+        .footer a {
+            color: white;
+            margin: 0 15px;
+        }
+        .how-it-works {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 60px;
+        }
+        .how-it-works h2 {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .steps {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .step {
+            text-align: center;
+            color: white;
+            flex: 1;
+            min-width: 200px;
+        }
+        .step-number {
+            background: white;
+            color: #512BD4;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="logo">🎁</div>
+        <h1>DonTroc</h1>
+        <p>L'application qui donne une seconde vie à vos objets ! Donnez, échangez et faites des rencontres près de chez vous.</p>
+    </div>
+
+    <div class="container">
+        <div class="features">
+            <div class="feature-card">
+                <div class="icon">🎁</div>
+                <h3>Donnez facilement</h3>
+                <p>Publiez vos objets en quelques clics. Prenez une photo, ajoutez une description et c'est parti !</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🔄</div>
+                <h3>Échangez malin</h3>
+                <p>Proposez des échanges avec d'autres utilisateurs. Trouvez ce dont vous avez besoin.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📍</div>
+                <h3>Proche de vous</h3>
+                <p>Découvrez les objets disponibles autour de vous grâce à la géolocalisation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">💬</div>
+                <h3>Messagerie intégrée</h3>
+                <p>Discutez directement avec les autres utilisateurs pour organiser vos échanges.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🧠</div>
+                <h3>Quiz & Récompenses</h3>
+                <p>Participez à nos quiz sur le développement durable et gagnez des points !</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🌱</div>
+                <h3>Éco-responsable</h3>
+                <p>Réduisez le gaspillage et contribuez à un monde plus durable.</p>
+            </div>
+        </div>
+
+        <div class="how-it-works">
+            <h2>Comment ça marche ?</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Créez votre compte</h3>
+                    <p>Inscrivez-vous gratuitement en quelques secondes</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Publiez vos objets</h3>
+                    <p>Ajoutez photos et descriptions</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Échangez ou donnez</h3>
+                    <p>Rencontrez d'autres utilisateurs près de chez vous</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Téléchargez DonTroc</h2>
+            <p>Rejoignez notre communauté et commencez à donner une seconde vie à vos objets !</p>
+            <div class="store-buttons">
+                <a href="#" class="store-btn">
+                    <span>📱</span>
+                    <span>Google Play Store</span>
+                </a>
+                <a href="#" class="store-btn">
+                    <span>🍎</span>
+                    <span>App Store</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 DonTroc - Tous droits réservés</p>
+        <p style="margin-top: 15px;">
+            <a href="privacy-policy.html">Politique de confidentialité</a>
+            <a href="terms.html">Conditions d'utilisation</a>
+        </p>
+        <p style="margin-top: 20px;">
+            Contact : <a href="mailto:bachirdev.pro@gmail.com">bachirdev.pro@gmail.com</a>
+        </p>
+    </footer>
+</body>
+</html>
+

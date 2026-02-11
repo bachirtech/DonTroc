@@ -10,6 +10,7 @@
              Title="Accueil"
              BackgroundColor="{StaticResource BeigeClair}">
 
+    <Grid>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
         <ScrollView>
             <VerticalStackLayout Padding="20,0,20,20" Spacing="20">
@@ -357,4 +358,8 @@
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>
+    
+    <!-- Overlay pour les conseils -->
+    <views:TipOverlayView x:Name="TipOverlay" />
+    </Grid>
 </ContentPage>

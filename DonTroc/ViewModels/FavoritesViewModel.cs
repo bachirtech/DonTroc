@@ -403,18 +403,39 @@ public class FavoritesViewModel : BaseViewModel
     /// </summary>
     private async Task NavigateToAnnonceAsync(Favorite favorite)
     {
+        System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesViewModel] NavigateToAnnonceAsync appelé pour: {favorite?.AnnonceId ?? "NULL"}");
+        
+        if (favorite == null)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [FavoritesViewModel] Favorite est NULL");
+            return;
+        }
+
         try
         {
-            // Navigation vers la liste des annonces avec l'ID spécifique
-            // On utilise la navigation vers AnnoncesView et on pourrait implémenter un filtre par ID
-            await Shell.Current.GoToAsync("//AnnoncesView");
-            
-            // Alternative : si vous avez une vue détaillée d'annonce, utilisez cette ligne à la place :
-            // await Shell.Current.GoToAsync($"AnnonceDetailView?annonceId={favorite.AnnonceId}");
+            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesViewModel] AnnonceImageUrl: {favorite.AnnonceImageUrl ?? "NULL"}");
+            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesViewModel] AnnonceTitle: {favorite.AnnonceTitle ?? "NULL"}");
+
+            // Si on a une URL d'image, on ouvre le visualiseur d'images
+            if (!string.IsNullOrEmpty(favorite.AnnonceImageUrl) && Uri.IsWellFormedUriString(favorite.AnnonceImageUrl, UriKind.Absolute))
+            {
+                System.Diagnostics.Debug.WriteLine($"✅ [FavoritesViewModel] Navigation vers ImageViewerView avec URL: {favorite.AnnonceImageUrl}");
+                await Shell.Current.GoToAsync($"ImageViewerView?imageUrls={favorite.AnnonceImageUrl}");
+            }
+            else
+            {
+                // Sinon, on navigue vers la liste des annonces
+                System.Diagnostics.Debug.WriteLine("⚠️ [FavoritesViewModel] Pas d'URL d'image valide, navigation vers AnnoncesView");
+                await Shell.Current.DisplayAlert(
+                    favorite.AnnonceTitle,
+                    $"Type: {favorite.AnnonceType}\nCatégorie: {favorite.AnnonceCategory}\nLocalisation: {favorite.AnnonceLocation}\n\nPour voir les détails complets, recherchez cette annonce dans la liste des annonces.",
+                    "OK"
+                );
+            }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FavoritesViewModel] Erreur lors de la navigation: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"❌ [FavoritesViewModel] Erreur lors de la navigation: {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible d'ouvrir l'annonce", "OK");
         }
     }

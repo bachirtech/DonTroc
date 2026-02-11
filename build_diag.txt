@@ -1,0 +1,40 @@
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   Overriding target "_CheckUnsupportedPackages" in project "/Users/aa1/RiderProjects/DonTroc/Directory.Build.targets" with target "_CheckUnsupportedPackages" from project "/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/35.0.105/tools/Xamarin.Android.Common.targets".
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+16:40:34.375  1:10>Target "_CheckForUnsupportedTargetPlatformIdentifier: (TargetId:29)" in file "/usr/local/share/dotnet/sdk/9.0.303/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.TargetFrameworkInference.targets" from project "/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj" (target "CollectPackageReferences" depends on it):
+16:40:34.376  1:10>Done building target "_CheckForUnsupportedTargetPlatformIdentifier" in project "DonTroc.csproj".: (TargetId:29)
+16:40:34.376  1:10>Target "_CheckForUnsupportedNETCoreVersion: (TargetId:30)" in file "/usr/local/share/dotnet/sdk/9.0.303/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.TargetFrameworkInference.targets" from project "/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj" (target "CollectPackageReferences" depends on it):
+16:40:34.376  1:10>Done building target "_CheckForUnsupportedNETCoreVersion" in project "DonTroc.csproj".: (TargetId:30)
+16:40:34.376  1:10>Target "_CheckForUnsupportedCppNETCoreVersion: (TargetId:31)" in file "/usr/local/share/dotnet/sdk/9.0.303/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.TargetFrameworkInference.targets" from project "/Users/aa1/RiderProjects/DonTroc/DonTroc/DonTroc.csproj" (target "CollectPackageReferences" depends on it):
+16:40:34.376  1:10>Done building target "_CheckForUnsupportedCppNETCoreVersion" in project "DonTroc.csproj".: (TargetId:31)
+                   Target "_CheckForUnsupportedNETStandardVersion" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETStandard' And '$(NETStandardMaximumVersion)' != '') was evaluated as ('.NETCoreApp' == '.NETStandard' And '' != '').
+                   Target "_CheckForUnsupportedTargetFrameworkAndFeatureCombination" skipped, due to false condition; ('$(TargetFrameworkIdentifier)' == '.NETFramework') was evaluated as ('.NETCoreApp' == '.NETFramework').
+        0 ms  _CheckForUnsupportedCppNETCoreVersion      1 calls
+        0 ms  _CheckForUnsupportedNETCoreVersion         1 calls
+        0 ms  _CheckForUnsupportedTargetPlatformIdentifier   1 calls
+                   Overriding target "_CheckUnsupportedPackages" in project "/Users/aa1/RiderProjects/DonTroc/Directory.Build.targets" with target "_CheckUnsupportedPackages" from project "/usr/local/share/dotnet/packs/Microsoft.Android.Sdk.Darwin/35.0.105/tools/Xamarin.Android.Common.targets".
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16
+                   UnsupportedTargetFrameworkVersion = 10.0
+                   MinimumVisualStudioVersionForUnsupportedTargetFrameworkVersion = 17.16

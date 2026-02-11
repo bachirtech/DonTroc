@@ -34,6 +34,7 @@ public class CreationAnnonceViewModel : BaseViewModel
     // Liste pour stocker les données d'images originales
     private readonly List<byte[]> _originalImagesData;
     private readonly SmartNotificationService _smartNotificationService; // Service de notifications intelligentes
+    private readonly ProximityNotificationService _proximityNotificationService; // Service de notifications de proximité
     private string _categorie = string.Empty;
     private string _description = string.Empty;
     private bool _isFormValid; // Champ de support pour la propriété IsFormValid
@@ -50,7 +51,7 @@ public class CreationAnnonceViewModel : BaseViewModel
     public CreationAnnonceViewModel(FirebaseService firebaseService, AuthService authService,
         GeolocationService geolocationService, ILogger<CreationAnnonceViewModel> logger,
         GamificationService gamificationService, SmartNotificationService smartNotificationService,
-        AsyncImageUploadService asyncImageUploadService)
+        AsyncImageUploadService asyncImageUploadService, ProximityNotificationService proximityNotificationService)
     {
         _firebaseService = firebaseService;
         _authService = authService;
@@ -59,6 +60,7 @@ public class CreationAnnonceViewModel : BaseViewModel
         _gamificationService = gamificationService;
         _smartNotificationService = smartNotificationService;
         _asyncImageUploadService = asyncImageUploadService;
+        _proximityNotificationService = proximityNotificationService;
 
         _logger.LogInformation("CreationAnnonceViewModel initialisé.");
 
@@ -417,7 +419,19 @@ public class CreationAnnonceViewModel : BaseViewModel
                 if (!string.IsNullOrEmpty(userId))
                 {
                     await _gamificationService.OnUserActionAfterConfirmationAsync(userId, "annonce_created");
-                    await _smartNotificationService.SendProximityNotificationAsync(annonce);
+                    
+                    // Notifier les utilisateurs à proximité (dans un rayon de 5 km)
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _proximityNotificationService.NotifyNearbyUsersAsync(annonce);
+                        }
+                        catch (Exception notifEx)
+                        {
+                            _logger.LogWarning("Erreur lors des notifications de proximité: {Error}", notifEx.Message);
+                        }
+                    });
                 }
             }
             catch (Exception gamEx)

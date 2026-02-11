@@ -343,7 +343,6 @@ namespace DonTroc.Services
         {
             try
             {
-
                 // 1. Récupérer les informations de l'annonce et des utilisateurs
                 var annonce = await GetAnnonceAsync(annonceId);
                 if (annonce == null)
@@ -419,7 +418,6 @@ namespace DonTroc.Services
                 }
 
                 // 4. Créer une nouvelle conversation avec structure améliorée
-
                 var newConversation = new Conversation
                 {
                     AnnonceId = annonceId,
@@ -427,14 +425,13 @@ namespace DonTroc.Services
                     BuyerId = buyerId,
                     CreatedAt = DateTime.UtcNow,
                     LastMessageTimestamp = DateTime.UtcNow,
-                    // Utiliser ParticipantIds (propriété existante)
                     ParticipantIds = new Dictionary<string, bool>
                     {
                         { sellerId, true },
                         { buyerId, true }
                     },
-                    // Utiliser AnnonceTitre (nom correct de la propriété)
                     AnnonceTitre = annonce.Titre,
+                    AnnonceImageUrl = annonce.PhotosUrls?.FirstOrDefault() ?? annonce.FirstPhotoUrl ?? string.Empty,
                     LastMessage = "Conversation démarrée"
                 };
 
@@ -445,7 +442,6 @@ namespace DonTroc.Services
                         .PostAsync(newConversation);
 
                     newConversation.Id = result.Key;
-
                     return newConversation;
                 }
                 catch (Exception createEx)
@@ -506,6 +502,71 @@ namespace DonTroc.Services
                 {
                     // Retourner une liste vide en cas d'erreur plutôt que de faire planter l'app
                     return new List<Conversation>();
+                }
+
+                // Enrichir les conversations avec les images des annonces si manquantes
+                // ET compter les messages non lus
+                foreach (var conversation in allConversations)
+                {
+                    // Compter les messages non lus pour cette conversation
+                    try
+                    {
+                        var messages = await authenticatedClient
+                            .Child("Messages")
+                            .Child(conversation.Id)
+                            .OnceAsync<Message>();
+                        
+                        // Compter les messages non lus (envoyés par l'autre utilisateur et non lus)
+                        conversation.UnreadCount = messages
+                            .Where(m => m.Object != null)
+                            .Select(m => m.Object)
+                            .Count(m => m.SenderId != userId && !m.IsRead);
+                    }
+                    catch
+                    {
+                        conversation.UnreadCount = 0;
+                    }
+                    
+                    // Enrichir avec l'image de l'annonce si manquante
+                    if (string.IsNullOrEmpty(conversation.AnnonceImageUrl) && !string.IsNullOrEmpty(conversation.AnnonceId))
+                    {
+                        try
+                        {
+                            var annonce = await GetAnnonceAsync(conversation.AnnonceId);
+                            if (annonce != null)
+                            {
+                                conversation.AnnonceImageUrl = annonce.PhotosUrls?.FirstOrDefault() ?? annonce.FirstPhotoUrl ?? string.Empty;
+                                
+                                // Mettre aussi à jour le titre si vide
+                                if (string.IsNullOrEmpty(conversation.AnnonceTitre))
+                                {
+                                    conversation.AnnonceTitre = annonce.Titre;
+                                }
+                                
+                                // Optionnel: sauvegarder l'image dans la conversation pour les prochaines fois
+                                try
+                                {
+                                    var updates = new Dictionary<string, object>
+                                    {
+                                        { "AnnonceImageUrl", conversation.AnnonceImageUrl },
+                                        { "AnnonceTitre", conversation.AnnonceTitre }
+                                    };
+                                    await authenticatedClient
+                                        .Child("Conversations")
+                                        .Child(conversation.Id)
+                                        .PatchAsync(updates);
+                                }
+                                catch
+                                {
+                                    // Ignorer l'erreur de mise à jour - ce n'est pas critique
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Ignorer l'erreur si l'annonce n'existe plus
+                        }
+                    }
                 }
 
                 // Trier par timestamp du dernier message (plus récent en premier)
@@ -627,24 +688,38 @@ namespace DonTroc.Services
                 .Child("TypingIndicators")
                 .Child(conversationId)
                 .AsObservable<Dictionary<string, long>>()
-                .Subscribe(d =>
-                {
-                    if (d?.Object != null)
+                .Subscribe(
+                    d =>
                     {
-                        // Vérifier si quelqu'un d'autre que l'utilisateur actuel est en train d'écrire
-                        var now = DateTime.UtcNow.Ticks;
-                        var someoneTyping = d.Object
-                            .Where(kvp => kvp.Key != currentUserId) // Exclure l'utilisateur actuel
-                            .Any(kvp => (now - kvp.Value) <
-                                        TimeSpan.FromSeconds(3).Ticks); // Indicateur valide si < 3 secondes
+                        try
+                        {
+                            if (d?.Object != null)
+                            {
+                                // Vérifier si quelqu'un d'autre que l'utilisateur actuel est en train d'écrire
+                                var now = DateTime.UtcNow.Ticks;
+                                var someoneTyping = d.Object
+                                    .Where(kvp => kvp.Key != currentUserId) // Exclure l'utilisateur actuel
+                                    .Any(kvp => (now - kvp.Value) <
+                                                TimeSpan.FromSeconds(3).Ticks); // Indicateur valide si < 3 secondes
 
-                        onTypingChanged(someoneTyping);
-                    }
-                    else
+                                onTypingChanged(someoneTyping);
+                            }
+                            else
+                            {
+                                onTypingChanged(false);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            onTypingChanged(false);
+                        }
+                    },
+                    ex =>
                     {
+                        // Gestion des erreurs de streaming (ex: permissions Firebase)
+                        // Ne pas propager l'erreur pour éviter le crash
                         onTypingChanged(false);
-                    }
-                });
+                    });
         }
 
         /// <summary>
@@ -654,6 +729,13 @@ namespace DonTroc.Services
         {
             try
             {
+                // Validation du ConversationId
+                if (string.IsNullOrEmpty(message.ConversationId))
+                {
+                    throw new InvalidOperationException("ConversationId est requis pour envoyer un message");
+                }
+
+
                 var currentUser = await _authService.GetCurrentUserAsync();
                 if (currentUser == null)
                     throw new UnauthorizedAccessException("Utilisateur non authentifié");
@@ -736,6 +818,98 @@ namespace DonTroc.Services
             catch (Exception)
             {
                 // Ne pas relancer l'exception pour éviter de faire planter l'application en cas d'échec de suppression
+            }
+        }
+
+        /// <summary>
+        /// Marque tous les messages non lus d'une conversation comme lus par l'utilisateur
+        /// </summary>
+        public async Task MarkMessagesAsReadAsync(string conversationId, string currentUserId)
+        {
+            try
+            {
+                var currentUser = await _authService.GetCurrentUserAsync();
+                if (currentUser == null)
+                    return;
+
+                var tokenResult = await currentUser.GetIdTokenResultAsync();
+                var authToken = tokenResult.Token;
+                var authenticatedClient = new FirebaseClient(
+                    ConfigurationService.FirebaseUrl,
+                    new FirebaseOptions
+                    {
+                        AuthTokenAsyncFactory = () => Task.FromResult(authToken)
+                    });
+
+                // Récupérer tous les messages de la conversation
+                var messages = await authenticatedClient
+                    .Child("Messages")
+                    .Child(conversationId)
+                    .OnceAsync<Message>();
+
+                foreach (var messageItem in messages)
+                {
+                    var message = messageItem.Object;
+                    // Ne marquer comme lu que les messages envoyés par l'autre utilisateur
+                    if (message.SenderId != currentUserId && message.Status != MessageStatus.Read)
+                    {
+                        var updates = new Dictionary<string, object>
+                        {
+                            { "Status", MessageStatus.Read.ToString() },
+                            { "IsRead", true },
+                            { "ReadAt", DateTime.UtcNow.ToString("o") }
+                        };
+
+                        await authenticatedClient
+                            .Child("Messages")
+                            .Child(conversationId)
+                            .Child(messageItem.Key)
+                            .PatchAsync(updates);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur lors du marquage des messages comme lus: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Marque un message spécifique comme livré
+        /// </summary>
+        public async Task MarkMessageAsDeliveredAsync(string conversationId, string messageId)
+        {
+            try
+            {
+                var currentUser = await _authService.GetCurrentUserAsync();
+                if (currentUser == null)
+                    return;
+
+                var tokenResult = await currentUser.GetIdTokenResultAsync();
+                var authToken = tokenResult.Token;
+                var authenticatedClient = new FirebaseClient(
+                    ConfigurationService.FirebaseUrl,
+                    new FirebaseOptions
+                    {
+                        AuthTokenAsyncFactory = () => Task.FromResult(authToken)
+                    });
+
+                var updates = new Dictionary<string, object>
+                {
+                    { "Status", MessageStatus.Delivered.ToString() },
+                    { "IsDelivered", true },
+                    { "DeliveredAt", DateTime.UtcNow.ToString("o") }
+                };
+
+                await authenticatedClient
+                    .Child("Messages")
+                    .Child(conversationId)
+                    .Child(messageId)
+                    .PatchAsync(updates);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur lors du marquage du message comme livré: {ex.Message}");
             }
         }
 
@@ -1301,6 +1475,111 @@ namespace DonTroc.Services
             {
                 // Log exception
                 throw new Exception($"Erreur lors de la récupération des données: {ex.Message}");
+            }
+        }
+
+        // === MÉTHODES POUR LES NOTIFICATIONS DE PROXIMITÉ ===
+
+        /// <summary>
+        /// Met à jour la position de l'utilisateur dans son profil
+        /// </summary>
+        public async Task UpdateUserLocationAsync(string userId, double latitude, double longitude)
+        {
+            try
+            {
+                var updates = new Dictionary<string, object>
+                {
+                    { "LastLatitude", latitude },
+                    { "LastLongitude", longitude },
+                    { "LastLocationUpdate", DateTime.UtcNow.ToString("o") }
+                };
+
+                await _firebaseClient
+                    .Child("UserProfiles")
+                    .Child(userId)
+                    .PatchAsync(updates);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur lors de la mise à jour de la position: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Met à jour les préférences de notification de proximité
+        /// </summary>
+        public async Task UpdateProximityPreferencesAsync(string userId, bool enabled, double radiusKm)
+        {
+            try
+            {
+                var updates = new Dictionary<string, object>
+                {
+                    { "ProximityNotificationsEnabled", enabled },
+                    { "NotificationRadius", radiusKm }
+                };
+
+                await _firebaseClient
+                    .Child("UserProfiles")
+                    .Child(userId)
+                    .PatchAsync(updates);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur lors de la mise à jour des préférences de proximité: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Récupère tous les profils utilisateurs (pour les notifications de proximité)
+        /// </summary>
+        public async Task<List<UserProfile>> GetAllUserProfilesAsync()
+        {
+            try
+            {
+                var currentUser = await _authService.GetCurrentUserAsync();
+                if (currentUser == null)
+                {
+                    throw new UnauthorizedAccessException("Utilisateur non authentifié");
+                }
+
+                var profiles = await _firebaseClient
+                    .Child("UserProfiles")
+                    .OnceAsync<UserProfile>();
+
+                return profiles?.Select(item =>
+                {
+                    var profile = item.Object;
+                    if (profile != null)
+                    {
+                        profile.Id = item.Key;
+                    }
+                    return profile;
+                }).Where(p => p != null).Cast<UserProfile>().ToList() ?? new List<UserProfile>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur lors de la récupération des profils: {ex.Message}");
+                return new List<UserProfile>();
+            }
+        }
+
+        /// <summary>
+        /// Sauvegarde les statistiques de notification de proximité
+        /// </summary>
+        public async Task SaveProximityNotificationStatsAsync(ProximityNotificationStats stats)
+        {
+            try
+            {
+                await _firebaseClient
+                    .Child("ProximityNotificationStats")
+                    .Child(stats.AnnonceId)
+                    .PutAsync(stats);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur lors de la sauvegarde des stats de notification: {ex.Message}");
             }
         }
     }

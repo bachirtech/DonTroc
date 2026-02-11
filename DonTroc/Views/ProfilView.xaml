@@ -7,7 +7,9 @@
              xmlns:views="clr-namespace:DonTroc.Views"
              x:DataType="viewModels:ProfilViewModel"
              x:Class="DonTroc.Views.ProfilView"
+             x:Name="ThisPage"
              Title="Profil">
+    <Grid>
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
 
@@ -342,8 +344,8 @@
                                                 Padding="0,0,10,0"
                                                 FontSize="10"
                                                 FontFamily="PoppinsBold"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ProfilViewModel}}, Path=EditAnnonceCommand}"
-                                                CommandParameter="{Binding .}"
+                                                Clicked="OnEditAnnonceClicked"
+                                                BindingContext="{Binding .}"
                                                 Style="{StaticResource SecondaryButton}" />
                                         <Button Grid.Column="1"
                                                 Text="Supprimer" 
@@ -351,8 +353,8 @@
                                                 Padding="0,0,10,0"
                                                 FontSize="10"
                                                 FontFamily="PoppinsBold"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ProfilViewModel}}, Path=DeleteAnnonceCommand}"
-                                                CommandParameter="{Binding .}"
+                                                Clicked="OnDeleteAnnonceClicked"
+                                                BindingContext="{Binding .}"
                                                 BackgroundColor="Red"
                                                 TextColor="White" />
                                     </Grid>
@@ -363,8 +365,8 @@
                                             Padding="0,0,10,0"
                                             FontSize="10"
                                             FontFamily="PoppinsBold"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ProfilViewModel}}, Path=BoostAnnonceCommand}"
-                                            CommandParameter="{Binding .}"
+                                            Clicked="OnBoostAnnonceClicked"
+                                            BindingContext="{Binding .}"
                                             BackgroundColor="{StaticResource VertSauge}"
                                             TextColor="White"
                                             HorizontalOptions="FillAndExpand" />
@@ -376,4 +378,8 @@
             </CollectionView>
         </VerticalStackLayout>
     </ScrollView>
+    
+    <!-- Overlay pour les conseils -->
+    <views:TipOverlayView x:Name="TipOverlay" />
+    </Grid>
 </ContentPage>

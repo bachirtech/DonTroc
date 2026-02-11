@@ -18,7 +18,6 @@ using Microsoft.Maui.Media;
 
 namespace DonTroc.ViewModels
 {
-    [QueryProperty(nameof(ConversationId), "conversationId")]
     public class ChatViewModel : BaseViewModel
     {
         private readonly FirebaseService _firebaseService;
@@ -29,12 +28,18 @@ namespace DonTroc.ViewModels
         private readonly GeolocationService _geolocationService;
         private readonly GamificationService _gamificationService;
         private readonly AudioService _audioService;
+        private readonly PushNotificationService _pushNotificationService;
         
-        private string _conversationId;
+        private string _conversationId = string.Empty;
         private IDisposable? _messagesSubscription;
         private IDisposable? _typingSubscription;
         private readonly System.Timers.Timer _typingTimer;
         private System.Timers.Timer? _recordingTimer; // Timer pour l'enregistrement - nullable
+        
+        // Informations du destinataire pour les notifications push
+        private string? _recipientUserId;
+        private string? _recipientFcmToken;
+        private string? _currentUserName;
 
         // Propriétés pour la lecture audio
         private bool _isPlayingVoice;
@@ -251,6 +256,9 @@ namespace DonTroc.ViewModels
 
                         await _firebaseService.SendMessageAsync(message);
 
+                        // Envoyer une notification push au destinataire (en arrière-plan)
+                        _ = Task.Run(async () => await SendPushNotificationToRecipientAsync("📷 Vous avez reçu une image"));
+
                         // Ajouter des points de gamification
                         try
                         {
@@ -353,6 +361,9 @@ namespace DonTroc.ViewModels
 
                     await _firebaseService.SendMessageAsync(message);
 
+                    // Envoyer une notification push au destinataire (en arrière-plan)
+                    _ = Task.Run(async () => await SendPushNotificationToRecipientAsync("📷 Vous avez reçu une photo"));
+
                     // Ajouter des points de gamification
                     await _gamificationService.AddPointsAsync(currentUserId, 5, "Photo envoyée");
                     
@@ -380,7 +391,8 @@ namespace DonTroc.ViewModels
             GlobalNotificationService globalNotificationService,
             GeolocationService geolocationService,
             GamificationService gamificationService,
-            AudioService audioService)
+            AudioService audioService,
+            PushNotificationService pushNotificationService)
         {
             _firebaseService = firebaseService;
             _authService = authService;
@@ -390,6 +402,7 @@ namespace DonTroc.ViewModels
             _geolocationService = geolocationService;
             _gamificationService = gamificationService;
             _audioService = audioService;
+            _pushNotificationService = pushNotificationService;
 
             // Initialisation des propriétés
             _conversationId = string.Empty;
@@ -735,9 +748,15 @@ namespace DonTroc.ViewModels
 
             try
             {
+                // Marquer cette conversation comme active pour éviter les notifications
+                _globalNotificationService.SetActiveConversation(ConversationId);
+                
                 // Désabonner les anciens abonnements
                 _messagesSubscription?.Dispose();
                 _typingSubscription?.Dispose();
+
+                // Charger les informations de la conversation pour obtenir le destinataire
+                await LoadRecipientInfoAsync(currentUserId);
 
                 // Charger les messages existants une fois
                 Messages.Clear();
@@ -748,6 +767,9 @@ namespace DonTroc.ViewModels
                     message.IsSentByUser = message.SenderId == currentUserId;
                     Messages.Add(message);
                 }
+
+                // Marquer tous les messages comme lus maintenant que l'utilisateur les voit
+                _ = Task.Run(async () => await MarkConversationAsReadAsync());
 
                 // S'abonner aux nouveaux messages en temps réel avec gestion d'erreur
                 _messagesSubscription = _firebaseService.SubscribeToMessages(
@@ -778,25 +800,138 @@ namespace DonTroc.ViewModels
         }
 
         /// <summary>
+        /// Charge les informations du destinataire pour les notifications push
+        /// </summary>
+        private async Task LoadRecipientInfoAsync(string currentUserId)
+        {
+            try
+            {
+                // Charger la conversation pour obtenir les participants
+                var conversations = await _firebaseService.GetUserConversationsAsync(currentUserId);
+                var conversation = conversations.FirstOrDefault(c => c.Id == ConversationId);
+                
+                if (conversation != null)
+                {
+                    // Déterminer qui est le destinataire
+                    _recipientUserId = conversation.SellerId == currentUserId 
+                        ? conversation.BuyerId 
+                        : conversation.SellerId;
+                    
+                    // Charger le profil du destinataire pour obtenir le token FCM
+                    if (!string.IsNullOrEmpty(_recipientUserId))
+                    {
+                        var recipientProfile = await _firebaseService.GetUserProfileAsync(_recipientUserId);
+                        _recipientFcmToken = recipientProfile?.FcmToken;
+                        Debug.WriteLine($"[ChatViewModel] Destinataire: {_recipientUserId}, Token FCM: {(_recipientFcmToken != null ? "présent" : "absent")}");
+                    }
+                    
+                    // Charger le nom de l'utilisateur actuel pour les notifications
+                    var currentUserProfile = await _firebaseService.GetUserProfileAsync(currentUserId);
+                    _currentUserName = currentUserProfile?.Name ?? "Un utilisateur";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ChatViewModel] Erreur lors du chargement des infos du destinataire: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Envoie une notification push au destinataire
+        /// </summary>
+        private async Task SendPushNotificationToRecipientAsync(string messageText)
+        {
+            try
+            {
+                // Vérifier que nous avons les informations nécessaires
+                if (string.IsNullOrEmpty(_recipientFcmToken))
+                {
+                    Debug.WriteLine("[ChatViewModel] Pas de token FCM pour le destinataire, notification push ignorée");
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(_currentUserName))
+                {
+                    _currentUserName = "Un utilisateur";
+                }
+
+                // Envoyer la notification push
+                var success = await _pushNotificationService.SendMessageNotificationAsync(
+                    _recipientFcmToken,
+                    _currentUserName,
+                    messageText,
+                    ConversationId
+                );
+
+                if (success)
+                {
+                    Debug.WriteLine($"[ChatViewModel] Notification push envoyée au destinataire");
+                }
+                else
+                {
+                    Debug.WriteLine($"[ChatViewModel] Échec de l'envoi de la notification push");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ChatViewModel] Erreur lors de l'envoi de la notification push: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Appelée quand un nouveau message est reçu en temps réel
         /// </summary>
         private void OnNewMessageReceived(Message message)
         {
-            // Vérifier que le message n'existe pas déjà dans la liste
-            if (Messages.Any(m => m.Id == message.Id))
-                return;
-
             var currentUserId = _authService.GetUserId();
             message.IsSentByUser = message.SenderId == currentUserId;
+
+            // Vérifier si ce message existe déjà (mise à jour de statut)
+            var existingMessage = Messages.FirstOrDefault(m => m.Id == message.Id);
+            if (existingMessage != null)
+            {
+                // Mettre à jour le statut du message existant
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    existingMessage.Status = message.Status;
+                    existingMessage.IsRead = message.IsRead;
+                    existingMessage.IsDelivered = message.IsDelivered;
+                    existingMessage.ReadAt = message.ReadAt;
+                    existingMessage.DeliveredAt = message.DeliveredAt;
+                    
+                    // Notifier le changement pour rafraîchir l'affichage
+                    var index = Messages.IndexOf(existingMessage);
+                    if (index >= 0)
+                    {
+                        Messages.RemoveAt(index);
+                        Messages.Insert(index, message);
+                    }
+                });
+                return;
+            }
 
             // Ajouter le message à la liste sur le thread UI
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 Messages.Add(message);
 
-                // Si le message n'est pas de l'utilisateur actuel, afficher une notification
+                // Si le message n'est pas de l'utilisateur actuel
                 if (!message.IsSentByUser)
                 {
+                    // Marquer le message comme livré (en arrière-plan)
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _firebaseService.MarkMessageAsDeliveredAsync(ConversationId, message.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Erreur lors du marquage comme livré: {ex.Message}");
+                        }
+                    });
+
+                    // Afficher une notification
                     Task.Run(async () =>
                     {
                         try
@@ -945,21 +1080,34 @@ namespace DonTroc.ViewModels
                     await Shell.Current.DisplayAlert("Erreur", "Vous devez être connecté pour envoyer un message.", "OK");
                     return;
                 }
+                
+                // Vérification du ConversationId
+                if (string.IsNullOrEmpty(ConversationId))
+                {
+                    await Shell.Current.DisplayAlert("Erreur", "La conversation n'est pas correctement initialisée. Veuillez réessayer.", "OK");
+                    return;
+                }
 
                 // Arrêter l'indicateur d'écriture avant d'envoyer
                 await StopTyping();
+
+                // Sauvegarder le texte du message avant de le vider
+                var messageText = this.NewMessageText;
 
                 var message = new Message
                 {
                     ConversationId = this.ConversationId,
                     SenderId = currentUserId,
-                    Text = this.NewMessageText,
+                    Text = messageText,
                     Timestamp = DateTime.UtcNow
                 };
 
                 await _firebaseService.SendMessageAsync(message);
 
                 NewMessageText = string.Empty; // Vide le champ de saisie
+
+                // Envoyer une notification push au destinataire (en arrière-plan)
+                _ = Task.Run(async () => await SendPushNotificationToRecipientAsync(messageText));
             }
             catch (Exception ex)
             {
@@ -1024,6 +1172,9 @@ namespace DonTroc.ViewModels
                 };
 
                 await _firebaseService.SendMessageAsync(message);
+
+                // Envoyer une notification push au destinataire (en arrière-plan)
+                _ = Task.Run(async () => await SendPushNotificationToRecipientAsync("📍 Vous avez reçu une localisation"));
 
                 // Ajouter des points de gamification
                 await _gamificationService.AddPointsAsync(currentUserId, 3, "Localisation partagée");
@@ -1302,6 +1453,9 @@ namespace DonTroc.ViewModels
 
                 await _firebaseService.SendMessageAsync(message);
 
+                // Envoyer une notification push au destinataire (en arrière-plan)
+                _ = Task.Run(async () => await SendPushNotificationToRecipientAsync("🎤 Vous avez reçu un message vocal"));
+
                 // Ajouter des points de gamification
                 await _gamificationService.AddPointsAsync(currentUserId, 8, "Message vocal envoyé");
             }
@@ -1423,6 +1577,14 @@ namespace DonTroc.ViewModels
             {
                 try
                 {
+                    var currentUserId = _authService.GetUserId();
+                    if (!string.IsNullOrEmpty(currentUserId))
+                    {
+                        // Marquer les messages comme lus dans Firebase (avec statut ✓✓ bleu)
+                        await _firebaseService.MarkMessagesAsReadAsync(ConversationId, currentUserId);
+                    }
+                    
+                    // Mettre à jour le compteur local
                     await _unreadMessageService.MarkConversationAsReadAsync(ConversationId);
                 }
                 catch (Exception ex)
@@ -1437,6 +1599,9 @@ namespace DonTroc.ViewModels
         /// </summary>
         public new void Dispose()
         {
+            // Réinitialiser la conversation active pour réactiver les notifications
+            _globalNotificationService.SetActiveConversation(null);
+            
             _messagesSubscription?.Dispose();
             _typingSubscription?.Dispose();
             _typingTimer.Dispose();

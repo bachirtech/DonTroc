@@ -4,8 +4,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
              xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:views="clr-namespace:DonTroc.Views"
              x:Class="DonTroc.Views.FavoritesView"
              x:DataType="viewModels:FavoritesViewModel"
+             x:Name="ThisPage"
              Title="Favoris">
 
     <Grid RowDefinitions="Auto,*">
@@ -66,7 +68,8 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Favorite">
-                                <Border BackgroundColor="White" StrokeThickness="0" Padding="12" Margin="0,0,0,4">
+                                <Border BackgroundColor="White" StrokeThickness="0" Padding="12" Margin="0,0,0,4"
+                                        BindingContext="{Binding .}">
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="12" />
                                     </Border.StrokeShape>
@@ -98,14 +101,14 @@
                                         <!-- Actions -->
                                         <StackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
                                             <Button Text="Voir"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=NavigateToAnnonceCommand}"
-                                                    CommandParameter="{Binding .}"
+                                                    Clicked="OnViewFavoriteClicked"
+                                                    BindingContext="{Binding .}"
                                                     BackgroundColor="{StaticResource Primary}" TextColor="White"
                                                     FontSize="12" CornerRadius="6" Padding="10,6" />
                                             <Button Text="❌"
                                                     Padding="10,6"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=DeleteFavoriteCommand}"
-                                                    CommandParameter="{Binding .}"
+                                                    Clicked="OnDeleteFavoriteClicked"
+                                                    BindingContext="{Binding .}"
                                                     BackgroundColor="Transparent" TextColor="Red" FontSize="14"
                                                     CornerRadius="15" WidthRequest="34" HeightRequest="34" />
                                         </StackLayout>
@@ -113,9 +116,7 @@
 
                                     <!-- Tap global pour naviguer -->
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=NavigateToAnnonceCommand}"
-                                            CommandParameter="{Binding .}" />
+                                        <TapGestureRecognizer Tapped="OnFavoriteTapped" />
                                     </Border.GestureRecognizers>
                                 </Border>
                             </DataTemplate>
@@ -157,8 +158,8 @@
                                                TextColor="{StaticResource Primary}" />
                                     </StackLayout>
                                     <Button Grid.Column="1" Text="❌"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:FavoritesViewModel}}, Path=DeleteAlertCommand}"
-                                            CommandParameter="{Binding .}"
+                                            Clicked="OnDeleteAlertClicked"
+                                            BindingContext="{Binding .}"
                                             BackgroundColor="Transparent" TextColor="Red" FontSize="14"
                                             CornerRadius="15" WidthRequest="34" HeightRequest="34" />
                                 </Grid>
@@ -206,11 +207,14 @@
                     <Entry Placeholder="Localisation (optionnel)" Text="{Binding NewAlertLocation}" />
                     <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                         <Button Text="Annuler" Clicked="OnCancelCreateAlert" BackgroundColor="Gray" TextColor="White" />
-                        <Button Text="Créer" Command="{Binding CreateAlertCommand}"
+                        <Button Text="Crer" Command="{Binding CreateAlertCommand}"
                                 BackgroundColor="{StaticResource Primary}" TextColor="White" />
                     </HorizontalStackLayout>
                 </StackLayout>
             </Border>
         </Grid>
+        
+        <!-- Overlay pour les conseils -->
+        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="2" />
     </Grid>
 </ContentPage>

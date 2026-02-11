@@ -31,6 +31,9 @@ namespace DonTroc.Services
         {
             try
             {
+                // ⚠️ Désactivé pendant la suspension AdMob
+                if (!AdMobConfiguration.ADS_ENABLED) return false;
+                
                 return _platformService?.IsRewardedAdReady() ?? false;
             }
             catch (Exception ex)
@@ -65,6 +68,9 @@ namespace DonTroc.Services
         {
             try
             {
+                // ⚠️ Désactivé pendant la suspension AdMob
+                if (!AdMobConfiguration.ADS_ENABLED) return false;
+                
                 return _platformService?.IsInterstitialAdReady() ?? false;
             }
             catch (Exception ex)
@@ -98,6 +104,13 @@ namespace DonTroc.Services
         {
             try
             {
+                // ⚠️ Désactivé pendant la suspension AdMob
+                if (!AdMobConfiguration.ADS_ENABLED)
+                {
+                    System.Diagnostics.Debug.WriteLine(AdMobConfiguration.GetStatusMessage());
+                    return;
+                }
+                
                 _platformService?.LoadRewardedAd();
                 _platformService?.LoadInterstitialAd();
             }

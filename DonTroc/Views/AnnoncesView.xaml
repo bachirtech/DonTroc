@@ -8,6 +8,7 @@
              xmlns:views="clr-namespace:DonTroc.Views"
              x:DataType="viewModels:AnnoncesViewModel"
              x:Class="DonTroc.Views.AnnoncesView"
+             x:Name="ThisPage"
              Title="Annonces">
 
     <!-- Utilisation d'un Grid pour mieux contrôler la disposition -->
@@ -145,11 +146,10 @@
                                         <!-- Overlay transparent pour capturer les clics -->
                                         <BoxView BackgroundColor="Transparent"
                                                  WidthRequest="120"
-                                                 HeightRequest="120">
+                                                 HeightRequest="120"
+                                                 BindingContext="{Binding .}">
                                             <BoxView.GestureRecognizers>
-                                                <TapGestureRecognizer
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=OpenImageViewerCommand}"
-                                                    CommandParameter="{Binding .}" />
+                                                <TapGestureRecognizer Tapped="OnImageTapped" />
                                             </BoxView.GestureRecognizers>
                                         </BoxView>
                                     </Grid>
@@ -233,8 +233,8 @@
                                         <Button Text="💬"
                                                 FontSize="20"
                                                 SemanticProperties.Hint="Démarrer une conversation"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=GoToChatCommand}"
-                                                CommandParameter="{Binding .}"
+                                                Clicked="OnChatClicked"
+                                                BindingContext="{Binding .}"
                                                 BackgroundColor="Transparent"
                                                 TextColor="#D98C6A"
                                                 WidthRequest="40"
@@ -245,8 +245,8 @@
                                         <!-- Bouton pour les favoris -->
                                         <Button FontSize="20"
                                                 SemanticProperties.Hint="Ajouter aux favoris"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=ToggleFavoriteCommand}"
-                                                CommandParameter="{Binding .}"
+                                                Clicked="OnFavoriteClicked"
+                                                BindingContext="{Binding .}"
                                                 BackgroundColor="Transparent"
                                                 TextColor="#D98C6A"
                                                 WidthRequest="40"
@@ -267,8 +267,8 @@
                                         <Button Text="📤"
                                                 FontSize="20"
                                                 SemanticProperties.Hint="Partager l'annonce"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=ShareAnnonceCommand}"
-                                                CommandParameter="{Binding .}"
+                                                Clicked="OnShareClicked"
+                                                BindingContext="{Binding .}"
                                                 BackgroundColor="Transparent"
                                                 TextColor="#A8C686"
                                                 WidthRequest="40"
@@ -280,8 +280,8 @@
                                         <Button Text="⚠️"
                                                 FontSize="20"
                                                 SemanticProperties.Hint="Signaler cette annonce"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:AnnoncesViewModel}}, Path=ReportAnnonceCommand}"
-                                                CommandParameter="{Binding .}"
+                                                Clicked="OnReportClicked"
+                                                BindingContext="{Binding .}"
                                                 BackgroundColor="Transparent"
                                                 TextColor="#DC3545"
                                                 WidthRequest="40"
@@ -325,6 +325,9 @@
                 </CollectionView>
             </RefreshView>
         </Grid>
+        
+        <!-- Overlay pour les conseils -->
+        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="4" />
         
     </Grid>
 </ContentPage>

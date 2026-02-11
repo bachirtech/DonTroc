@@ -3,11 +3,29 @@
     <!-- Style de base pour le splash screen -->
     <style name="Maui.SplashTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/maui_splash_color</item>
-        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowFullscreen">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
-        <item name="android:statusBarColor">@color/maui_splash_color</item>
-        <item name="android:navigationBarColor">@color/maui_splash_color</item>
+        <!-- Edge-to-Edge: barres système transparentes -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Permettre le dessin sous les barres système -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- Optionnel: contraste pour la navigation gestuelle -->
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+    </style>
+    
+    <!-- Style principal de l'application avec Edge-to-Edge -->
+    <style name="Maui.MainTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <!-- Edge-to-Edge support -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
     </style>
 </resources>
 

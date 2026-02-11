@@ -23,10 +23,8 @@ if [ ! -f "$KEYSTORE_FILE" ]; then
     exit 1
 fi
 
-# Demander le mot de passe du keystore
-echo "Entrez le mot de passe du keystore:"
-read -s KEYSTORE_PASSWORD
-echo ""
+# Mot de passe du keystore (peut être passé en argument ou défini ici)
+KEYSTORE_PASSWORD="${1:-DonTroc2024!1007}"
 
 # Exporter les variables d'environnement
 export DONTROC_KEYSTORE_PASS="$KEYSTORE_PASSWORD"

@@ -11,7 +11,8 @@
 		<!-- Pour activer iOS/MacCatalyst : remplacer par net9.0-android;net9.0-ios;net9.0-maccatalyst -->
 		<TargetFrameworks>net9.0-android</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
-		<NoWarn>$(NoWarn);NU1603</NoWarn>
+		<!-- Désactiver les warnings de conflit de packages NuGet -->
+		<NoWarn>$(NoWarn);NU1603;NU1605;NU1608</NoWarn>
 
 		<OutputType>Exe</OutputType>
 		<RootNamespace>DonTroc</RootNamespace>
@@ -22,20 +23,13 @@
 
 		<!-- Optimisations avancées pour la production -->
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
-		<!-- COMMENTÉ POUR DEBUG: L'optimisation LLVM peut causer des problèmes de debugging sur iOS -->
-		<!-- <EnableLLVMCompiler Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">true</EnableLLVMCompiler> -->
-
-		<!-- Configuration Android optimisée pour la production -->
-		<!-- COMMENTÉ POUR DEBUG: Ces propriétés sont écrasées par la section Debug plus bas -->
-		<!-- <AndroidUseSharedRuntime Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">false</AndroidUseSharedRuntime> -->
-		<!-- <AndroidLinkMode Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">SdkOnly</AndroidLinkMode> -->
 		<AndroidEnableDesugar Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</AndroidEnableDesugar>
 
 		<!-- Métadonnées de l'application -->
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
 		<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
-		<ApplicationVersion>9</ApplicationVersion>
+		<ApplicationVersion>15</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -71,11 +65,7 @@
 		<!-- Configuration spécifique pour les permissions Android -->
 		<AndroidManifestMerger Condition="'$(TargetFramework)' == 'net9.0-android'">manifestmerger</AndroidManifestMerger>
 		<AndroidEnableMultiDex Condition="'$(TargetFramework)' == 'net9.0-android'">true</AndroidEnableMultiDex>
-
-		<!-- Propriétés de signature chargées depuis un fichier externe -->
-		<!-- COMMENTÉ POUR DEBUG: Pas besoin de mots de passe de signature en mode Debug -->
-		<!-- <AndroidSigningStorePassword Condition=" '$(AndroidSigningStorePassword)' == '' ">$(DontrocSigningStorePassword)</AndroidSigningStorePassword> -->
-		<!-- <AndroidSigningKeyPassword Condition=" '$(AndroidSigningKeyPassword)' == '' ">$(DontrocSigningKeyPassword)</AndroidSigningKeyPassword> -->
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<!-- Configuration spécifique pour Release -->
@@ -98,10 +88,15 @@
 		<!-- Désactiver AOT pour éviter le besoin du NDK -->
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<EnableLLVM>false</EnableLLVM>
-		<!-- Utiliser D8 sans optimisation pour accepter les duplications -->
+		<!-- IMPORTANT: Désactiver complètement R8 pour éviter les erreurs de classes dupliquées -->
 		<AndroidDexTool>d8</AndroidDexTool>
+		<AndroidLinkTool></AndroidLinkTool>
+		<AndroidUseR8>false</AndroidUseR8>
 		<AndroidEnableProguard>false</AndroidEnableProguard>
+		<AndroidR8IgnoreWarnings>true</AndroidR8IgnoreWarnings>
 		<AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+		<!-- Arguments D8 pour gérer les classes dupliquées -->
+		<AndroidDexToolExtraArgs>--min-api 23</AndroidDexToolExtraArgs>
 	</PropertyGroup>
 
 	<!-- Configuration pour Release uniquement - Optimisée pour test interne -->
@@ -114,9 +109,11 @@
 		<AndroidUseAapt2>true</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
 		
-		<!-- Utiliser D8 qui est plus tolérant avec les duplications -->
+		<!-- Utiliser D8 sans R8 pour éviter le conflit de classes dupliquées AndroidX Compose -->
 		<AndroidDexTool>d8</AndroidDexTool>
-		<AndroidLinkTool>d8</AndroidLinkTool>
+		<!-- IMPORTANT: Désactiver R8 (AndroidLinkTool vide) pour éviter l'erreur -->
+		<!-- "Type androidx.compose.runtime.Immutable is defined multiple times" -->
+		<AndroidLinkTool></AndroidLinkTool>
 		
 		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
 		
@@ -136,7 +133,6 @@
 		<EnableLLVM>false</EnableLLVM>
 		
 		<!-- ProGuard DÉSACTIVÉ : évite les crashs avec Firebase/MAUI/Reflection -->
-		<!-- R8 fait déjà l'optimisation DEX, ProGuard n'est pas nécessaire -->
 		<AndroidEnableProguard>false</AndroidEnableProguard>
 		<AndroidR8IgnoreWarnings>true</AndroidR8IgnoreWarnings>
 		
@@ -164,21 +160,6 @@
 		<GOOGLE_MAPS_API_KEY Condition="'$(GOOGLE_MAPS_API_KEY)' == ''">AIzaSyBBr5uAyAsABZXFCoQV5eUPmmIEWSAaNhc</GOOGLE_MAPS_API_KEY>
 	</PropertyGroup>
 
-	<!-- Chargement des propriétés de configuration depuis les fichiers sécurisés -->
-	<PropertyGroup>
-		<!-- Chargement des propriétés de signature -->
-		<_SigningPropsFile>$(MSBuildProjectDirectory)\..\keystore\signing.properties</_SigningPropsFile>
-		<_SigningPropsExists Condition="Exists('$(_SigningPropsFile)')">true</_SigningPropsExists>
-
-		<!-- Chargement des propriétés Google Maps -->
-		<_MapsPropsFile>$(MSBuildProjectDirectory)\..\keystore\maps.properties</_MapsPropsFile>
-		<_MapsPropsExists Condition="Exists('$(_MapsPropsFile)')">true</_MapsPropsExists>
-	</PropertyGroup>
-
-	<!-- Chargement des propriétés depuis les fichiers (au lieu d'Import qui ne fonctionne qu'avec XML) -->
-	<Target Name="LoadCustomProperties" BeforeTargets="BeforeBuild">
-		<!-- Cette cible est maintenant vide car les propriétés sont gérées différemment -->
-	</Target>
 
 	<!-- Configuration de sécurité renforcée pour Android -->
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
@@ -190,9 +171,6 @@
 
 		<!-- Configuration de sécurité stricte -->
 		<AndroidManifestMerger>manifestmerger.jar</AndroidManifestMerger>
-		
-		<!-- COMMENTÉ POUR DEBUG: Désactiver les symboles de débogage peut empêcher le debugging -->
-		<!-- <AndroidIncludeDebugSymbols>false</AndroidIncludeDebugSymbols> -->
 	</PropertyGroup>
 
 	<!-- Exclusion des fichiers système et temporaires -->
@@ -234,12 +212,12 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
 		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
 		<PackageReference Include="FirebaseAuthentication.net" Version="4.1.0" />
 		<PackageReference Include="FirebaseDatabase.net" Version="4.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Maui.Controls.Core" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Maui.Controls.Core" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Maui.Graphics" Version="9.0.40" />
 		<PackageReference Include="Plugin.Firebase" Version="3.1.4" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
@@ -255,18 +233,98 @@
 
 	<!-- Packages spécifiques à Android -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+		<!-- IronSource/LevelPlay Binding pour la médiation publicitaire -->
+		<!-- DÉSACTIVÉ: En attente de validation du compte IronSource -->
+		<!-- Envoyez un email à ironsource-account-review@unity3d.com avec:
+		     - Sujet: "ironSource account review details"
+		     - Lien Play Store de votre app
+		     - Email du compte IronSource
+		     - Ticket #00880519
+		     Une fois approuvé, décommentez cette ligne -->
+		<!-- <ProjectReference Include="..\IronSource.Binding\IronSource.Binding.csproj" /> -->
+		
 		<!-- SkiaSharp pour le rendu graphique -->
 		<PackageReference Include="SkiaSharp" Version="3.119.1" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
 
+		<!-- Google Sign-In pour l'authentification SSO -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.4.0.2" />
+
 		<!-- AdMob - MAUI gère automatiquement les dépendances AndroidX transitives -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="120.4.0" />
-		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.4.0" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="124.0.0.4" />
+		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.6.0.1" />
+		
+		<!-- Material Design mis à jour pour Android 15 Edge-to-Edge -->
+		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.1" />
+		
+		<!-- 
+		Unity Ads - DÉSACTIVÉ (pas de binding Xamarin/MAUI officiel disponible)
+		Le package Xamarin.Android.UnityAdsSdk n'existe pas sur NuGet public.
+		Options alternatives:
+		1. Créer un binding Java manuellement avec le SDK Unity Ads AAR
+		2. Utiliser Meta Audience Network (Facebook Ads) qui a un binding officiel
+		3. Attendre la réactivation AdMob (29 jours)
+		<PackageReference Include="Xamarin.Android.UnityAdsSdk" Version="x.x.x" />
+		-->
+		
+		<!-- ============================================================ -->
+		<!-- RÉSOLUTION DES CONFLITS DE VERSIONS - CLASSES DUPLIQUÉES      -->
+		<!-- ============================================================ -->
+		
+		<!-- Conflit 1: androidx.compose.runtime.Immutable -->
+		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.0.1">
+			<ExcludeAssets>all</ExcludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		
+		<!-- Conflit 2: androidx.savedstate.ViewKt dupliqué -->
+		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.2.1.15">
+			<ExcludeAssets>all</ExcludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		
+		<!-- ============================================================ -->
+		<!-- EXCLUSION des anciens packages Google Play Services 27.0.0    -->
+		<!-- Ces packages dépendent de Xamarin.Android.Support.v4 qui      -->
+		<!-- cause l'erreur XA1039 en .NET 9                               -->
+		<!-- ============================================================ -->
+		
+		<!-- Exclure les anciens packages Measurement/Analytics/Ads 27.0.0 -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement" Version="122.0.0.6" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="122.0.0.6" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Api" Version="122.0.0.6" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk" Version="122.0.0.6" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Impl" Version="122.0.0.6" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="122.0.0.6" />
+		
+		<!-- Forcer les versions modernes (AndroidX) des packages Analytics pour éviter 27.0.0 -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Analytics" Version="118.0.4.6">
+			<ExcludeAssets>all</ExcludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		
+		<!-- Exclure explicitement Xamarin.Android.Support.v4 - cause de l'erreur XA1039 -->
+		<PackageReference Include="Xamarin.Android.Support.v4" Version="28.0.0.3">
+			<ExcludeAssets>all</ExcludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		
+		<!-- Références directes pour résoudre les conflits de version -->
+		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.10.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.10.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.12.2.1" />
+		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9.1" />
+		
+		<!-- EXCLUSION: Xamarin.AndroidX.Legacy.Support.Core.Utils cause l'erreur XA1039 -->
+		<!-- Ce package a "Support" dans son nom mais est en fait AndroidX -->
+		<!-- IMPORTANT: Ne PAS exclure ce package car il est requis par d'autres assemblies -->
+		<PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.Utils" Version="1.0.0.23" />
 	</ItemGroup>
 
-	<!-- Désactiver les warnings de downgrade de packages pour éviter les conflits transitifs -->
+	<!-- Désactiver les warnings de downgrade/conflit de packages pour éviter les conflits transitifs -->
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
-		<NoWarn>$(NoWarn);NU1605</NoWarn>
+		<NoWarn>$(NoWarn);NU1605;NU1608</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -277,21 +335,6 @@
 		<TrimmerRootAssembly Include="DonTroc" />
 	</ItemGroup>
 
-	<!-- Configuration de trimming robuste pour éviter les crashs en production -->
-	<!-- Configuration de trimming DÉSACTIVÉE pour Release Android pour éviter les erreurs XA8000 et XABBA7023 -->
-	<!-- <PropertyGroup Condition="'$(Configuration)'=='Release' AND '$(TargetFramework)' == 'net8.0-android'">
-		<TrimMode>link</TrimMode>
-		<_ExtraTrimmerArgs>-skip-unresolved true</_ExtraTrimmerArgs>
-	</PropertyGroup> -->
-
-	<!-- TrimmerRootAssembly DÉSACTIVÉ pour Release Android -->
-	<!-- <ItemGroup Condition="'$(Configuration)'=='Release' AND '$(TargetFramework)' == 'net8.0-android'">
-		<TrimmerRootAssembly Include="Microsoft.Maui.Graphics" />
-		<TrimmerRootAssembly Include="Syncfusion.Maui.Core" />
-		<TrimmerRootAssembly Include="DonTroc" />
-		<TrimmerRootAssembly Include="CloudinaryDotNet" />
-		<TrimmerRootAssembly Include="System.Text.Json" />
-	</ItemGroup> -->
 
 	<!-- Ensure every TrimmerRootAssembly defines RootMode to avoid MSB4096 when targets iterate %(TrimmerRootAssembly.RootMode) -->
 	<ItemGroup>
@@ -319,10 +362,6 @@
 		<!-- Ressources SkiaSharp manquantes pour corriger l'erreur XA8000 -->
 		<AndroidResource Include="Platforms\Android\Resources\values\skiasharp_attrs.xml" />
 		<AndroidResource Include="Platforms\Android\Resources\values\attrs.xml" />
-		<!-- Temporairement désactivé pour résoudre les conflits de noms de fichiers -->
-		<!-- <AndroidResource Include="Platforms\Android\**\*.xml" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" Exclude="Platforms\Android\AndroidManifest.xml" /> -->
-		<!-- <AndroidResource Include="Resources\**\*.xml" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" /> -->
-		<!-- <AndroidResource Include="**\*.axml" Link="Resources\%(RecursiveDir)%(Filename)%(Extension)" /> -->
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">

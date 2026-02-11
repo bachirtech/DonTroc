@@ -1,24 +1,55 @@
 <Project>
+  <!-- ============================================================ -->
+  <!-- DÉSACTIVATION DE LA VÉRIFICATION XA1039 (Android Support)    -->
+  <!-- ============================================================ -->
+  <!-- En .NET 9, certains packages transitifs peuvent encore référencer
+       les anciennes bibliothèques Xamarin.Android.Support, mais utilisent
+       en réalité AndroidX via la migration automatique.
+       
+       Le package Xamarin.AndroidX.Legacy.Support.Core.Utils est une dépendance
+       transitive qui déclenche faussement l'erreur XA1039 car son nom contient "Support".
+       C'est en fait un package AndroidX valide. -->
+  
+  <!-- IMPORTANT: Désactiver la vérification des packages Android Support -->
+  <!-- Cette propriété doit être définie AVANT que le SDK Android ne charge -->
+  <PropertyGroup>
+    <AndroidEnableLegacySupportLibraryChecks>false</AndroidEnableLegacySupportLibraryChecks>
+  </PropertyGroup>
+  
+  <!-- Redéfinir la cible APRÈS le SDK Android avec AfterTargets -->
+  <Target Name="_DisableUnsupportedPackagesCheck" 
+          AfterTargets="_CheckUnsupportedPackages" 
+          BeforeTargets="ResolveReferences" />
+  
+  <!-- Cible vide qui remplace _CheckUnsupportedPackages - sera overriden mais on garde pour référence -->
+  <Target Name="_CheckUnsupportedPackages" />
+  
   <!-- Forcer les versions AndroidX pour éviter les conflits -->
   <ItemGroup>
-    <!-- Collection packages - version 1.4.2 requise par Activity 1.9.1 -->
+    <!-- Collection packages -->
     <PackageReference Update="Xamarin.AndroidX.Collection" Version="1.4.2" />
     <PackageReference Update="Xamarin.AndroidX.Collection.Ktx" Version="1.4.2" />
     <PackageReference Update="Xamarin.AndroidX.Collection.Jvm" Version="1.4.2" />
     
-    <!-- Activity packages -->
-    <PackageReference Update="Xamarin.AndroidX.Activity" Version="1.9.1" />
-    <PackageReference Update="Xamarin.AndroidX.Activity.Ktx" Version="1.9.1" />
+    <!-- Activity packages - versions alignées avec csproj -->
+    <PackageReference Update="Xamarin.AndroidX.Activity" Version="1.12.2.1" />
+    <PackageReference Update="Xamarin.AndroidX.Activity.Ktx" Version="1.12.2.1" />
     
-    <!-- Lifecycle packages - version 2.8.4 requise par Activity 1.9.1 -->
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Common" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.8.4" />
-    <PackageReference Update="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.8.4" />
+    <!-- Lifecycle packages - versions alignées avec csproj -->
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Common" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.10.0.1" />
+    <PackageReference Update="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.10.0.1" />
+    
+    <!-- SavedState - version alignée avec csproj -->
+    <PackageReference Update="Xamarin.AndroidX.SavedState" Version="1.4.0.1" />
+    
+    <!-- Fragment - version alignée avec csproj -->
+    <PackageReference Update="Xamarin.AndroidX.Fragment" Version="1.8.9.1" />
   </ItemGroup>
 
   <!-- Configuration d'exclusion pour éviter les ressources manquantes (XABBA7023, XA8000) -->

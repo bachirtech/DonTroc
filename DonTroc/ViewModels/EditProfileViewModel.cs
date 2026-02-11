@@ -14,6 +14,7 @@ namespace DonTroc.ViewModels
     {
         private readonly AuthService _authService;
         private readonly FirebaseService _firebaseService;
+        private readonly ProximityNotificationService _proximityNotificationService;
 
         private string? _name;
         public string? Name
@@ -31,18 +32,98 @@ namespace DonTroc.ViewModels
 
         private FileResult? _newProfilePicture; // Stocke la nouvelle photo sélectionnée
 
+        // Propriétés pour les notifications de proximité
+        private bool _proximityNotificationsEnabled = true;
+        public bool ProximityNotificationsEnabled
+        {
+            get => _proximityNotificationsEnabled;
+            set => SetProperty(ref _proximityNotificationsEnabled, value);
+        }
+
+        private double _notificationRadius = 5.0;
+        public double NotificationRadius
+        {
+            get => _notificationRadius;
+            set
+            {
+                if (SetProperty(ref _notificationRadius, Math.Round(value, 1)))
+                {
+                    OnPropertyChanged(nameof(NotificationRadiusText));
+                }
+            }
+        }
+
+        public string NotificationRadiusText => $"{NotificationRadius:F1} km";
+
         public ICommand SaveProfileCommand { get; }
         public ICommand PickPhotoCommand { get; }
+        public ICommand UpdateLocationCommand { get; }
+        public ICommand ToggleProximityNotificationsCommand { get; }
 
-        public EditProfileViewModel(AuthService authService, FirebaseService firebaseService) // Constructeur avec injection des services
+        public EditProfileViewModel(AuthService authService, FirebaseService firebaseService, 
+            ProximityNotificationService proximityNotificationService)
         {
             _authService = authService;
             _firebaseService = firebaseService;
+            _proximityNotificationService = proximityNotificationService;
 
             SaveProfileCommand = new Command(async () => await OnSaveProfile(), () => !IsBusy);
             PickPhotoCommand = new Command(async () => await OnPickPhoto());
+            UpdateLocationCommand = new Command(async () => await OnUpdateLocation());
+            ToggleProximityNotificationsCommand = new Command(async () => await OnToggleProximityNotifications());
 
             LoadUserProfile();
+            _ = LoadProximitySettings();
+        }
+
+        private async Task LoadProximitySettings()
+        {
+            try
+            {
+                var (enabled, radius) = await _proximityNotificationService.GetProximityNotificationStatusAsync();
+                ProximityNotificationsEnabled = enabled;
+                NotificationRadius = radius;
+            }
+            catch
+            {
+                // Valeurs par défaut
+                ProximityNotificationsEnabled = true;
+                NotificationRadius = 5.0;
+            }
+        }
+
+        private async Task OnUpdateLocation()
+        {
+            try
+            {
+                IsBusy = true;
+                await _proximityNotificationService.UpdateUserLocationAsync();
+                await App.Current!.MainPage!.DisplayAlert("Position mise à jour", 
+                    "Votre position a été mise à jour. Vous recevrez des notifications pour les annonces à proximité.", "OK");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur mise à jour position: {ex.Message}");
+                await App.Current!.MainPage!.DisplayAlert("Erreur", 
+                    "Impossible de mettre à jour votre position. Vérifiez vos paramètres de localisation.", "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task OnToggleProximityNotifications()
+        {
+            try
+            {
+                await _proximityNotificationService.ConfigureProximityNotificationsAsync(
+                    ProximityNotificationsEnabled, NotificationRadius);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur configuration proximité: {ex.Message}");
+            }
         }
 
         private async void LoadUserProfile() // Méthode pour charger le profil utilisateur

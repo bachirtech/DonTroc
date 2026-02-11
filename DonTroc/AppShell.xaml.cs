@@ -1,4 +1,4 @@
-﻿﻿﻿using DonTroc.Services;
+﻿﻿﻿﻿using DonTroc.Services;
 using DonTroc.Views;
 using System.ComponentModel;
 using DonTroc.ViewModels;
@@ -48,6 +48,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(QuizPage), typeof(QuizPage));
         // Enregistre la route pour la roue de la fortune
         Routing.RegisterRoute(nameof(WheelOfFortunePage), typeof(WheelOfFortunePage));
+        // Enregistre la route pour la page de tous les badges
+        Routing.RegisterRoute(nameof(AllBadgesPage), typeof(AllBadgesPage));
 
         UpdateMessagesBadge();
     }

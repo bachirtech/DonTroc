@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Styles spécifiques pour Android 15+ (API 35) avec Edge-to-Edge obligatoire -->
+    <!-- Note: android:statusBarColor et android:navigationBarColor sont obsolètes sur API 35+ -->
+    <!-- Les barres sont transparentes par défaut sur Android 15 -->
+    
+    <!-- Style de base pour le splash screen - Android 35+ -->
+    <style name="Maui.SplashTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/maui_splash_color</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <!-- Edge-to-Edge est activé par défaut sur Android 15 -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- Désactiver le contraste automatique pour un contrôle total -->
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <!-- Permettre l'affichage bord à bord avec les encoches -->
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+    
+    <!-- Style principal de l'application - Android 35+ -->
+    <style name="Maui.MainTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

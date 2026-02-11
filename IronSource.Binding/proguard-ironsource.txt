@@ -1,0 +1,20 @@
+# Configuration ProGuard pour IronSource SDK
+# Empêche l'obfuscation des classes nécessaires au binding
+
+# Garder toutes les classes IronSource
+-keep class com.ironsource.** { *; }
+-keep interface com.ironsource.** { *; }
+
+# Garder les listeners
+-keep class * implements com.ironsource.mediationsdk.IronSourceBannerListener { *; }
+-keep class * implements com.ironsource.mediationsdk.IronSourceInterstitialListener { *; }
+-keep class * implements com.ironsource.mediationsdk.IronSourceRewardedVideoListener { *; }
+
+# Garder les annotations
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+
+# Éviter les warnings
+-dontwarn com.ironsource.**
+-dontwarn com.unity3d.**

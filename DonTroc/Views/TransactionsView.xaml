@@ -4,9 +4,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:DonTroc.ViewModels"
              xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:views="clr-namespace:DonTroc.Views"
              Title="Mes Transactions"
              BackgroundColor="{StaticResource BeigeClair}">
 
+    <Grid>
     <ScrollView>
         <StackLayout Padding="20" Spacing="20">
             
@@ -305,4 +307,8 @@
 
         </StackLayout>
     </ScrollView>
+    
+    <!-- Overlay pour les conseils -->
+    <views:TipOverlayView x:Name="TipOverlay" />
+    </Grid>
 </ContentPage>

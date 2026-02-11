@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DonTroc.Services;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
 
 namespace DonTroc.ViewModels;
 
@@ -16,6 +17,12 @@ public class LoginViewModel : BaseViewModel
     private readonly AuthService _authService;
     private readonly UnreadMessageService _unreadMessageService;
     private readonly GamificationService _gamificationService; // Service de gamification
+    private readonly GlobalNotificationService _globalNotificationService; // Service de notifications en temps réel
+
+    // Clés pour SecureStorage (mêmes que dans AuthService)
+    private const string EmailKey = "user_email";
+    private const string PasswordKey = "user_password";
+    private const string RememberMeKey = "remember_me";
 
     // Propriété pour l'adresse e-mail
     public string Email
@@ -102,13 +109,17 @@ public class LoginViewModel : BaseViewModel
     public ICommand SignUpCommand { get; }
     public ICommand ForgotPasswordCommand { get; }
     public ICommand TogglePasswordVisibilityCommand { get; } // Nouvelle commande pour basculer la visibilité
+    // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+    // public ICommand SignInWithGoogleCommand { get; } // Commande pour connexion Google SSO
+    public ICommand InitializeCommand { get; } // Commande pour charger les identifiants au démarrage
 
     // Constructeur avec injection du service d'authentification uniquement
-    public LoginViewModel(AuthService authService, UnreadMessageService unreadMessageService, GamificationService gamificationService)
+    public LoginViewModel(AuthService authService, UnreadMessageService unreadMessageService, GamificationService gamificationService, GlobalNotificationService globalNotificationService)
     {
         _authService = authService;
         _unreadMessageService = unreadMessageService;
         _gamificationService = gamificationService;
+        _globalNotificationService = globalNotificationService;
         _email = string.Empty; // Initialisation avec valeur par défaut
         _password = string.Empty; // Initialisation avec valeur par défaut
         _emailErrorMessage = string.Empty;
@@ -118,10 +129,50 @@ public class LoginViewModel : BaseViewModel
         SignUpCommand = new Command(ExecuteSignUpCommand, CanSignIn);
         ForgotPasswordCommand = new Command(ExecuteForgotPasswordCommand);
         TogglePasswordVisibilityCommand = new Command(ExecuteTogglePasswordVisibility); // Initialisation de la nouvelle commande
+        // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+        // SignInWithGoogleCommand = new Command(ExecuteSignInWithGoogleCommand); // Initialisation connexion Google
+        InitializeCommand = new Command(async () => await LoadSavedCredentialsAsync()); // Charger les identifiants sauvegardés
         
         // Initialiser les validations
         ValidateEmail();
         ValidatePassword();
+        
+        // Charger automatiquement les identifiants sauvegardés si "Se souvenir de moi" était activé
+        _ = LoadSavedCredentialsAsync();
+    }
+
+    /// <summary>
+    /// Charge les identifiants sauvegardés si l'utilisateur avait coché "Se souvenir de moi"
+    /// </summary>
+    private async Task LoadSavedCredentialsAsync()
+    {
+        try
+        {
+            var rememberMeValue = await SecureStorage.GetAsync(RememberMeKey);
+            if (rememberMeValue == "true")
+            {
+                var savedEmail = await SecureStorage.GetAsync(EmailKey);
+                var savedPassword = await SecureStorage.GetAsync(PasswordKey);
+
+                if (!string.IsNullOrEmpty(savedEmail))
+                {
+                    Email = savedEmail;
+                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Email chargé depuis SecureStorage: {savedEmail}");
+                }
+                
+                if (!string.IsNullOrEmpty(savedPassword))
+                {
+                    Password = savedPassword;
+                    System.Diagnostics.Debug.WriteLine("[LoginViewModel] Mot de passe chargé depuis SecureStorage");
+                }
+
+                RememberMe = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur lors du chargement des identifiants: {ex.Message}");
+        }
     }
 
     // Condition pour activer le bouton de connexion
@@ -170,6 +221,17 @@ public class LoginViewModel : BaseViewModel
                 {
                     // Ne pas faire échouer la connexion pour une erreur de gamification
                     System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur gamification: {gamEx.Message}");
+                }
+
+                // Initialiser les notifications en temps réel
+                try
+                {
+                    await _globalNotificationService.InitializeAsync();
+                    System.Diagnostics.Debug.WriteLine("[LoginViewModel] Service de notifications en temps réel initialisé");
+                }
+                catch (Exception notifEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur notifications: {notifEx.Message}");
                 }
                 
                 Application.Current.MainPage = new AppShell(_unreadMessageService);
@@ -253,34 +315,57 @@ public class LoginViewModel : BaseViewModel
     {
         if (string.IsNullOrWhiteSpace(Email))
         {
-            await Shell.Current.DisplayAlert("Erreur", "Veuillez saisir votre adresse e-mail avant de réinitialiser votre mot de passe.", "OK");
+            await Shell.Current.DisplayAlert("Email requis", 
+                "Veuillez saisir votre adresse e-mail avant de réinitialiser votre mot de passe.", "OK");
             return;
         }
 
+        // Normaliser l'email
+        var normalizedEmail = Email.Trim().ToLowerInvariant();
+        
         // Validation basique de l'email
-        if (!Email.Contains('@') || !Email.Contains('.'))
+        if (!normalizedEmail.Contains('@') || !normalizedEmail.Contains('.'))
         {
-            await Shell.Current.DisplayAlert("Erreur", "Veuillez saisir une adresse e-mail valide.", "OK");
+            await Shell.Current.DisplayAlert("Email invalide", 
+                "Veuillez saisir une adresse e-mail valide (ex: exemple@email.com).", "OK");
             return;
         }
 
         IsBusy = true;
         try
         {
-            System.Diagnostics.Debug.WriteLine($"Demande de réinitialisation pour l'email : {Email}");
-            await _authService.SendPasswordResetEmailAsync(Email);
+            System.Diagnostics.Debug.WriteLine($"🔐 [LoginViewModel] Demande de réinitialisation pour l'email : {normalizedEmail}");
             
-            await Shell.Current.DisplayAlert("Succès", 
-                $"Un e-mail de réinitialisation a été envoyé à {Email}.\n\n" +
-                "Si vous ne le recevez pas dans quelques minutes, vérifiez :\n" +
-                "• Votre dossier spam/courrier indésirable\n" +
-                "• Que l'adresse email est correcte\n" +
-                "• Qu'un compte existe avec cette adresse", "OK");
+            await _authService.SendPasswordResetEmailAsync(normalizedEmail);
+            
+            System.Diagnostics.Debug.WriteLine($"✅ [LoginViewModel] Réinitialisation réussie pour : {normalizedEmail}");
+            
+            await Shell.Current.DisplayAlert("Email envoyé ✉️", 
+                $"Un e-mail de réinitialisation a été envoyé à :\n{normalizedEmail}\n\n" +
+                "📬 Vérifiez votre boîte de réception.\n\n" +
+                "Si vous ne le trouvez pas :\n" +
+                "• Vérifiez le dossier spam/courrier indésirable\n" +
+                "• Attendez quelques minutes\n" +
+                "• Assurez-vous que l'adresse email est correcte", "OK");
+        }
+        catch (ArgumentException argEx)
+        {
+            System.Diagnostics.Debug.WriteLine($"⚠️ [LoginViewModel] Argument invalide : {argEx.Message}");
+            await Shell.Current.DisplayAlert("Erreur de saisie", argEx.Message, "OK");
+        }
+        catch (InvalidOperationException opEx)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ [LoginViewModel] Erreur opération : {opEx.Message}");
+            await Shell.Current.DisplayAlert("Échec de l'envoi", opEx.Message, "OK");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Erreur lors de la réinitialisation : {ex.Message}");
-            await Shell.Current.DisplayAlert("Erreur", ex.Message, "OK");
+            System.Diagnostics.Debug.WriteLine($"❌ [LoginViewModel] Erreur inattendue : {ex.GetType().Name} - {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"❌ [LoginViewModel] StackTrace: {ex.StackTrace}");
+            
+            await Shell.Current.DisplayAlert("Erreur", 
+                "Une erreur inattendue est survenue lors de l'envoi de l'email de réinitialisation.\n\n" +
+                "Veuillez réessayer dans quelques instants ou contacter le support si le problème persiste.", "OK");
         }
         finally
         {
@@ -295,4 +380,70 @@ public class LoginViewModel : BaseViewModel
     {
         IsPasswordVisible = !IsPasswordVisible;
     }
+
+    /// <summary>
+    /// Méthode de commande pour la connexion avec Google
+    /// </summary>
+    // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+    /*
+    private async void ExecuteSignInWithGoogleCommand()
+    {
+        try
+        {
+            await OnSignInWithGoogle();
+        }
+        catch (Exception e)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur lors de la connexion Google : {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Logique de connexion avec Google SSO
+    /// </summary>
+    private async Task OnSignInWithGoogle()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+
+        try
+        {
+            var userCredential = await _authService.SignInWithGoogleAsync();
+            if (userCredential != null)
+            {
+                // GAMIFICATION: Enregistrer la connexion quotidienne pour les streaks
+                try
+                {
+                    var userId = userCredential?.Uid;
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _gamificationService.OnUserActionAsync(userId, "daily_login");
+                    }
+                }
+                catch (Exception gamEx)
+                {
+                    // Ne pas faire échouer la connexion pour une erreur de gamification
+                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur gamification: {gamEx.Message}");
+                }
+                
+                Application.Current.MainPage = new AppShell(_unreadMessageService);
+                
+                // Navigation explicite si Shell.Current est disponible
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.GoToAsync("//MainApp");
+                }
+            }
+            // Pas de message d'erreur ici car SignInWithGoogleAsync gère déjà les cas d'annulation
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlert("Erreur", $"Une erreur est survenue lors de la connexion Google : {ex.Message}", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+    */
 }

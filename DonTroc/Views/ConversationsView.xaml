@@ -18,66 +18,67 @@
             
             <!-- Liste des conversations -->
             <CollectionView ItemsSource="{Binding Conversations}"
-                            SelectionMode="None">
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedConversation, Mode=TwoWay}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Conversation">
-                        <!-- Chaque conversation est un élément cliquable -->
-                        <Grid Padding="10, 15">
-                            <Grid.GestureRecognizers>
-                                <!-- Commande pour naviguer vers le chat en passant la conversation en paramètre -->
-                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ConversationsViewModel}}, Path=GoToChatCommand}"
-                                                      CommandParameter="{Binding .}" />
-                            </Grid.GestureRecognizers>
+                        <!-- Chaque conversation est un élément cliquable via la sélection -->
+                        <Border Padding="10, 15" 
+                                Margin="5,3"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="White"
+                                Stroke="Transparent"
+                                StrokeThickness="0">
                             
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                <!-- Container pour l'image avec badge superposé -->
+                                <Grid Grid.Column="0" WidthRequest="60" HeightRequest="60" Margin="0,0,15,0">
+                                    <!-- Image de l'annonce associée à la conversation -->
+                                    <Border WidthRequest="60" HeightRequest="60" 
+                                            StrokeShape="RoundRectangle 30" 
+                                            Stroke="Transparent"
+                                            StrokeThickness="0">
+                                        <Image Aspect="AspectFill" Source="{Binding AnnonceImageUrl, FallbackValue='placeholder.png'}" />
+                                    </Border>
+                                    
+                                    <!-- Badge de messages non lus -->
+                                    <views:BadgeView Count="{Binding UnreadCount}"
+                                                   BadgeColor="{StaticResource Terracotta}"
+                                                   TextColor="White"
+                                                   HorizontalOptions="End"
+                                                   VerticalOptions="Start"
+                                                   Margin="0,-5,-5,0" />
+                                </Grid>
 
-                            <!-- Container pour l'image avec badge superposé -->
-                            <Grid Grid.Column="0" WidthRequest="60" HeightRequest="60" Margin="0,0,15,0">
-                                <!-- Image de l'annonce associée à la conversation -->
-                                <Frame WidthRequest="60" HeightRequest="60" CornerRadius="30" Padding="0" IsClippedToBounds="True">
-                                    <Image Aspect="AspectFill" Source="{Binding AnnonceImageUrl, FallbackValue='placeholder.png'}" />
-                                </Frame>
+                                <!-- Détails de la conversation -->
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding AnnonceTitre}" 
+                                           FontAttributes="Bold" 
+                                           TextColor="{StaticResource Ardoise}" 
+                                           FontSize="16" />
+                                    <!-- Message en gras si non lu -->
+                                    <Label Text="{Binding LastMessage}" 
+                                           LineBreakMode="TailTruncation" 
+                                           TextColor="{StaticResource Ardoise}" 
+                                           FontSize="14"
+                                           FontAttributes="{Binding HasUnreadMessages, Converter={StaticResource BoolToFontAttributesConverter}}" />
+                                    <Label Text="{Binding LastMessageDateTime, StringFormat='{0:dd/MM/yy HH:mm}'}" 
+                                           TextColor="Gray" 
+                                           FontSize="12" 
+                                           HorizontalOptions="End" />
+                                </VerticalStackLayout>
                                 
-                                <!-- Badge de messages non lus -->
-                                <views:BadgeView Count="{Binding UnreadCount}"
-                                               BadgeColor="{StaticResource Terracotta}"
-                                               TextColor="White"
-                                               HorizontalOptions="End"
-                                               VerticalOptions="Start"
-                                               Margin="0,-5,-5,0" />
+                                <!-- Indicateur visuel pour conversations non lues -->
+                                <BoxView Grid.Column="2"
+                                         WidthRequest="8"
+                                         HeightRequest="8"
+                                         CornerRadius="4"
+                                         BackgroundColor="{StaticResource Terracotta}"
+                                         VerticalOptions="Center"
+                                         IsVisible="{Binding HasUnreadMessages}"
+                                         Margin="10,0,0,0" />
                             </Grid>
-
-                            <!-- Détails de la conversation -->
-                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                <Label Text="{Binding AnnonceTitre}" 
-                                       FontAttributes="Bold" 
-                                       TextColor="{StaticResource Ardoise}" 
-                                       FontSize="16" />
-                                <Label Text="{Binding LastMessage}" 
-                                       LineBreakMode="TailTruncation" 
-                                       TextColor="{StaticResource Ardoise}" 
-                                       FontSize="14"
-                                       Opacity="{Binding HasUnreadMessages, Converter={StaticResource BoolToOpacityConverter}}" />
-                                <Label Text="{Binding LastMessageDateTime, StringFormat='{0:dd/MM/yy HH:mm}'}" 
-                                       TextColor="Gray" 
-                                       FontSize="12" 
-                                       HorizontalOptions="End" />
-                            </VerticalStackLayout>
-                            
-                            <!-- Indicateur visuel pour conversations non lues -->
-                            <BoxView Grid.Column="2"
-                                     WidthRequest="8"
-                                     HeightRequest="8"
-                                     CornerRadius="4"
-                                     BackgroundColor="{StaticResource Terracotta}"
-                                     VerticalOptions="Center"
-                                     IsVisible="{Binding HasUnreadMessages}"
-                                     Margin="10,0,0,0" />
-                        </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
 

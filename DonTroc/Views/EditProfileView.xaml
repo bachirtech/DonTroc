@@ -4,11 +4,15 @@
              xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
              x:DataType="viewModels:EditProfileViewModel"
              x:Class="DonTroc.Views.EditProfileView"
-             Title="Modifier le profil">
+             Title="Modifier le profil"
+             BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}">
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
 
-            <Label Text="Photo de profil" FontSize="Medium" FontAttributes="Bold" />
+            <Label Text="Photo de profil" 
+                   FontSize="Medium" 
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
 
             <Image Source="{Binding ProfilePictureUrl, FallbackValue='user_placeholder.png'}"
                    WidthRequest="150"
@@ -18,18 +22,107 @@
 
             <Button Text="Changer la photo" 
                     Command="{Binding PickPhotoCommand}" 
-                    HorizontalOptions="Center" />
+                    HorizontalOptions="Center"
+                    BackgroundColor="{StaticResource DonTrocPrimary}"
+                    TextColor="White" />
 
-            <Label Text="Nom d'utilisateur" FontSize="Medium" FontAttributes="Bold" Margin="0,20,0,0" />
+            <Label Text="Nom d'utilisateur" 
+                   FontSize="Medium" 
+                   FontAttributes="Bold" 
+                   Margin="0,20,0,0"
+                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
 
             <Entry Text="{Binding Name}" 
-                   Placeholder="Votre nom" />
+                   Placeholder="Votre nom"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
+
+            <!-- Section Notifications de Proximité -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="15"
+                    Margin="0,20,0,0">
+                <StackLayout Spacing="15">
+                    <Label Text="📍 Notifications de Proximité"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <Label Text="Recevez une notification quand une nouvelle annonce est publiée près de chez vous."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                           LineBreakMode="WordWrap"/>
+                    
+                    <!-- Toggle pour activer/désactiver -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,5,0,0">
+                        <Label Grid.Column="0"
+                               Text="Activer les notifications"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                               VerticalOptions="Center"/>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding ProximityNotificationsEnabled}"
+                                OnColor="{StaticResource DonTrocPrimary}"
+                                ThumbColor="White"/>
+                    </Grid>
+                    
+                    <!-- Slider pour le rayon -->
+                    <StackLayout IsVisible="{Binding ProximityNotificationsEnabled}" Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0"
+                                   Text="Rayon de notification"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                            <Label Grid.Column="1"
+                                   Text="{Binding NotificationRadiusText}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource DonTrocPrimary}"/>
+                        </Grid>
+                        
+                        <Slider Minimum="1"
+                                Maximum="50"
+                                Value="{Binding NotificationRadius}"
+                                MinimumTrackColor="{StaticResource DonTrocPrimary}"
+                                MaximumTrackColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                ThumbColor="{StaticResource DonTrocPrimary}"/>
+                        
+                        <Label Text="1 km ← → 50 km"
+                               FontSize="10"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Center"/>
+                    </StackLayout>
+                    
+                    <!-- Bouton pour mettre à jour la position -->
+                    <Button Text="📍 Mettre à jour ma position"
+                            Command="{Binding UpdateLocationCommand}"
+                            BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1E3A5F}"
+                            TextColor="{StaticResource DonTrocPrimary}"
+                            FontSize="13"
+                            HeightRequest="40"
+                            CornerRadius="8"
+                            IsVisible="{Binding ProximityNotificationsEnabled}"
+                            Margin="0,5,0,0"/>
+                    
+                    <Label Text="Votre position est utilisée uniquement pour vous notifier des annonces à proximité. Elle n'est jamais partagée publiquement."
+                           FontSize="10"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                           FontAttributes="Italic"
+                           LineBreakMode="WordWrap"
+                           IsVisible="{Binding ProximityNotificationsEnabled}"/>
+                </StackLayout>
+            </Border>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
 
             <Button Text="Enregistrer" 
                     Command="{Binding SaveProfileCommand}" 
                     IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="{StaticResource DonTrocPrimary}"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
                     Margin="0,30,0,0" />
 
         </VerticalStackLayout>

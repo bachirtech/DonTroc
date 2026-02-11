@@ -1,18 +1,8 @@
 {
   "rules": {
-    // ══════════════════════════════════════════════════════════════════════════
-    // RÈGLES FIREBASE REALTIME DATABASE - DonTroc
-    // Version: 2.0 - Production Ready
-    // Date: 2024-12
-    // ══════════════════════════════════════════════════════════════════════════
-    
-    // Règle par défaut: bloquer tout accès non autorisé
     ".read": false,
     ".write": false,
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ANNONCES - Collection principale
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "Annonces": {
       ".indexOn": ["UtilisateurId", "Categorie", "Type", "DateCreationTimestamp"],
       ".read": "auth != null",
@@ -22,9 +12,6 @@
       }
     },
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // PROFILS UTILISATEURS
-    // ══════════════════════════════════════════════════════════════════════════
     "UserProfiles": {
       ".read": "auth != null",
       "$userId": {
@@ -32,10 +19,7 @@
         ".validate": "newData.hasChildren(['Id', 'Name']) && newData.child('Id').val() == auth.uid && newData.child('Name').isString() && newData.child('Name').val().length <= 50"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // STATISTIQUES UTILISATEURS (Gamification)
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "UserStats": {
       "$userId": {
         ".read": "auth != null",
@@ -43,10 +27,7 @@
         ".validate": "newData.child('UserId').val() == auth.uid"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // CONVERSATIONS - Messages privés entre utilisateurs
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "Conversations": {
       ".indexOn": ["BuyerId", "SellerId", "LastMessageTimestamp", "AnnonceId"],
       ".read": "auth != null",
@@ -56,72 +37,54 @@
       }
     },
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // MESSAGES - Contenu des conversations
-    // ══════════════════════════════════════════════════════════════════════════
     "Messages": {
       ".indexOn": ["SenderId", "Timestamp"],
+      ".read": "auth != null",
       "$conversationId": {
-        ".read": "auth != null && root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).exists()",
-        ".write": "auth != null && root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).exists()",
         ".indexOn": ["Timestamp"],
+        ".write": "auth != null && (root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).val() === true || root.child('Conversations/' + $conversationId + '/BuyerId').val() == auth.uid || root.child('Conversations/' + $conversationId + '/SellerId').val() == auth.uid)",
         "$messageId": {
-          ".validate": "newData.hasChildren(['SenderId', 'Timestamp', 'Content']) && newData.child('SenderId').val() == auth.uid && newData.child('Content').isString() && newData.child('Content').val().length <= 5000"
+          ".validate": "(newData.hasChildren(['SenderId', 'Timestamp']) && newData.child('SenderId').val() == auth.uid) || (data.exists() && (newData.child('IsRead').exists() || newData.child('Status').exists() || newData.child('ReadAt').exists()))"
         }
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // TRANSACTIONS - Échanges et dons entre utilisateurs
-    // ══════════════════════════════════════════════════════════════════════════
-    "Transactions": {
-      ".indexOn": ["ProprietaireId", "DemandeurId", "DateCreation", "Status"],
+    
+    "transactions": {
+      ".indexOn": ["ProprietaireId", "DemandeurId", "DateCreation", "Statut"],
+      ".read": "auth != null",
       "$transactionId": {
-        ".read": "auth != null && (data.child('ProprietaireId').val() == auth.uid || data.child('DemandeurId').val() == auth.uid)",
         ".write": "auth != null && (!data.exists() || data.child('ProprietaireId').val() == auth.uid || data.child('DemandeurId').val() == auth.uid)",
-        ".validate": "newData.hasChildren(['AnnonceId', 'ProprietaireId', 'DemandeurId', 'Status', 'DateCreation'])"
+        ".validate": "newData.hasChildren(['AnnonceId', 'ProprietaireId', 'DemandeurId'])"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // FAVORIS (nouvelle structure)
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "favorites": {
       ".indexOn": ["UserId", "AnnonceId"],
+      ".read": "auth != null",
       "$favoriteId": {
-        ".read": "auth != null && data.child('UserId').val() == auth.uid",
-        ".write": "auth != null && (!data.exists() || data.child('UserId').val() == auth.uid) && newData.child('UserId').val() == auth.uid",
+        ".write": "auth != null && (data.child('UserId').val() == auth.uid || (!data.exists() && newData.child('UserId').val() == auth.uid))",
         ".validate": "newData.hasChildren(['UserId', 'AnnonceId']) && newData.child('UserId').val() == auth.uid"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // LISTES DE FAVORIS PERSONNALISÉES
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "favoriteLists": {
       ".indexOn": ["UserId"],
+      ".read": "auth != null",
       "$listId": {
-        ".read": "auth != null && data.child('UserId').val() == auth.uid",
-        ".write": "auth != null && (!data.exists() || data.child('UserId').val() == auth.uid) && newData.child('UserId').val() == auth.uid",
+        ".write": "auth != null && (data.child('UserId').val() == auth.uid || (!data.exists() && newData.child('UserId').val() == auth.uid))",
         ".validate": "newData.hasChildren(['UserId', 'Name']) && newData.child('UserId').val() == auth.uid && newData.child('Name').isString() && newData.child('Name').val().length <= 50"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ALERTES ANNONCES
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "annonceAlerts": {
       ".indexOn": ["UserId"],
+      ".read": "auth != null",
       "$alertId": {
-        ".read": "auth != null && data.child('UserId').val() == auth.uid",
-        ".write": "auth != null && (!data.exists() || data.child('UserId').val() == auth.uid) && newData.child('UserId').val() == auth.uid",
+        ".write": "auth != null && (data.child('UserId').val() == auth.uid || (!data.exists() && newData.child('UserId').val() == auth.uid))",
         ".validate": "newData.hasChildren(['UserId', 'Name']) && newData.child('UserId').val() == auth.uid"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // NOTIFICATIONS UTILISATEUR
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "Notifications": {
       "$userId": {
         ".read": "auth.uid == $userId",
@@ -131,10 +94,7 @@
         }
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ÉVALUATIONS / RATINGS
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "Ratings": {
       ".indexOn": ["RatedUserId", "RaterUserId", "DateCreation"],
       ".read": "auth != null",
@@ -143,10 +103,7 @@
         ".validate": "newData.hasChildren(['RatedUserId', 'RaterUserId', 'Rating', 'DateCreation']) && newData.child('RaterUserId').val() == auth.uid && newData.child('Rating').isNumber() && newData.child('Rating').val() >= 1 && newData.child('Rating').val() <= 5"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // SIGNALEMENTS (Reports) - Accessible en écriture par tous, lecture par admins
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "reports": {
       ".indexOn": ["ReporterId", "Status", "Timestamp"],
       ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
@@ -155,25 +112,77 @@
         ".validate": "newData.hasChildren(['ReporterId', 'Reason', 'Timestamp']) && newData.child('Reason').isString() && newData.child('Reason').val().length <= 1000"
       }
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ADMINISTRATEURS - Lecture restreinte, écriture bloquée (à gérer via console)
-    // ══════════════════════════════════════════════════════════════════════════
+    
     "admins": {
       ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
       ".write": false
     },
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ACTIONS UTILISATEURS (pour suggestions et analytics)
-    // ══════════════════════════════════════════════════════════════════════════
-    "userActions": {
-      ".indexOn": ["UserId", "ActionType", "Timestamp"],
-      "$actionId": {
-        ".read": "auth != null && data.child('UserId').val() == auth.uid",
+    
+    "UserActions": {
+      "$userId": {
+        ".indexOn": ["ActionType", "Timestamp"],
+        ".read": "auth != null && auth.uid == $userId",
+        ".write": "auth != null && auth.uid == $userId",
+        "$actionId": {
+          ".validate": "newData.hasChildren(['UserId', 'ActionType', 'Timestamp']) && newData.child('UserId').val() == auth.uid"
+        }
+      }
+    },
+    
+    "ProximityNotificationStats": {
+      ".indexOn": ["AnnonceId", "Timestamp"],
+      ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
+      "$annonceId": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['AnnonceId', 'NotificationsSent', 'Timestamp'])"
+      }
+    },
+    
+    "TypingIndicators": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$conversationId": {
+        "$userId": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    
+    "referral_codes": {
+      ".indexOn": ["UserId", "Code"],
+      ".read": "auth != null",
+      "$codeId": {
+        ".write": "auth != null && (!data.exists() && newData.child('UserId').val() == auth.uid || data.child('UserId').val() == auth.uid)",
+        ".validate": "newData.hasChildren(['UserId', 'Code', 'DateCreation']) && newData.child('UserId').val() == auth.uid && newData.child('Code').isString()"
+      }
+    },
+    
+    "friendships": {
+      ".indexOn": ["UserId", "FriendId", "Status"],
+      ".read": "auth != null",
+      "$friendshipId": {
+        ".write": "auth != null && (!data.exists() || data.child('UserId').val() == auth.uid || data.child('FriendId').val() == auth.uid)",
+        ".validate": "newData.hasChildren(['UserId', 'FriendId', 'Status', 'DateCreation'])"
+      }
+    },
+    
+    "social_shares": {
+      ".indexOn": ["UserId", "AnnonceId", "DatePartage"],
+      ".read": "auth != null",
+      "$shareId": {
         ".write": "auth != null && newData.child('UserId').val() == auth.uid",
-        ".validate": "newData.hasChildren(['UserId', 'ActionType', 'Timestamp']) && newData.child('UserId').val() == auth.uid"
+        ".validate": "newData.hasChildren(['UserId', 'AnnonceId', 'Platform', 'DatePartage']) && newData.child('UserId').val() == auth.uid"
+      }
+    },
+    
+    "friend_activities": {
+      ".indexOn": ["UserId", "DateActivite"],
+      ".read": "auth != null",
+      "$activityId": {
+        ".write": "auth != null && newData.child('UserId').val() == auth.uid",
+        ".validate": "newData.hasChildren(['UserId', 'TypeActivite', 'DateActivite']) && newData.child('UserId').val() == auth.uid"
       }
     }
   }
 }
+

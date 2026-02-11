@@ -110,6 +110,14 @@ Script automatisé de build et test
 1. Lire : [GUIDE_RESOLUTION_IOS_SIGNING.md](GUIDE_RESOLUTION_IOS_SIGNING.md) - Section "Pour Développer sur iOS"
 2. Lire : [README_DEPLOYMENT.md](README_DEPLOYMENT.md) - Section "Support iOS (Futur)"
 
+### Je veux : Intégrer IronSource/LevelPlay (Médiation publicitaire)
+1. Lire : [IRONSOURCE_LEVELPLAY_ANALYSIS.md](IRONSOURCE_LEVELPLAY_ANALYSIS.md) - Analyse complète
+2. Fichiers préparés :
+   - `DonTroc/Services/IAdsService.cs` - Interface unifiée
+   - `DonTroc/Services/MediatedAdsService.cs` - Service de médiation
+   - `DonTroc/Services/Providers/AdMobProvider.cs` - Wrapper AdMob
+   - `DonTroc/Services/Providers/IronSourceProvider.cs` - Stub IronSource
+
 ---
 
 ## 📱 Commandes Essentielles

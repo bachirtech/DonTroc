@@ -136,7 +136,15 @@ public class ProfilViewModel : BaseViewModel
 
     private async Task OnBoostAnnonce(Annonce? annonce) // Méthode pour booster une annonce
     {
-        if (annonce == null) return;
+        System.Diagnostics.Debug.WriteLine($"🔵 [BoostAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
+        if (annonce == null)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [BoostAnnonceCommand] Annonce est NULL");
+            return;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"🔵 [BoostAnnonceCommand] Tentative de boost de: {annonce.Titre}");
 
         // Demander confirmation à l'utilisateur
         var confirm = await Shell.Current.DisplayAlert(
@@ -145,6 +153,8 @@ public class ProfilViewModel : BaseViewModel
             "Oui, booster !",
             "Annuler"
         );
+
+        System.Diagnostics.Debug.WriteLine($"🔵 [BoostAnnonceCommand] Confirmation: {confirm}");
 
         if (!confirm) return;
 
@@ -242,11 +252,21 @@ public class ProfilViewModel : BaseViewModel
 
     private async Task OnSupprimerAnnonce(Annonce annonce) // Méthode pour supprimer une annonce
     {
-        if (annonce == null!) return;
+        System.Diagnostics.Debug.WriteLine($"🔵 [DeleteAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
+        if (annonce == null!)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [DeleteAnnonceCommand] Annonce est NULL");
+            return;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"🔵 [DeleteAnnonceCommand] Tentative de suppression de: {annonce.Titre}");
 
         // Demande de confirmation à l'utilisateur
         bool confirm = await Application.Current?.MainPage?.DisplayAlert("Confirmer",
             $"Êtes-vous sûr de vouloir supprimer l'annonce \"{annonce.Titre}\" ?", "Oui", "Non")!;
+
+        System.Diagnostics.Debug.WriteLine($"🔵 [DeleteAnnonceCommand] Confirmation: {confirm}");
 
         if (confirm)
         {
@@ -256,9 +276,11 @@ public class ProfilViewModel : BaseViewModel
                 await _firebaseService.DeleteAnnonceAsync(annonce.Id);
                 // Supprime l'annonce de la liste affichée
                 MesAnnonces.Remove(annonce);
+                System.Diagnostics.Debug.WriteLine("✅ [DeleteAnnonceCommand] Annonce supprimée avec succès");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"❌ [DeleteAnnonceCommand] Exception: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert("Erreur",
                     "Une erreur est survenue lors de la suppression.", "OK");
             }
@@ -267,7 +289,15 @@ public class ProfilViewModel : BaseViewModel
 
     private async Task OnModifierAnnonce(Annonce? annonce) // Méthode pour modifier une annonce
     {
-        if (annonce == null) return;
+        System.Diagnostics.Debug.WriteLine($"🔵 [EditAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
+        
+        if (annonce == null)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [EditAnnonceCommand] Annonce est NULL");
+            return;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"🔵 [EditAnnonceCommand] Tentative de modification de: {annonce.Titre}");
 
         // Prépare les données de l'annonce pour la navigation
         var navigationParameters = new Dictionary<string, object>
@@ -277,6 +307,7 @@ public class ProfilViewModel : BaseViewModel
 
         // Navigue vers la page de modification en passant l'annonce en paramètre
         await Shell.Current.GoToAsync(nameof(EditAnnonceView), navigationParameters);
+        System.Diagnostics.Debug.WriteLine("✅ [EditAnnonceCommand] Navigation réussie");
     }
 
     private async Task OnGoToConversations() // Méthode pour naviguer vers la page des conversations

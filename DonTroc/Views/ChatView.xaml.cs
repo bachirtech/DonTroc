@@ -2,26 +2,73 @@ using System;
 using DonTroc.ViewModels;
 using DonTroc.Models;
 using DonTroc.Services;
-using Microsoft.Maui;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Controls; // Assurez-vous que ce using est présent
+using Microsoft.Maui.Controls;
+using System.Diagnostics;
 
 namespace DonTroc.Views;
 
-public partial class ChatView : ContentPage
+// Utilisation de IQueryAttributable pour une meilleure gestion des paramètres de navigation
+public partial class ChatView : ContentPage, IQueryAttributable
 {
     private readonly ChatViewModel _viewModel;
-    private readonly AuthService _authService; // Ajout du service d'authentification
     private Message? _tappedMessage;
     private readonly System.Timers.Timer _longPressTimer;
     private bool _isLongPress;
+
+    // Champ pour stocker temporairement le ConversationId si le ViewModel n'est pas encore prêt
+    private string? _pendingConversationId;
+    
+    // Propriété pour recevoir le conversationId via la navigation (gardée pour compatibilité)
+    public string ConversationId
+    {
+        get => _viewModel?.ConversationId ?? _pendingConversationId ?? string.Empty;
+        set => ApplyConversationId(value);
+    }
+    
+    // Implémentation de IQueryAttributable - appelée par Shell après la navigation
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.TryGetValue("conversationId", out var conversationIdObj))
+        {
+            var conversationId = conversationIdObj?.ToString() ?? string.Empty;
+            ApplyConversationId(conversationId);
+        }
+    }
+    
+    // Méthode commune pour appliquer le ConversationId
+    private void ApplyConversationId(string? value)
+    {
+        // Décoder la valeur si elle a été encodée pour l'URL
+        var decodedValue = Uri.UnescapeDataString(value ?? string.Empty);
+        
+        if (string.IsNullOrEmpty(decodedValue))
+        {
+            return;
+        }
+        
+        // Stocker ou appliquer selon l'état du ViewModel
+        if (_viewModel != null)
+        {
+            _viewModel.ConversationId = decodedValue;
+        }
+        else
+        {
+            _pendingConversationId = decodedValue;
+        }
+    }
 
     public ChatView(ChatViewModel viewModel, AuthService authService)
     {
         InitializeComponent();
         _viewModel = viewModel;
-        _authService = authService; // Injection de dépendance
         BindingContext = viewModel;
+        
+        // Appliquer le ConversationId en attente si présent
+        if (!string.IsNullOrEmpty(_pendingConversationId))
+        {
+            _viewModel.ConversationId = _pendingConversationId;
+            _pendingConversationId = null;
+        }
 
         // Timer pour détecter l'appui long
         _longPressTimer = new System.Timers.Timer(500); // 500ms pour un appui long

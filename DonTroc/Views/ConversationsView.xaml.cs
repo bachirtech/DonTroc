@@ -1,6 +1,5 @@
 using DonTroc.Services;
 using DonTroc.ViewModels;
-using Microsoft.Maui.Controls;
 
 namespace DonTroc.Views;
 

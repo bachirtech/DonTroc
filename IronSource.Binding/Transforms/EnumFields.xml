@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<enum-field-mappings>
+  <!-- 
+    EnumFields.xml pour IronSource SDK
+    Ce fichier est volontairement vide pour éviter les erreurs de mapping.
+    Les enums seront générés automatiquement par le binding.
+  -->
+</enum-field-mappings>

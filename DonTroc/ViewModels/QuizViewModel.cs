@@ -14,6 +14,7 @@ public class QuizViewModel : INotifyPropertyChanged
     private readonly IQuizService _quizService;
     private readonly IAdMobService _adMobService;
     private readonly ILogger<QuizViewModel> _logger;
+    private readonly AuthService _authService;
     
     private QuizSession? _currentSession;
     private List<QuizQuestion> _questions = new();
@@ -24,11 +25,12 @@ public class QuizViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public QuizViewModel(IQuizService quizService, IAdMobService adMobService, ILogger<QuizViewModel> logger)
+    public QuizViewModel(IQuizService quizService, IAdMobService adMobService, ILogger<QuizViewModel> logger, AuthService authService)
     {
         _quizService = quizService;
         _adMobService = adMobService;
         _logger = logger;
+        _authService = authService;
         Title = "Quiz du Jour";
         
         // Initialiser les commandes
@@ -1002,8 +1004,15 @@ public class QuizViewModel : INotifyPropertyChanged
 
     private async Task<string> GetCurrentUserIdAsync()
     {
-        // Récupérer l'ID utilisateur depuis les préférences ou le service d'authentification
-        var userId = Preferences.Get("current_user_id", string.Empty);
+        // Récupérer l'ID utilisateur depuis le service d'authentification
+        var userId = _authService.GetUserId();
+        
+        if (string.IsNullOrEmpty(userId))
+        {
+            // Essayer de récupérer l'utilisateur actuel (avec rafraîchissement du token si nécessaire)
+            var currentUser = await _authService.GetCurrentUserAsync();
+            userId = currentUser?.Uid;
+        }
         
 #if DEBUG
         // En mode debug, utiliser un ID de test si aucun utilisateur n'est connecté
@@ -1014,7 +1023,7 @@ public class QuizViewModel : INotifyPropertyChanged
         }
 #endif
         
-        return userId;
+        return userId ?? string.Empty;
     }
 
     private async Task ShowAlertAsync(string title, string message)

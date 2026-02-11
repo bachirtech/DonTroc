@@ -1,4 +1,5 @@
 using System;
+using DonTroc.Models;
 using DonTroc.Services;
 using DonTroc.ViewModels;
 using Microsoft.Maui.Controls;
@@ -11,9 +12,11 @@ namespace DonTroc.Views;
 public partial class ProfilView : ContentPage
 {
     private readonly AdMobService _adMobService;
+    private readonly ITipsService _tipsService;
+    private bool _tipsShown = false;
 
     // Le constructeur accepte maintenant un ProfilViewModel via l'injection de dépendances
-    public ProfilView(ProfilViewModel viewModel, AdMobService adMobService)
+    public ProfilView(ProfilViewModel viewModel, AdMobService adMobService, ITipsService tipsService)
     {
         // Initialise les composants de la vue (définis en XAML)
         InitializeComponent();
@@ -21,6 +24,7 @@ public partial class ProfilView : ContentPage
         // Définit le ViewModel comme contexte de liaison pour cette vue
         BindingContext = viewModel;
         _adMobService = adMobService;
+        _tipsService = tipsService;
     }
 
     protected override async void OnAppearing() // Méthode appelée lorsque la vue apparaît
@@ -33,6 +37,92 @@ public partial class ProfilView : ContentPage
         if (BindingContext is not ProfilViewModel vm) return;
         await vm.LoadUserProfile();
         await vm.ExecuteLoadMesAnnoncesCommand();
+
+        // Afficher les conseils pour la première utilisation
+        if (!_tipsShown)
+        {
+            _tipsShown = true;
+            await ShowTipsAsync();
+        }
+    }
+
+    private async Task ShowTipsAsync()
+    {
+        try
+        {
+            await Task.Delay(500);
+            if (await _tipsService.HasUnseenTipsAsync("profil"))
+            {
+                await TipOverlay.ShowTipAsync("profil", _tipsService);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Erreur affichage conseils: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gestionnaire d'événement pour le bouton Modifier une annonce
+    /// </summary>
+    private void OnEditAnnonceClicked(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("🔵 [ProfilView] OnEditAnnonceClicked appelé");
+        
+        if (sender is Button button && button.BindingContext is Annonce annonce)
+        {
+            System.Diagnostics.Debug.WriteLine($"🔵 [ProfilView] Annonce trouvée: {annonce.Id}");
+            if (BindingContext is ProfilViewModel vm)
+            {
+                vm.EditAnnonceCommand.Execute(annonce);
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [ProfilView] Annonce non trouvée dans le BindingContext");
+        }
+    }
+
+    /// <summary>
+    /// Gestionnaire d'événement pour le bouton Supprimer une annonce
+    /// </summary>
+    private void OnDeleteAnnonceClicked(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("🔵 [ProfilView] OnDeleteAnnonceClicked appelé");
+        
+        if (sender is Button button && button.BindingContext is Annonce annonce)
+        {
+            System.Diagnostics.Debug.WriteLine($"🔵 [ProfilView] Annonce trouvée: {annonce.Id}");
+            if (BindingContext is ProfilViewModel vm)
+            {
+                vm.DeleteAnnonceCommand.Execute(annonce);
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [ProfilView] Annonce non trouvée dans le BindingContext");
+        }
+    }
+
+    /// <summary>
+    /// Gestionnaire d'événement pour le bouton Booster une annonce
+    /// </summary>
+    private void OnBoostAnnonceClicked(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("🔵 [ProfilView] OnBoostAnnonceClicked appelé");
+        
+        if (sender is Button button && button.BindingContext is Annonce annonce)
+        {
+            System.Diagnostics.Debug.WriteLine($"🔵 [ProfilView] Annonce trouvée: {annonce.Id}");
+            if (BindingContext is ProfilViewModel vm)
+            {
+                vm.BoostAnnonceCommand.Execute(annonce);
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("❌ [ProfilView] Annonce non trouvée dans le BindingContext");
+        }
     }
 
     /// <summary>

@@ -107,11 +107,25 @@ namespace DonTroc.Services
 
                 _processedMessageIds.Add(message.Id);
 
+                // Limiter la taille du cache des messages traités
+                if (_processedMessageIds.Count > 1000)
+                {
+                    _processedMessageIds.Clear();
+                }
+
                 var currentUserId = _authService.GetUserId();
                 
                 // Ne pas notifier pour nos propres messages
                 if (message.SenderId == currentUserId)
                     return;
+
+                // Ne notifier que les messages récents (moins de 30 secondes)
+                var messageAge = DateTime.UtcNow - message.Timestamp;
+                if (messageAge.TotalSeconds > 30)
+                {
+                    _logger.LogDebug($"Message ignoré car trop ancien: {messageAge.TotalSeconds}s");
+                    return;
+                }
 
                 // Vérifier si l'utilisateur est actuellement sur cette conversation
                 if (IsUserOnConversation(conversationId))
@@ -124,7 +138,7 @@ namespace DonTroc.Services
                 // Afficher la notification
                 await _notificationService.ShowMessageNotificationAsync(
                     senderName, 
-                    message.Text, 
+                    message.Text ?? "Nouveau message", 
                     conversationId
                 );
 

@@ -19,6 +19,28 @@ namespace DonTroc.ViewModels
         public ICommand LoadConversationsCommand { get; }
         public ICommand GoToChatCommand { get; }
 
+        private Conversation? _selectedConversation;
+        public Conversation? SelectedConversation
+        {
+            get => _selectedConversation;
+            set
+            {
+                Debug.WriteLine($"[ConversationsViewModel] SelectedConversation setter appelé avec: {value?.Id ?? "null"}");
+                if (SetProperty(ref _selectedConversation, value) && value != null)
+                {
+                    Debug.WriteLine($"[ConversationsViewModel] Navigation déclenchée par sélection");
+                    // Naviguer automatiquement quand une conversation est sélectionnée
+                    _ = ExecuteGoToChatCommand(value);
+                    // Réinitialiser la sélection pour permettre de re-sélectionner
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        _selectedConversation = null;
+                        OnPropertyChanged(nameof(SelectedConversation));
+                    });
+                }
+            }
+        }
+
         private int _totalUnreadCount;
         public int TotalUnreadCount
         {
@@ -61,6 +83,7 @@ namespace DonTroc.ViewModels
             {
                 Conversations.Clear();
                 var userId = _authService.GetUserId();
+                
                 if (string.IsNullOrEmpty(userId))
                 {
                     await Shell.Current.DisplayAlert("Erreur", "Vous devez être connecté pour voir vos conversations.", "OK");
@@ -68,15 +91,21 @@ namespace DonTroc.ViewModels
                 }
 
                 var conversations = await _firebaseService.GetUserConversationsAsync(userId);
+                
+                int totalUnread = 0;
                 foreach (var conversation in conversations)
                 {
-                    // Ajouter le compteur de messages non lus à chaque conversation
-                    conversation.UnreadCount = _unreadMessageService.GetUnreadCount(conversation.Id);
+                    // Le UnreadCount est déjà calculé par FirebaseService
+                    // Ajouter au total
+                    totalUnread += conversation.UnreadCount;
+                    
+                    Debug.WriteLine($"[ConversationsViewModel] Conversation {conversation.AnnonceTitre}: {conversation.UnreadCount} non lus");
                     Conversations.Add(conversation);
                 }
 
                 // Mettre à jour le compteur total
-                TotalUnreadCount = _unreadMessageService.TotalUnreadCount;
+                TotalUnreadCount = totalUnread;
+                Debug.WriteLine($"[ConversationsViewModel] Total messages non lus: {TotalUnreadCount}");
             }
             catch (Exception ex)
             {
@@ -91,11 +120,36 @@ namespace DonTroc.ViewModels
 
         private async Task ExecuteGoToChatCommand(Conversation conversation)
         {
+            Debug.WriteLine($"[ConversationsViewModel] ExecuteGoToChatCommand appelé");
+            
             if (conversation == null)
+            {
+                Debug.WriteLine($"[ConversationsViewModel] Conversation est null!");
                 return;
+            }
 
-            // Navigation vers la page de chat détaillée
-            await Shell.Current.GoToAsync($"ChatView?conversationId={conversation.Id}");
+            Debug.WriteLine($"[ConversationsViewModel] Conversation ID: {conversation.Id}, Titre: {conversation.AnnonceTitre}");
+
+            if (string.IsNullOrEmpty(conversation.Id))
+            {
+                Debug.WriteLine($"[ConversationsViewModel] Conversation.Id est vide!");
+                await Shell.Current.DisplayAlert("Erreur", "Cette conversation n'a pas d'identifiant valide.", "OK");
+                return;
+            }
+
+            try
+            {
+                // Navigation vers la page de chat détaillée
+                var encodedConversationId = Uri.EscapeDataString(conversation.Id);
+                Debug.WriteLine($"[ConversationsViewModel] Navigation vers ChatView avec conversationId={encodedConversationId}");
+                await Shell.Current.GoToAsync($"ChatView?conversationId={encodedConversationId}");
+                Debug.WriteLine($"[ConversationsViewModel] Navigation réussie");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ConversationsViewModel] Erreur de navigation: {ex.Message}");
+                await Shell.Current.DisplayAlert("Erreur", $"Impossible d'ouvrir la conversation: {ex.Message}", "OK");
+            }
         }
     }
 }

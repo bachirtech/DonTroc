@@ -798,4 +798,105 @@ namespace DonTroc.Converters
             throw new NotImplementedException();
         }
     }
+
+    /// <summary>
+    /// Convertit un pourcentage (0-100) en largeur pour une barre de progression (max 300px)
+    /// </summary>
+    public class PercentToWidthConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is double percentage)
+            {
+                return Math.Min(300, (percentage / 100.0) * 300);
+            }
+            return 0;
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un booléen "IsUnlocked" en texte "✓ Débloqué" ou "🔒 Verrouillé"
+    /// </summary>
+    public class BoolToUnlockedTextConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is bool isUnlocked)
+            {
+                return isUnlocked ? "✓ Débloqué" : "🔒 Verrouillé";
+            }
+            return "🔒 Verrouillé";
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un booléen "IsUnlocked" en couleur (vert si débloqué, gris sinon)
+    /// </summary>
+    public class BoolToUnlockedColorConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is bool isUnlocked)
+            {
+                return isUnlocked ? Color.FromArgb("#4CAF50") : Color.FromArgb("#9E9E9E");
+            }
+            return Color.FromArgb("#9E9E9E");
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un booléen en texte pour le rappel quiz (Activé/Activer)
+    /// </summary>
+    public class BoolToReminderTextConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is bool isEnabled)
+            {
+                return isEnabled ? "Activé ✓" : "Activer";
+            }
+            return "Activer";
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Convertit un booléen en couleur pour le bouton de rappel quiz
+    /// Vert si activé, Bleu primaire si désactivé
+    /// </summary>
+    public class BoolToReminderColorConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            if (value is bool isEnabled)
+            {
+                return isEnabled ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A90D9"); // Vert ou Bleu
+            }
+            return Color.FromArgb("#4A90D9");
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo? culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

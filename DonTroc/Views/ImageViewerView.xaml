@@ -7,7 +7,7 @@
     <Grid>
         <!-- Visionneuse d'images avec un carrousel pour plusieurs images -->
         <CarouselView x:Name="ImagesCarousel"
-                      ItemsSource="{Binding ImageUrls}"
+                      ItemsSource="{Binding DisplayableImageUrls}"
                       IndicatorView="IndicatorView"
                       HorizontalOptions="FillAndExpand"
                       VerticalOptions="FillAndExpand">

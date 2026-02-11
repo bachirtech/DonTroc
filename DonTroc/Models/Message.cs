@@ -62,8 +62,27 @@ namespace DonTroc.Models
             {
                 IsRead = true;
                 ReadAt = DateTime.UtcNow;
+                Status = MessageStatus.Read;
             }
         }
+        
+        /// <summary>
+        /// Icône de statut pour l'affichage (✓ envoyé, ✓✓ livré, ✓✓ bleu lu)
+        /// </summary>
+        public string StatusIcon => Status switch
+        {
+            MessageStatus.Sending => "⏳",
+            MessageStatus.Sent => "✓",
+            MessageStatus.Delivered => "✓✓",
+            MessageStatus.Read => "✓✓",
+            MessageStatus.Failed => "❌",
+            _ => "✓"
+        };
+        
+        /// <summary>
+        /// Couleur du statut (bleu pour lu, gris pour le reste)
+        /// </summary>
+        public string StatusColor => Status == MessageStatus.Read ? "DodgerBlue" : "Gray";
     }
     
     public enum MessageType

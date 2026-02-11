@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DonTroc.Models;
@@ -68,7 +69,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la création de l'évaluation: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la création de l'évaluation: {ex.Message}");
             return false;
         }
     }
@@ -99,7 +100,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la modification de l'évaluation: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la modification de l'évaluation: {ex.Message}");
             return false;
         }
     }
@@ -125,7 +126,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la récupération des évaluations: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la récupération des évaluations: {ex.Message}");
             return new List<Rating>();
         }
     }
@@ -149,7 +150,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la vérification d'évaluation: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la vérification d'évaluation: {ex.Message}");
             return null;
         }
     }
@@ -171,7 +172,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors du calcul des statistiques: {ex.Message}");
+            Debug.WriteLine($"Erreur lors du calcul des statistiques: {ex.Message}");
             return (0.0, 0);
         }
     }
@@ -200,7 +201,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la mise à jour des statistiques: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la mise à jour des statistiques: {ex.Message}");
         }
     }
 
@@ -221,7 +222,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la récupération des évaluations de transaction: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la récupération des évaluations de transaction: {ex.Message}");
             return new List<Rating>();
         }
     }
@@ -255,7 +256,7 @@ public class RatingService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de la vérification des droits d'évaluation: {ex.Message}");
+            Debug.WriteLine($"Erreur lors de la vérification des droits d'évaluation: {ex.Message}");
             return false;
         }
     }

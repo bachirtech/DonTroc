@@ -1,5 +1,6 @@
-﻿﻿﻿using System;
+﻿﻿﻿﻿﻿﻿﻿﻿﻿using System;
 using CommunityToolkit.Maui;
+using DonTroc.Platforms.Android;
 using DonTroc.Services;
 using DonTroc.ViewModels;
 using DonTroc.Views;
@@ -59,8 +60,11 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
 #if ANDROID
-                // Enregistrer le handler personnalisé pour AdBannerView sur Android
+                // Enregistrer le handler personnalisé pour AdBannerView sur Android (AdMob)
                 handlers.AddHandler<DonTroc.Views.AdBannerView, AdMobBannerHandler>();
+                
+                // Handler unifié pour UnifiedAdBannerView (bascule entre AppLovin et AdMob)
+                handlers.AddHandler<DonTroc.Views.UnifiedAdBannerView, UnifiedAdBannerHandler>();
 #endif
             });
 
@@ -98,10 +102,23 @@ public static class MauiProgram
         // Services AdMob - Injection de dépendances par plateforme
 #if ANDROID
         builder.Services.AddSingleton<IAdMobService, DonTroc.Platforms.Android.AdMobNativeService>();
+        // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+        // builder.Services.AddSingleton<GoogleAuthService, DonTroc.Platforms.Android.GoogleAuthService>();
 #else
         builder.Services.AddSingleton<IAdMobService, AdMobSimulationService>();
 #endif
         builder.Services.AddTransient<AdMobService>();
+
+        // Services AppLovin MAX - Plateforme de médiation publicitaire
+#if ANDROID
+        builder.Services.AddSingleton<IAppLovinService, AppLovinServiceAndroid>();
+#endif
+        builder.Services.AddTransient<AppLovinService>();
+
+        // Services Unity Ads - Alternative à AdMob pendant la suspension (29 jours)
+#if ANDROID
+        builder.Services.AddSingleton<IUnityAdsService, DonTroc.Platforms.Android.UnityAdsService>();
+#endif
 
         // Autres services
         builder.Services.AddSingleton<GamificationService>();
@@ -123,6 +140,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<AudioService>();
         builder.Services.AddSingleton<AnimationService>();
         builder.Services.AddSingleton<ReportService>();
+        builder.Services.AddSingleton<TipsService>();
+        builder.Services.AddSingleton<ITipsService>(sp => sp.GetRequiredService<TipsService>());
+        builder.Services.AddSingleton<AppRatingService>();
+        builder.Services.AddSingleton<ProximityNotificationService>();
 
 #if ANDROID
         // Service pour les notifications Push FCM
@@ -154,6 +175,7 @@ public static class MauiProgram
         builder.Services.AddTransient<RewardsViewModel>();
         builder.Services.AddTransient<QuizViewModel>();
         builder.Services.AddTransient<WheelOfFortuneViewModel>();
+        builder.Services.AddTransient<AllBadgesViewModel>();
 
         // Vues
         builder.Services.AddSingleton<MainPage>();
@@ -177,9 +199,10 @@ public static class MauiProgram
         builder.Services.AddTransient<RewardsPage>();
         builder.Services.AddTransient<QuizPage>();
         builder.Services.AddTransient<WheelOfFortunePage>();
+        builder.Services.AddTransient<AllBadgesPage>();
 
 #if DEBUG
-        builder.Logging.AddDebug();
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
 #endif
 
         return builder.Build();
@@ -194,6 +217,8 @@ public static class MauiProgram
             isCrashlyticsEnabled: true,
             isRemoteConfigEnabled: true,
             isStorageEnabled: true
+            // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+            // googleRequestIdToken: "12542152309-asqvk30n6eukuio6tbg8nm93vq4h2lv6.apps.googleusercontent.com"
         );
     }
 }

@@ -47,6 +47,13 @@ namespace DonTroc
         {
             base.ConnectHandler(platformView);
 
+            // ⚠️ Vérifier si les publicités sont désactivées (suspension AdMob)
+            if (!DonTroc.Services.AdMobConfiguration.ADS_ENABLED)
+            {
+                System.Diagnostics.Debug.WriteLine(DonTroc.Services.AdMobConfiguration.GetStatusMessage());
+                return; // Ne pas charger de publicité
+            }
+
             if (_isInitialized) return;
             _isInitialized = true;
             _container = platformView;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using DonTroc.Platforms.Android;
+using Firebase.Auth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
@@ -19,6 +21,7 @@ public class AuthService : ObservableObject
     private readonly PasswordValidationService _passwordValidationService;
     private const string EmailKey = "user_email";
     private const string PasswordKey = "user_password";
+    private const string RememberMeKey = "remember_me";
 
     public AuthService(ILogger<AuthService> logger, PasswordValidationService passwordValidationService)
     {
@@ -96,8 +99,10 @@ public class AuthService : ObservableObject
 
             await _client.CreateUserAsync(email, password);
 
+            // Sauvegarder les identifiants pour "Se souvenir de moi" après inscription
             await SecureStorage.SetAsync(EmailKey, email);
             await SecureStorage.SetAsync(PasswordKey, password);
+            await SecureStorage.SetAsync(RememberMeKey, "true");
 
             _logger.LogInformation("Inscription réussie pour: {Email}", email);
             return true;
@@ -121,12 +126,14 @@ public class AuthService : ObservableObject
             {
                 await SecureStorage.SetAsync(EmailKey, email);
                 await SecureStorage.SetAsync(PasswordKey, password);
+                await SecureStorage.SetAsync(RememberMeKey, "true");
                 _logger.LogInformation("Identifiants sauvegardés pour reconnexion automatique.");
             }
             else
             {
                 SecureStorage.Remove(EmailKey);
                 SecureStorage.Remove(PasswordKey);
+                SecureStorage.Remove(RememberMeKey);
             }
 
             _logger.LogInformation("Connexion réussie pour: {Email}", email);
@@ -152,6 +159,110 @@ public class AuthService : ObservableObject
         _client.SignOutAsync();
         SecureStorage.Remove(EmailKey);
         SecureStorage.Remove(PasswordKey);
+        SecureStorage.Remove(RememberMeKey);
+    }
+
+    // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
+    /*
+    /// <summary>
+    /// Authentification avec Google (Single Sign-On)
+    /// </summary>
+    /// <returns>L'utilisateur Firebase authentifié ou null en cas d'échec</returns>
+    public async Task<IFirebaseUser?> SignInWithGoogleAsync()
+    {
+        try
+        {
+            _logger.LogInformation("🔵 Tentative de connexion avec Google...");
+            System.Diagnostics.Debug.WriteLine("🔵 [AuthService] Démarrage connexion Google");
+            
+#if ANDROID
+            // Essayer plusieurs méthodes pour obtenir le service GoogleAuth
+            GoogleAuthService? googleAuthService = null;
+            
+            // Méthode 1: Via Application.Current
+            googleAuthService = Application.Current?.Handler?.MauiContext?.Services.GetService<GoogleAuthService>();
+            
+            // Méthode 2: Via MauiContext direct si la première échoue
+            if (googleAuthService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ [AuthService] Tentative via MauiContext alternatif...");
+                var mauiContext = Application.Current?.Windows?.FirstOrDefault()?.Handler?.MauiContext;
+                googleAuthService = mauiContext?.Services.GetService<GoogleAuthService>();
+            }
+            
+            if (googleAuthService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("✅ [AuthService] GoogleAuthService trouvé, démarrage authentification...");
+                
+                // Utiliser la méthode combinée qui fait Google Sign-In + Firebase Auth
+                var authResult = await googleAuthService.SignInAndAuthenticateWithFirebaseAsync();
+                
+                if (authResult != null)
+                {
+                    _logger.LogInformation("✅ Connexion Google Firebase réussie pour: {Email}", authResult.Email);
+                    System.Diagnostics.Debug.WriteLine($"✅ [AuthService] Connexion réussie: {authResult.Email}");
+                    await SecureStorage.SetAsync("auth_provider", "google");
+                    return authResult;
+                }
+                else
+                {
+                    _logger.LogWarning("❌ Échec de l'authentification Firebase avec Google - authResult est null");
+                    System.Diagnostics.Debug.WriteLine("❌ [AuthService] authResult est null après SignInAndAuthenticateWithFirebaseAsync");
+                    await ShowGenericErrorAlert("La connexion Google a échoué. Veuillez vérifier que vous avez sélectionné un compte Google valide.");
+                    return null;
+                }
+            }
+            else
+            {
+                _logger.LogError("❌ Service Google Auth non disponible - vérifier l'injection de dépendances");
+                System.Diagnostics.Debug.WriteLine("❌ [AuthService] GoogleAuthService est NULL!");
+                await ShowGenericErrorAlert("Le service de connexion Google n'est pas disponible. Veuillez redémarrer l'application.");
+            }
+#else
+            // Sur les autres plateformes, afficher un message
+            await ShowGenericErrorAlert("La connexion Google n'est disponible que sur Android pour le moment.");
+#endif
+            
+            _logger.LogWarning("Connexion Google annulée ou échouée");
+            return null;
+        }
+        catch (TaskCanceledException)
+        {
+            _logger.LogInformation("Connexion Google annulée par l'utilisateur");
+            System.Diagnostics.Debug.WriteLine("ℹ️ [AuthService] Connexion annulée par l'utilisateur");
+            return null;
+        }
+        catch (Exception ex) when (ex.GetBaseException() is FirebaseException firebaseEx)
+        {
+            _logger.LogError(ex, "Erreur Firebase lors de la connexion Google: {Message}", firebaseEx.Message);
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] FirebaseException: {firebaseEx.Message}");
+            await ShowAuthErrorAlert(firebaseEx.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la connexion avec Google: {Message}", ex.Message);
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] Exception: {ex.Message}\n{ex.StackTrace}");
+            await ShowGenericErrorAlert($"Une erreur est survenue lors de la connexion avec Google: {ex.Message}");
+            return null;
+        }
+    }
+    */
+
+    /// <summary>
+    /// Vérifie si l'utilisateur est connecté via Google
+    /// </summary>
+    public async Task<bool> IsGoogleUserAsync()
+    {
+        try
+        {
+            var provider = await SecureStorage.GetAsync("auth_provider");
+            return provider == "google";
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<string?> GetAuthTokenAsync()
@@ -237,24 +348,90 @@ public class AuthService : ObservableObject
     {
         try
         {
-            _logger.LogInformation("Tentative d'envoi d'email de réinitialisation pour : {Email}", email);
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+            _logger.LogInformation("🔐 Tentative d'envoi d'email de réinitialisation pour : {Email}", email);
+            System.Diagnostics.Debug.WriteLine($"🔐 [AuthService] SendPasswordResetEmailAsync - Email: {email}");
+            
+            if (string.IsNullOrWhiteSpace(email))
             {
-                throw new ArgumentException("Adresse email invalide");
+                var errorMsg = "L'adresse email est requise";
+                _logger.LogWarning("❌ {Error}", errorMsg);
+                System.Diagnostics.Debug.WriteLine($"❌ [AuthService] {errorMsg}");
+                throw new ArgumentException(errorMsg);
             }
+            
+            if (!email.Contains('@') || !email.Contains('.'))
+            {
+                var errorMsg = "L'adresse email n'est pas valide";
+                _logger.LogWarning("❌ {Error}", errorMsg);
+                System.Diagnostics.Debug.WriteLine($"❌ [AuthService] {errorMsg}");
+                throw new ArgumentException(errorMsg);
+            }
+            
+            // Normaliser l'email (lowercase, trim)
+            email = email.Trim().ToLowerInvariant();
+            System.Diagnostics.Debug.WriteLine($"📧 [AuthService] Email normalisé: {email}");
+            
+            // Appel Firebase pour envoyer l'email
+            System.Diagnostics.Debug.WriteLine($"📤 [AuthService] Appel Firebase SendPasswordResetEmailAsync...");
             await _client.SendPasswordResetEmailAsync(email);
-            _logger.LogInformation("Email de réinitialisation envoyé avec succès pour : {Email}", email);
+            
+            _logger.LogInformation("✅ Email de réinitialisation envoyé avec succès pour : {Email}", email);
+            System.Diagnostics.Debug.WriteLine($"✅ [AuthService] Email de réinitialisation envoyé avec succès pour : {email}");
         }
-        catch (Exception ex) when (ex.GetBaseException() is FirebaseException)
+        catch (FirebaseException firebaseEx)
         {
-            _logger.LogError(ex, "Erreur Firebase lors de l'envoi de l'email de réinitialisation pour {Email}", email);
+            _logger.LogError(firebaseEx, "❌ Erreur Firebase lors de l'envoi de l'email de réinitialisation pour {Email}", email);
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] FirebaseException: {firebaseEx.Message}");
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] StackTrace: {firebaseEx.StackTrace}");
+            
+            // Traduire les erreurs Firebase en messages utilisateur
+            var userMessage = GetPasswordResetErrorMessage(firebaseEx.Message);
+            throw new InvalidOperationException(userMessage, firebaseEx);
+        }
+        catch (Exception ex) when (ex.GetBaseException() is FirebaseException baseFirebaseEx)
+        {
+            _logger.LogError(ex, "❌ Erreur Firebase (base) lors de l'envoi de l'email de réinitialisation pour {Email}", email);
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] Base FirebaseException: {baseFirebaseEx.Message}");
+            
+            var userMessage = GetPasswordResetErrorMessage(baseFirebaseEx.Message);
+            throw new InvalidOperationException(userMessage, ex);
+        }
+        catch (ArgumentException)
+        {
+            // Re-throw les ArgumentException sans modification
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur générale lors de l'envoi de l'email de réinitialisation pour {Email}", email);
-            throw;
+            _logger.LogError(ex, "❌ Erreur générale lors de l'envoi de l'email de réinitialisation pour {Email}", email);
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] Exception générale: {ex.GetType().Name} - {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] StackTrace: {ex.StackTrace}");
+            
+            throw new InvalidOperationException(
+                "Une erreur est survenue lors de l'envoi de l'email de réinitialisation. " +
+                "Veuillez vérifier votre connexion internet et réessayer.", ex);
         }
+    }
+
+    /// <summary>
+    /// Traduit les messages d'erreur Firebase en messages utilisateur compréhensibles
+    /// </summary>
+    private static string GetPasswordResetErrorMessage(string firebaseError)
+    {
+        return firebaseError switch
+        {
+            var e when e.Contains("USER_NOT_FOUND") || e.Contains("user-not-found") => 
+                "Aucun compte n'existe avec cette adresse email. Veuillez vérifier l'adresse ou créer un nouveau compte.",
+            var e when e.Contains("INVALID_EMAIL") || e.Contains("invalid-email") => 
+                "L'adresse email n'est pas valide.",
+            var e when e.Contains("TOO_MANY_REQUESTS") || e.Contains("too-many-requests") => 
+                "Trop de tentatives. Veuillez attendre quelques minutes avant de réessayer.",
+            var e when e.Contains("NETWORK") || e.Contains("network") => 
+                "Erreur de connexion réseau. Veuillez vérifier votre connexion internet.",
+            var e when e.Contains("OPERATION_NOT_ALLOWED") || e.Contains("operation-not-allowed") => 
+                "L'envoi d'emails de réinitialisation n'est pas activé. Contactez le support.",
+            _ => $"Erreur lors de l'envoi de l'email : {firebaseError}"
+        };
     }
 
     public async Task<bool> EnsureAuthenticatedAsync() // méthode pour assuré la connexion

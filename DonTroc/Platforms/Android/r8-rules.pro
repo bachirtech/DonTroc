@@ -19,6 +19,27 @@
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.play.**
 
+# Ignorer les conflits AndroidX Compose (dépendances transitives)
+-dontwarn androidx.compose.**
+-dontnote androidx.compose.**
+-keep class androidx.compose.** { *; }
+
+# Ignorer les conflits AndroidX SavedState (dépendances transitives)
+-dontwarn androidx.savedstate.**
+-dontnote androidx.savedstate.**
+-keep class androidx.savedstate.** { *; }
+
+# Ignorer les conflits AndroidX Lifecycle Ktx
+-dontwarn androidx.lifecycle.**
+-dontnote androidx.lifecycle.**
+-keep class androidx.lifecycle.** { *; }
+
+# Ignorer les conflits AndroidX Activity/Fragment Ktx
+-dontwarn androidx.activity.**
+-dontwarn androidx.fragment.**
+-dontnote androidx.activity.**
+-dontnote androidx.fragment.**
+
 # Garder toutes les classes Google sans modification
 -keep class com.google.android.gms.** { *; }
 -keep class com.google.firebase.** { *; }

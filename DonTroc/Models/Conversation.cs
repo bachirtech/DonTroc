@@ -30,7 +30,7 @@ namespace DonTroc.Models
         public string OtherUserName { get; set; } = string.Empty;
         
         /// <summary>
-        /// Propriété calculée qui convertit le timestamp Unix en DateTime
+        /// Propriété calculée qui retourne le timestamp du dernier message
         /// </summary>
         public DateTime LastMessageDateTime 
         {
@@ -38,7 +38,8 @@ namespace DonTroc.Models
             {
                 try
                 {
-                    return DateTimeOffset.FromUnixTimeMilliseconds(0).DateTime;
+                    // Retourner directement LastMessageTimestamp qui est déjà un DateTime
+                    return LastMessageTimestamp;
                 }
                 catch
                 {

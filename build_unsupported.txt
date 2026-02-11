@@ -1,0 +1,13 @@
+                             /Users/aa1/.nuget/packages/xamarin.androidx.legacy.support.core.utils/1.0.0.19/lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.pdb
+                                     NuGetPackageId=Xamarin.AndroidX.Legacy.Support.Core.Utils
+                             /Users/aa1/.nuget/packages/xamarin.androidx.legacy.support.core.utils/1.0.0.19/lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.xml
+                                     NuGetPackageId=Xamarin.AndroidX.Legacy.Support.Core.Utils
+                             /Users/aa1/.nuget/packages/xamarin.androidx.legacy.support.core.utils/1.0.0.19/lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.dll
+                                     DestinationSubPath=Xamarin.AndroidX.Legacy.Support.Core.Utils.dll
+                                     NuGetPackageId=Xamarin.AndroidX.Legacy.Support.Core.Utils
+                                     PathInPackage=lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.dll
+                             /Users/aa1/.nuget/packages/xamarin.androidx.legacy.support.core.utils/1.0.0.19/lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.dll
+                                     HintPath=/Users/aa1/.nuget/packages/xamarin.androidx.legacy.support.core.utils/1.0.0.19/lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.dll
+                                     NuGetPackageId=Xamarin.AndroidX.Legacy.Support.Core.Utils
+                                     PathInPackage=lib/net6.0-android31.0/Xamarin.AndroidX.Legacy.Support.Core.Utils.dll
+                             Xamarin.AndroidX.Legacy.Support.Core.Utils

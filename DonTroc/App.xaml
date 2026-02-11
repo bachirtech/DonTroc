@@ -68,6 +68,15 @@
             <converters:BoolToTextConverter x:Key="BoolToTextConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
             
+            <!-- Convertisseurs pour la page des badges -->
+            <converters:PercentToWidthConverter x:Key="PercentToWidthConverter" />
+            <converters:BoolToUnlockedTextConverter x:Key="BoolToUnlockedTextConverter" />
+            <converters:BoolToUnlockedColorConverter x:Key="BoolToUnlockedColorConverter" />
+            
+            <!-- Convertisseurs pour le rappel quiz -->
+            <converters:BoolToReminderTextConverter x:Key="BoolToReminderTextConverter" />
+            <converters:BoolToReminderColorConverter x:Key="BoolToReminderColorConverter" />
+            
             <Color x:Key="Primaire" />
             <Color x:Key="GrisClair" />
             <Style x:Key="CardFrame" TargetType="Frame" />

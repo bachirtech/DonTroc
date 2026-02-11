@@ -41,11 +41,16 @@
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
                                 CommandParameter="{Binding .}"/>
 
-                        <!-- Horodatage -->
-                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
-                               TextColor="LightGray" 
-                               FontSize="10" 
-                               HorizontalOptions="End"/>
+                        <!-- Horodatage avec statut de lecture -->
+                        <StackLayout Orientation="Horizontal" HorizontalOptions="End" Spacing="4">
+                            <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
+                                   TextColor="LightGray" 
+                                   FontSize="10"/>
+                            <Label Text="{Binding StatusIcon}" 
+                                   TextColor="{Binding StatusColor}" 
+                                   FontSize="10"
+                                   FontAttributes="Bold"/>
+                        </StackLayout>
                     </StackLayout>
                 </Frame>
             </Grid>
@@ -122,7 +127,7 @@
         </Label>
 
         <!-- Zone de saisie et envoi de message -->
-        <Frame Grid.Row="1" Padding="0" Margin="10,5" BorderColor="{StaticResource Gray200}" BackgroundColor="White" CornerRadius="25" HasShadow="True">
+        <Frame Grid.Row="1" Padding="0" Margin="8,5" BorderColor="{StaticResource Gray200}" BackgroundColor="White" CornerRadius="25" HasShadow="True">
             <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
                 
                 <!-- Bouton pour les options multimédia (image, etc.) -->

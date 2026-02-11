@@ -60,6 +60,33 @@ namespace DonTroc.Models
         /// </summary>
         public string? FcmToken { get; set; }
 
+        // === LOCALISATION POUR NOTIFICATIONS DE PROXIMITÉ ===
+
+        /// <summary>
+        /// Latitude de la dernière position connue de l'utilisateur
+        /// </summary>
+        public double? LastLatitude { get; set; }
+
+        /// <summary>
+        /// Longitude de la dernière position connue de l'utilisateur
+        /// </summary>
+        public double? LastLongitude { get; set; }
+
+        /// <summary>
+        /// Date de la dernière mise à jour de la position
+        /// </summary>
+        public DateTime? LastLocationUpdate { get; set; }
+
+        /// <summary>
+        /// Rayon de notification préféré (en km) - par défaut 5 km
+        /// </summary>
+        public double NotificationRadius { get; set; } = 5.0;
+
+        /// <summary>
+        /// Activer/désactiver les notifications de proximité
+        /// </summary>
+        public bool ProximityNotificationsEnabled { get; set; } = true;
+
         // === MÉTHODES CALCULÉES ===
 
         /// <summary>

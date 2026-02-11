@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DonTroc.Views.TipOverlayView"
+             x:Name="tipOverlay"
+             InputTransparent="True"
+             IsVisible="False">
+
+    <!-- Overlay semi-transparent avec animation -->
+    <Grid x:Name="OverlayGrid" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnBackgroundTapped" />
+        </Grid.GestureRecognizers>
+
+        <!-- Fond semi-transparent -->
+        <BoxView Color="#80000000" 
+                 Opacity="0"
+                 x:Name="BackgroundOverlay"/>
+
+        <!-- Carte du conseil -->
+        <Border x:Name="TipCard"
+                StrokeShape="RoundRectangle 16"
+                Stroke="{StaticResource Terracotta}"
+                StrokeThickness="2"
+                BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}"
+                Padding="20"
+                Margin="20"
+                MaximumWidthRequest="400"
+                HorizontalOptions="Center"
+                Opacity="0"
+                Scale="0.8">
+
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="12">
+                <!-- Icône et titre -->
+                <StackLayout Grid.Row="0" 
+                             Orientation="Horizontal" 
+                             Spacing="10"
+                             HorizontalOptions="Center">
+                    <Label x:Name="IconLabel"
+                           Text="💡"
+                           FontSize="32"
+                           VerticalOptions="Center"/>
+                    <Label x:Name="TitleLabel"
+                           Text="Conseil"
+                           FontSize="18"
+                           FontFamily="PoppinsBold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                           VerticalOptions="Center"/>
+                </StackLayout>
+
+                <!-- Message -->
+                <Label x:Name="MessageLabel"
+                       Grid.Row="1"
+                       Text="Message du conseil"
+                       FontSize="14"
+                       FontFamily="PoppinsRegular"
+                       TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                       HorizontalTextAlignment="Center"
+                       LineBreakMode="WordWrap"/>
+
+                <!-- Indicateur de progression (X/Y) -->
+                <Label x:Name="ProgressLabel"
+                       Grid.Row="2"
+                       Text="1/3"
+                       FontSize="12"
+                       TextColor="{StaticResource Gray500}"
+                       HorizontalOptions="Center"
+                       IsVisible="False"/>
+
+                <!-- Boutons d'action -->
+                <Grid Grid.Row="3" ColumnDefinitions="*, Auto, *" ColumnSpacing="10">
+                    <!-- Bouton "Ne plus afficher" -->
+                    <Button x:Name="DismissButton"
+                            Grid.Column="0"
+                            Text="Ne plus afficher"
+                            FontSize="12"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Gray500}"
+                            Padding="8,5"
+                            Clicked="OnDismissClicked"/>
+
+                    <!-- Bouton "Suivant" ou "Compris" -->
+                    <Button x:Name="NextButton"
+                            Grid.Column="1"
+                            Text="Compris !"
+                            FontSize="14"
+                            FontFamily="PoppinsBold"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                            TextColor="White"
+                            CornerRadius="20"
+                            Padding="20,10"
+                            Clicked="OnNextClicked"/>
+
+                    <!-- Espace pour équilibrer -->
+                    <BoxView Grid.Column="2" Color="Transparent"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>
+

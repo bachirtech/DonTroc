@@ -3,11 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:DonTroc.ViewModels"
              xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:views="clr-namespace:DonTroc.Views"
              x:Class="DonTroc.Views.RewardsPage"
              x:DataType="viewmodels:RewardsViewModel"
-             Title="Récompenses"
+             Title="Rcompenses"
              BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}">
 
+    <Grid>
     <ScrollView>
         <VerticalStackLayout Spacing="15" Padding="15">
             
@@ -323,6 +325,71 @@
                 </Grid>
             </Border>
             
+            <!-- Section Rappel Quiz Quotidien -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="15">
+                <StackLayout Spacing="12">
+                    <Label Text="🔔 Rappel Quiz Quotidien"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <Label Text="Activez les notifications pour ne jamais manquer votre défi quiz quotidien et accumuler plus de points !"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                           LineBreakMode="WordWrap"/>
+                    
+                    <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto" Margin="0,5,0,0">
+                        <StackLayout Grid.Column="0" VerticalOptions="Center">
+                            <Label Text="Recevoir un rappel"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                            <Label Text="{Binding QuizReminderTimeFormatted, StringFormat='Tous les jours à {0}'}"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   IsVisible="{Binding IsQuizReminderEnabled}"/>
+                        </StackLayout>
+                        
+                        <!-- Bouton pour changer l'heure -->
+                        <Border Grid.Column="1"
+                                BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1E3A5F}"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10,6"
+                                Margin="0,0,10,0"
+                                IsVisible="{Binding IsQuizReminderEnabled}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SetQuizReminderTimeCommand}"/>
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="5">
+                                <Label Text="⏰" FontSize="14"/>
+                                <Label Text="{Binding QuizReminderTimeFormatted}"
+                                       FontSize="13"
+                                       TextColor="{StaticResource DonTrocPrimary}"
+                                       VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                        
+                        <!-- Bouton pour activer/désactiver -->
+                        <Border Grid.Column="2"
+                                BackgroundColor="{Binding IsQuizReminderEnabled, Converter={StaticResource BoolToReminderColorConverter}}"
+                                StrokeShape="RoundRectangle 15"
+                                Padding="12,8"
+                                VerticalOptions="Center">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ToggleQuizReminderCommand}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="{Binding IsQuizReminderEnabled, Converter={StaticResource BoolToReminderTextConverter}}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   HorizontalOptions="Center"/>
+                        </Border>
+                    </Grid>
+                </StackLayout>
+            </Border>
+            
             <!-- Historique XP récent -->
             <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
                     StrokeShape="RoundRectangle 12"
@@ -359,5 +426,9 @@
             
         </VerticalStackLayout>
     </ScrollView>
+    
+    <!-- Overlay pour les conseils -->
+    <views:TipOverlayView x:Name="TipOverlay" />
+    </Grid>
 </ContentPage>
 

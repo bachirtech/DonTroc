@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿﻿﻿﻿using System;
 using System.Threading.Tasks;
 using DonTroc.Services;
 using DonTroc.Views;
@@ -19,8 +19,11 @@ public partial class App : Application
     private readonly FileLoggerService _fileLogger;
     private readonly NotificationService _notificationService;
     private readonly SmartNotificationService _smartNotificationService;
+    private readonly AppRatingService _appRatingService;
+    private readonly GlobalNotificationService _globalNotificationService;
+    private readonly ProximityNotificationService _proximityNotificationService;
 
-    public App(AuthService authService, GlobalNotificationService globalNotificationService, UnreadMessageService unreadMessageService, AdMobService adMobService, IServiceProvider serviceProvider, FileLoggerService fileLogger, NotificationService notificationService, SmartNotificationService smartNotificationService)
+    public App(AuthService authService, GlobalNotificationService globalNotificationService, UnreadMessageService unreadMessageService, AdMobService adMobService, IServiceProvider serviceProvider, FileLoggerService fileLogger, NotificationService notificationService, SmartNotificationService smartNotificationService, AppRatingService appRatingService, ProximityNotificationService proximityNotificationService)
     {
         InitializeComponent();
 
@@ -30,6 +33,9 @@ public partial class App : Application
         _fileLogger = fileLogger ?? new FileLoggerService();
         _notificationService = notificationService;
         _smartNotificationService = smartNotificationService;
+        _appRatingService = appRatingService;
+        _globalNotificationService = globalNotificationService;
+        _proximityNotificationService = proximityNotificationService;
 
         // Gestion d'erreurs
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -38,6 +44,9 @@ public partial class App : Application
         try
         {
             InitializeApp();
+            
+            // Démarrer le tracking pour la demande de notation
+            _appRatingService.StartTracking();
         }
         catch (Exception ex)
         {
@@ -153,22 +162,128 @@ public partial class App : Application
     {
         try
         {
-            if (_authService.IsSignedIn)
+            // Afficher d'abord une page de chargement pendant la vérification de l'authentification
+            MainPage = new ContentPage
             {
-                MainPage = new AppShell(_unreadMessageService);
-            }
-            else
-            {
-                // ✅ Solution simplifiée : utiliser directement le service provider
-                var loginView = _serviceProvider.GetRequiredService<LoginView>();
-                MainPage = new NavigationPage(loginView);
-            }
+                BackgroundColor = Color.FromArgb("#F5F5DC"),
+                Content = new StackLayout
+                {
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center,
+                    Spacing = 20,
+                    Children =
+                    {
+                        new Image 
+                        { 
+                            Source = "logotroc.png",
+                            HeightRequest = 150,
+                            HorizontalOptions = LayoutOptions.Center
+                        },
+                        new ActivityIndicator 
+                        { 
+                            IsRunning = true,
+                            Color = Color.FromArgb("#8B4513"),
+                            HorizontalOptions = LayoutOptions.Center
+                        },
+                        new Label
+                        {
+                            Text = "Chargement...",
+                            TextColor = Color.FromArgb("#8B4513"),
+                            FontSize = 16,
+                            HorizontalOptions = LayoutOptions.Center
+                        }
+                    }
+                }
+            };
+
+            // Lancer la vérification d'authentification en arrière-plan
+            _ = InitializeAuthAsync();
         }
         catch (Exception ex)
         {
             _fileLogger.LogException(ex);
             System.Diagnostics.Debug.WriteLine($"[App] Erreur lors de l'initialisation de la page principale: {ex}");
             ShowErrorPage($"Erreur lors du chargement: {ex.Message}");
+        }
+    }
+
+    private async Task InitializeAuthAsync()
+    {
+        try
+        {
+            bool isAuthenticated = false;
+
+            // D'abord vérifier si l'utilisateur est déjà connecté (session Firebase active)
+            if (_authService.IsSignedIn)
+            {
+                isAuthenticated = true;
+                System.Diagnostics.Debug.WriteLine("[App] Utilisateur déjà connecté via session Firebase");
+            }
+            else
+            {
+                // Sinon, tenter la reconnexion automatique avec "Se souvenir de moi"
+                System.Diagnostics.Debug.WriteLine("[App] Tentative de reconnexion automatique...");
+                isAuthenticated = await _authService.TryAutoSignInAsync();
+                System.Diagnostics.Debug.WriteLine($"[App] Reconnexion automatique: {(isAuthenticated ? "réussie" : "échouée")}");
+            }
+
+            // Mettre à jour l'interface sur le thread principal
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                if (isAuthenticated)
+                {
+                    System.Diagnostics.Debug.WriteLine("[App] Navigation vers AppShell");
+                    MainPage = new AppShell(_unreadMessageService);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[App] Navigation vers LoginView");
+                    var loginView = _serviceProvider.GetRequiredService<LoginView>();
+                    MainPage = new NavigationPage(loginView);
+                }
+            });
+
+            // Initialiser les notifications en temps réel si authentifié
+            if (isAuthenticated)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[App] Initialisation du service de notifications en temps réel...");
+                    await _globalNotificationService.InitializeAsync();
+                    System.Diagnostics.Debug.WriteLine("[App] Service de notifications en temps réel initialisé");
+                    
+                    // Mettre à jour la position de l'utilisateur pour les notifications de proximité
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            System.Diagnostics.Debug.WriteLine("[App] Mise à jour de la position utilisateur pour les notifications de proximité...");
+                            await _proximityNotificationService.UpdateUserLocationAsync();
+                            System.Diagnostics.Debug.WriteLine("[App] Position utilisateur mise à jour");
+                        }
+                        catch (Exception locEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[App] Erreur lors de la mise à jour de la position: {locEx.Message}");
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[App] Erreur lors de l'initialisation des notifications: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _fileLogger.LogException(ex);
+            System.Diagnostics.Debug.WriteLine($"[App] Erreur lors de la vérification d'authentification: {ex}");
+            
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                // En cas d'erreur, afficher la page de login
+                var loginView = _serviceProvider.GetRequiredService<LoginView>();
+                MainPage = new NavigationPage(loginView);
+            });
         }
     }
 
@@ -265,6 +380,23 @@ public partial class App : Application
         {
             base.OnResume();
             System.Diagnostics.Debug.WriteLine("[App] Application reprise");
+            
+            // Mettre à jour la position de l'utilisateur pour les notifications de proximité
+            if (_authService.IsSignedIn)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _proximityNotificationService.UpdateUserLocationAsync();
+                        System.Diagnostics.Debug.WriteLine("[App] Position utilisateur mise à jour après reprise");
+                    }
+                    catch (Exception locEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[App] Erreur mise à jour position: {locEx.Message}");
+                    }
+                });
+            }
         }
         catch (Exception ex)
         {
