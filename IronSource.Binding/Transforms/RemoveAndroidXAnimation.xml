@@ -1,0 +1,8 @@
+<metadata>
+  <!-- Supprime la classe Kotlin synthetic qui est dupliquée et provoque le conflit R8 -->
+  <!-- Cela empêche la génération d'un wrapper C# pour cette classe interne (peu probable d'être nécessaire à l'API publique) -->
+  <remove-node path="/api/package[@name='androidx.core.animation']/class[@name='AnimatorKt$addListener$1']" />
+  <!-- En option, retirer tout le package d'animation si d'autres synthétiques posent problème -->
+  <!-- <remove-node path="/api/package[@name='androidx.core.animation']" /> -->
+</metadata>
+

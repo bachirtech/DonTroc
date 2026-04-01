@@ -62,6 +62,13 @@
             border-radius: 5px;
             margin: 15px 0;
         }
+        .warning {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
         .contact {
             background-color: #e8f5e9;
             padding: 20px;
@@ -71,12 +78,28 @@
         a {
             color: #512BD4;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0ebff;
+            color: #512BD4;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="index.html" style="display:inline-block;margin-bottom:20px;color:#512BD4;text-decoration:none;">← Retour à l'accueil</a>
+
         <h1>🔒 Politique de Confidentialité</h1>
-        <p class="date">Dernière mise à jour : 7 janvier 2026</p>
+        <p class="date">Dernière mise à jour : 5 mars 2026</p>
         
         <p>Bienvenue sur <strong>DonTroc</strong>, l'application de dons et d'échanges entre particuliers. Nous nous engageons à protéger votre vie privée et vos données personnelles. Cette politique explique comment nous collectons, utilisons et protégeons vos informations.</p>
 
@@ -87,6 +110,7 @@
             <li><strong>Email</strong> : Pour créer votre compte et vous authentifier</li>
             <li><strong>Nom/Pseudo</strong> : Pour vous identifier auprès des autres utilisateurs</li>
             <li><strong>Photo de profil</strong> (optionnel) : Pour personnaliser votre profil</li>
+            <li><strong>Jeton de notification (FCM Token)</strong> : Pour vous envoyer des notifications push</li>
         </ul>
 
         <h3>📷 Photos (Permission CAMERA)</h3>
@@ -105,9 +129,10 @@
             <ul>
                 <li>Afficher les objets disponibles près de chez vous</li>
                 <li>Permettre aux autres utilisateurs de voir la zone approximative de vos annonces</li>
-                <li><strong>Notifications de proximité</strong> : Vous alerter quand une nouvelle annonce est publiée dans un rayon que vous définissez (1 à 50 km, par défaut 5 km)</li>
-                <li>La localisation précise n'est JAMAIS partagée publiquement - seule la ville/quartier est visible</li>
-                <li>Votre position est stockée de manière sécurisée et utilisée uniquement pour les notifications de proximité</li>
+                <li><strong>Notifications de proximité</strong> : Vous alerter quand une nouvelle annonce est publiée dans un rayon que vous définissez (1 à 50 km)</li>
+                <li>Calcul des distances entre vous et les annonces disponibles</li>
+                <li>La localisation précise n'est JAMAIS partagée publiquement — seule la ville/quartier est visible</li>
+                <li>Votre position est stockée de manière sécurisée et utilisée uniquement pour le calcul de distances et les notifications de proximité</li>
                 <li>Vous pouvez désactiver les notifications de proximité à tout moment dans les paramètres de votre profil</li>
                 <li>Vous pouvez désactiver complètement la localisation dans les paramètres de votre appareil</li>
             </ul>
@@ -116,80 +141,166 @@
         <h3>💬 Messages</h3>
         <ul>
             <li>Les messages échangés entre utilisateurs pour organiser les dons/échanges</li>
+            <li>Les indicateurs de saisie pour améliorer l'expérience de conversation</li>
             <li>Les messages sont stockés de manière sécurisée sur Firebase</li>
+        </ul>
+
+        <h3>🎮 Données de gamification</h3>
+        <ul>
+            <li>Points d'expérience (XP), niveau, badges et défis complétés</li>
+            <li>Statistiques d'utilisation (nombre d'annonces publiées, échanges réussis, etc.)</li>
+            <li>Ces données sont stockées localement sur votre appareil et servent uniquement à enrichir votre expérience utilisateur</li>
+        </ul>
+
+        <h3>🤝 Données sociales</h3>
+        <ul>
+            <li>Codes de parrainage générés et utilisés</li>
+            <li>Historique des partages d'annonces sur les réseaux sociaux</li>
+            <li>Liste d'amis et activités sociales</li>
+        </ul>
+
+        <h3>📊 Données d'interaction</h3>
+        <ul>
+            <li>Actions utilisateur (consultation d'annonces, ajout en favoris, etc.) pour améliorer les recommandations</li>
+            <li>Signalements de contenu inapproprié</li>
+            <li>Historique des transactions (dons et échanges)</li>
         </ul>
 
         <h2>2. Comment nous utilisons vos données</h2>
         <ul>
             <li>✅ Permettre le fonctionnement de l'application (annonces, messages, transactions)</li>
-            <li>✅ Améliorer votre expérience utilisateur</li>
-            <li>✅ Vous envoyer des notifications sur vos annonces et messages</li>
-            <li>✅ Assurer la sécurité de la plateforme</li>
+            <li>✅ Améliorer votre expérience utilisateur (recommandations, gamification)</li>
+            <li>✅ Vous envoyer des notifications sur vos annonces, messages et annonces à proximité</li>
+            <li>✅ Assurer la sécurité de la plateforme (modération, signalements)</li>
+            <li>✅ Afficher des publicités pour financer le service gratuit</li>
+            <li>✅ Calculer des statistiques anonymes d'utilisation</li>
             <li>❌ Nous ne vendons JAMAIS vos données à des tiers</li>
-            <li>❌ Nous n'utilisons PAS vos données à des fins publicitaires ciblées</li>
         </ul>
 
-        <h2>3. Partage des données</h2>
-        <p>Vos données ne sont partagées qu'avec :</p>
+        <h2>3. Publicités et monétisation</h2>
+        
+        <div class="warning">
+            <p><strong>⚠️ Information importante sur les publicités :</strong></p>
+            <p>DonTroc est une application gratuite financée par la publicité. Nous utilisons Google AdMob pour afficher des annonces publicitaires dans l'application.</p>
+        </div>
+
+        <h3>🎯 Réseau publicitaire</h3>
+        <p>DonTroc utilise <strong>Google AdMob</strong> (Google LLC) comme réseau publicitaire. AdMob diffuse des publicités adaptées à votre profil et à votre appareil.</p>
+
+        <h3>📡 Informations sur Google AdMob</h3>
+
+        <table>
+            <tr>
+                <th>Réseau publicitaire</th>
+                <th>Fournisseur</th>
+                <th>Politique de confidentialité</th>
+            </tr>
+            <tr>
+                <td><strong>Google AdMob</strong></td>
+                <td>Google LLC</td>
+                <td><a href="https://policies.google.com/privacy" target="_blank">Politique Google</a></td>
+            </tr>
+        </table>
+
+        <h3>📋 Types de publicités affichées</h3>
         <ul>
-            <li><strong>Firebase (Google)</strong> : Pour l'authentification et le stockage sécurisé</li>
-            <li><strong>Cloudinary</strong> : Pour l'hébergement des photos d'annonces</li>
-            <li><strong>Autres utilisateurs</strong> : Uniquement les informations que vous choisissez de rendre publiques (annonces, pseudo, ville)</li>
+            <li><strong>Bannières</strong> : Petites annonces affichées en bas de certains écrans</li>
+            <li><strong>Interstitiels</strong> : Publicités plein écran affichées lors de transitions entre certaines pages (avec limitation de fréquence)</li>
+            <li><strong>Vidéos récompensées</strong> : Publicités vidéo optionnelles que vous pouvez choisir de visionner pour obtenir des récompenses (points bonus, boosts d'annonces, etc.)</li>
         </ul>
 
-        <h2>4. Sécurité des données</h2>
+        <h3>🔐 Données collectées par les réseaux publicitaires</h3>
+        <p>Les réseaux publicitaires peuvent collecter automatiquement les informations suivantes :</p>
+        <ul>
+            <li><strong>Identifiant publicitaire</strong> (GAID/IDFA) : Identifiant anonyme de votre appareil</li>
+            <li><strong>Informations sur l'appareil</strong> : Modèle, système d'exploitation, version, taille d'écran</li>
+            <li><strong>Informations réseau</strong> : Type de connexion (Wi-Fi/mobile), opérateur</li>
+            <li><strong>Données de performance publicitaire</strong> : Impressions, clics</li>
+            <li><strong>Localisation approximative</strong> : Pays et région (déduits de l'adresse IP)</li>
+        </ul>
+
+        <div class="highlight">
+            <p><strong>🛡️ Vos choix concernant les publicités :</strong></p>
+            <ul>
+                <li>Vous pouvez réinitialiser votre identifiant publicitaire dans les paramètres de votre appareil</li>
+                <li>Vous pouvez désactiver la personnalisation des annonces (Paramètres Android &gt; Google &gt; Annonces)</li>
+                <li>Les vidéos récompensées sont toujours optionnelles — vous n'êtes jamais obligé de les regarder</li>
+            </ul>
+        </div>
+
+        <h2>4. Partage des données avec des tiers</h2>
+        <p>Vos données sont partagées avec les services tiers suivants, uniquement dans la mesure nécessaire au fonctionnement de l'application :</p>
+        <ul>
+            <li><strong>Firebase / Google Cloud</strong> : Authentification, base de données temps réel, notifications push</li>
+            <li><strong>Cloudinary</strong> : Hébergement sécurisé des photos d'annonces et de profils</li>
+            <li><strong>Google AdMob</strong> : Diffusion de publicités pour financer l'application gratuite</li>
+            <li><strong>Autres utilisateurs</strong> : Uniquement les informations que vous choisissez de rendre publiques (annonces, pseudo, ville approximative)</li>
+        </ul>
+
+        <h2>5. Sécurité des données</h2>
         <ul>
             <li>🔐 Toutes les communications sont chiffrées (HTTPS/TLS)</li>
             <li>🔐 Les mots de passe sont hashés et jamais stockés en clair</li>
-            <li>🔐 L'authentification est gérée par Firebase Authentication</li>
+            <li>🔐 L'authentification est gérée par Firebase Authentication (Google)</li>
             <li>🔐 Les données sont stockées sur des serveurs sécurisés Google Cloud</li>
+            <li>🔐 Les uploads d'images utilisent une signature sécurisée (Cloudinary)</li>
+            <li>🔐 Les règles d'accès Firebase sont strictement définies (chaque utilisateur ne peut modifier que ses propres données)</li>
         </ul>
 
-        <h2>5. Vos droits</h2>
-        <p>Conformément au RGPD, vous avez le droit de :</p>
+        <h2>6. Vos droits</h2>
+        <p>Conformément au RGPD et aux réglementations applicables, vous avez le droit de :</p>
         <ul>
             <li><strong>Accéder</strong> à vos données personnelles</li>
             <li><strong>Rectifier</strong> vos informations</li>
             <li><strong>Supprimer</strong> votre compte et toutes vos données</li>
             <li><strong>Exporter</strong> vos données</li>
             <li><strong>Retirer</strong> votre consentement à tout moment</li>
+            <li><strong>Désactiver</strong> la personnalisation publicitaire via les paramètres de votre appareil</li>
+            <li><strong>Désactiver</strong> les notifications de proximité dans les paramètres de votre profil</li>
         </ul>
-        <p>Pour exercer ces droits, contactez-nous à l'adresse ci-dessous.</p>
+        <p>Pour exercer ces droits, contactez-nous à l'adresse ci-dessous ou utilisez les options de gestion de compte dans l'application.</p>
 
-        <h2>6. Conservation des données</h2>
+        <h2>7. Conservation des données</h2>
         <ul>
             <li>Vos données sont conservées tant que votre compte est actif</li>
             <li>À la suppression de votre compte, toutes vos données sont supprimées sous 30 jours</li>
             <li>Les annonces expirées sont automatiquement supprimées après 90 jours</li>
+            <li>Les données de gamification sont supprimées avec votre compte</li>
+            <li>Les données publicitaires anonymisées peuvent être conservées par Google AdMob selon sa propre politique de conservation</li>
         </ul>
 
-        <h2>7. Publicités</h2>
-        <p>DonTroc utilise Google AdMob pour afficher des publicités. Ces publicités sont :</p>
+        <h2>8. Cookies et technologies similaires</h2>
+        <p>DonTroc n'utilise pas de cookies web. Cependant, le SDK Google AdMob intégré peut utiliser des technologies similaires (identifiants publicitaires, stockage local) pour le fonctionnement de la publicité. Consultez la <a href="https://policies.google.com/privacy" target="_blank">politique de confidentialité de Google</a> pour plus d'informations.</p>
+
+        <h2>9. Transferts internationaux de données</h2>
+        <p>Vos données peuvent être transférées et stockées sur des serveurs situés en dehors de votre pays de résidence, notamment :</p>
         <ul>
-            <li>Non personnalisées par défaut</li>
-            <li>Ne collectent pas de données personnelles supplémentaires</li>
-            <li>Permettent de garder l'application gratuite</li>
+            <li><strong>États-Unis</strong> : Google (Firebase, AdMob)</li>
+            <li><strong>Union Européenne</strong> : Firebase Realtime Database (serveurs européens)</li>
         </ul>
+        <p>Ces transferts sont encadrés par des clauses contractuelles types ou d'autres mécanismes de protection conformes aux réglementations applicables.</p>
 
-        <h2>8. Mineurs</h2>
-        <p>DonTroc n'est pas destiné aux enfants de moins de 13 ans. Je ne collecte pas sciemment de données personnelles d'enfants.</p>
+        <h2>10. Mineurs</h2>
+        <p>DonTroc n'est pas destiné aux enfants de moins de 13 ans. Nous ne collectons pas sciemment de données personnelles d'enfants de moins de 13 ans. Les publicités affichées sont configurées pour ne pas cibler les mineurs.</p>
 
-        <h2>9. Modifications de cette politique</h2>
-        <p>Nous pouvons mettre à jour cette politique de confidentialité. Les modifications importantes seront notifiées dans l'application.</p>
+        <h2>11. Modifications de cette politique</h2>
+        <p>Nous pouvons mettre à jour cette politique de confidentialité à tout moment. Les modifications importantes seront notifiées dans l'application. La date de dernière mise à jour est indiquée en haut de ce document.</p>
 
         <div class="contact">
             <h2>📬 Nous contacter</h2>
-            <p>Pour toute question concernant cette politique de confidentialité ou vos données personnelles :</p>
+            <p>Pour toute question concernant cette politique de confidentialité, vos données personnelles ou pour exercer vos droits :</p>
             <ul>
                 <li><strong>Email</strong> : <a href="mailto:bachirdev.pro@gmail.com">bachirdev.pro@gmail.com</a></li>
                 <li><strong>Développeur</strong> : Bassirou Balde (BachirDev)</li>
             </ul>
+            <p style="margin-top: 15px;">
+                <a href="terms.html">📜 Voir nos Conditions d'utilisation</a>
+            </p>
         </div>
 
         <p style="margin-top: 30px; text-align: center; color: #666;">
-            © 2025 DonTroc - BachirDev. Tous droits réservés.
+            © 2025-2026 DonTroc - BachirDev. Tous droits réservés.
         </p>
     </div>
 </body>
 </html>
-
