@@ -214,10 +214,7 @@ namespace DonTroc.Services
                         await LoadAsync<T>(key, () => factory(key));
                     }
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Erreur préchargement {key}: {ex.Message}");
-                }
+                catch { }
                 finally
                 {
                     semaphore.Release();
@@ -259,10 +256,7 @@ namespace DonTroc.Services
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Erreur préchargement pages: {ex.Message}");
-                }
+                catch { }
             });
         }
 
@@ -295,10 +289,7 @@ namespace DonTroc.Services
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Erreur nettoyage semaphores: {ex.Message}");
-            }
+            catch { }
         }
 
         /// <summary>

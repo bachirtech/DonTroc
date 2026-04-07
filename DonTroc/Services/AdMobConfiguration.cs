@@ -8,18 +8,10 @@ namespace DonTroc.Services
     /// </summary>
     public static class AdMobConfiguration
     {
-        /// <summary>
-        /// ⚠️ IMPORTANT: Mettre à false pour désactiver TOUTES les publicités AdMob
-        /// 
-        /// Historique:
-        /// - Compte AdMob suspendu le 21 janvier 2026 (29 jours)
-        /// - Date estimée de réactivation: ~19 février 2026
-        /// - Motif: Détection de trafic incorrect (auto-clics)
-        /// 
-        /// STATUT ACTUEL: RÉACTIVÉ pour tests
-        /// Si vous voyez des erreurs dans les logs, remettez à false
+        
+        /// STATUT ACTUEL: ✅ RÉACTIVÉ - Suspension levée (période expirée depuis le 19 février 2026)
         /// </summary>
-        public const bool ADS_ENABLED = false;
+        public const bool ADS_ENABLED = true;
 
         /// <summary>
         /// Date de début de suspension (pour référence)

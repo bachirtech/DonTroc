@@ -9,19 +9,24 @@ namespace DonTroc.Views;
 
 public partial class FavoritesView : ContentPage
 {
+    private readonly AdMobService _adMobService;
     private readonly ITipsService _tipsService;
     private bool _tipsShown = false;
 
-    public FavoritesView(FavoritesViewModel viewModel, ITipsService tipsService)
+    public FavoritesView(FavoritesViewModel viewModel, AdMobService adMobService, ITipsService tipsService)
     {
         InitializeComponent();
         BindingContext = viewModel;
+        _adMobService = adMobService;
         _tipsService = tipsService;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        
+        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
+        await _adMobService.TryShowInterstitialOnNavigationAsync("Favoris");
         
         // Charger les données à l'apparition de la page
         if (BindingContext is FavoritesViewModel viewModel)
@@ -100,74 +105,38 @@ public partial class FavoritesView : ContentPage
     // Gestionnaires pour les favoris
     private void OnViewFavoriteClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [FavoritesView] OnViewFavoriteClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Favorite favorite)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesView] Favorite trouvé: {favorite.AnnonceId}");
             if (BindingContext is FavoritesViewModel vm)
-            {
                 vm.NavigateToAnnonceCommand.Execute(favorite);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [FavoritesView] Favorite non trouvé dans le BindingContext");
         }
     }
 
     private void OnDeleteFavoriteClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [FavoritesView] OnDeleteFavoriteClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Favorite favorite)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesView] Favorite trouvé: {favorite.AnnonceId}");
             if (BindingContext is FavoritesViewModel vm)
-            {
                 vm.DeleteFavoriteCommand.Execute(favorite);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [FavoritesView] Favorite non trouvé dans le BindingContext");
         }
     }
 
     private void OnFavoriteTapped(object? sender, TappedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [FavoritesView] OnFavoriteTapped appelé");
-        
         if (sender is Border border && border.BindingContext is Favorite favorite)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesView] Favorite trouvé: {favorite.AnnonceId}");
             if (BindingContext is FavoritesViewModel vm)
-            {
                 vm.NavigateToAnnonceCommand.Execute(favorite);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [FavoritesView] Favorite non trouvé dans le BindingContext");
         }
     }
 
     // Gestionnaire pour supprimer une alerte
     private void OnDeleteAlertClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [FavoritesView] OnDeleteAlertClicked appelé");
-        
         if (sender is Button button && button.BindingContext is AnnonceAlert alert)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesView] Alert trouvé: {alert.Id}");
             if (BindingContext is FavoritesViewModel vm)
-            {
                 vm.DeleteAlertCommand.Execute(alert);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [FavoritesView] Alert non trouvé dans le BindingContext");
         }
     }
 }

@@ -1,3 +1,4 @@
+using DonTroc.Services;
 using DonTroc.ViewModels;
 
 namespace DonTroc.Views;
@@ -5,17 +6,23 @@ namespace DonTroc.Views;
 public partial class QuizPage : ContentPage
 {
     private readonly QuizViewModel _viewModel;
+    private readonly AdMobService _adMobService;
 
-    public QuizPage(QuizViewModel viewModel)
+    public QuizPage(QuizViewModel viewModel, AdMobService adMobService)
     {
         InitializeComponent();
         _viewModel = viewModel;
+        _adMobService = adMobService;
         BindingContext = viewModel;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        
+        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
+        await _adMobService.TryShowInterstitialOnNavigationAsync("Quiz");
+        
         await _viewModel.InitializeCommand.ExecuteAsync(null);
     }
 

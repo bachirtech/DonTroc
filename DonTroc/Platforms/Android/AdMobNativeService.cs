@@ -1,26 +1,30 @@
 using System;
 using System.Threading.Tasks;
 using Android.Content;
-using Android.Gms.Ads;
-using Android.Gms.Ads.Interstitial;
-using Android.Gms.Ads.Rewarded;
+using PreserveAttribute = global::Android.Runtime.PreserveAttribute;
+using Google.Android.Gms.Ads;
+using Google.Android.Gms.Ads.Interstitial;
+using Google.Android.Gms.Ads.Rewarded;
 using DonTroc.Services;
 
 namespace DonTroc.Platforms.Android
 {
     /// <summary>
     /// Service natif Android pour gérer les publicités AdMob (récompensées et interstitielles)
-    /// Compatible avec AdMob SDK v120.4.0
     /// </summary>
     public class AdMobNativeService : Java.Lang.Object, IAdMobService
     {
-        // IDs de production
         private const string RewardedAdUnitId = "ca-app-pub-5085236088670848/1650434769";
         private const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8273475447";
         private InterstitialAd? _interstitialAd;
         private bool _isInitialized;
         private RewardedAd? _rewardedAd;
         private TaskCompletionSource<bool>? _rewardedAdTcs;
+        
+        // Backoff exponentiel pour les retries (anti-suspension)
+        private int _rewardedRetryCount;
+        private int _interstitialRetryCount;
+        private const int MaxLoadRetries = 3;
 
         /// <summary>
         /// Initialise le SDK AdMob de manière sécurisée
@@ -28,23 +32,19 @@ namespace DonTroc.Platforms.Android
         public void Initialize()
         {
             if (_isInitialized) return;
+            if (!AdMobConfiguration.ADS_ENABLED) return;
 
             try
             {
                 Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
                 {
                     var context = GetAndroidContext();
+                    if (context == null) return;
 
-                    if (context == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("❌ Impossible d'obtenir le contexte Android");
-                        return;
-                    }
-
-                    // Initialisation simple et robuste du SDK AdMob
                     MobileAds.Initialize(context);
                     _isInitialized = true;
-                    System.Diagnostics.Debug.WriteLine("✅ SDK AdMob initialisé avec succès");
+
+                    System.Diagnostics.Debug.WriteLine("✅ SDK AdMob initialisé");
 
                     // Précharger les publicités
                     LoadRewardedAd();
@@ -53,7 +53,7 @@ namespace DonTroc.Platforms.Android
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Erreur initialisation AdMob: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AdMob] Erreur init: {ex.Message}");
             }
         }
 
@@ -62,23 +62,17 @@ namespace DonTroc.Platforms.Android
         /// </summary>
         public void LoadRewardedAd()
         {
-            if (!_isInitialized) return;
+            // ⚠️ Ne pas charger si suspendu
+            if (!AdMobConfiguration.ADS_ENABLED || !_isInitialized) return;
 
             Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
                 {
                     var context = GetAndroidContext();
-
-                    if (context == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine(
-                            "❌ Contexte Android non disponible pour charger la pub récompensée");
-                        return;
-                    }
+                    if (context == null) return;
 
                     var adRequest = new AdRequest.Builder().Build();
-
                     // Utiliser le callback simplifié
                     RewardedAd.Load(context, RewardedAdUnitId, adRequest, new RewardedAdLoadCallbackWrapper(
                         onLoaded: ad => OnRewardedAdLoaded(ad),
@@ -87,7 +81,7 @@ namespace DonTroc.Platforms.Android
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Exception chargement pub récompensée: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] Erreur chargement rewarded: {ex.Message}");
                 }
             });
         }
@@ -97,42 +91,26 @@ namespace DonTroc.Platforms.Android
         /// </summary>
         public void LoadInterstitialAd()
         {
-            if (!_isInitialized)
-            {
-                System.Diagnostics.Debug.WriteLine("⚠️ LoadInterstitialAd: SDK pas encore initialisé");
-                return;
-            }
-
-            System.Diagnostics.Debug.WriteLine("🔄 LoadInterstitialAd: Début du chargement...");
+            // ⚠️ Ne pas charger si suspendu
+            if (!AdMobConfiguration.ADS_ENABLED || !_isInitialized) return;
 
             Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
                 {
                     var context = GetAndroidContext();
-
-                    if (context == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine(
-                            "❌ Contexte Android non disponible pour charger la pub interstitielle");
-                        return;
-                    }
-
-                    System.Diagnostics.Debug.WriteLine($"🎯 Chargement interstitiel avec ID: {InterstitialAdUnitId}");
+                    if (context == null) return;
 
                     var adRequest = new AdRequest.Builder().Build();
-
                     // Utiliser le callback simplifié
                     InterstitialAd.Load(context, InterstitialAdUnitId, adRequest, new InterstitialAdLoadCallbackWrapper(
                         onLoaded: ad => OnInterstitialAdLoaded(ad),
                         onFailed: error => OnInterstitialAdFailedToLoad(error)
                     ));
-
-                    System.Diagnostics.Debug.WriteLine("📤 Requête interstitiel envoyée au serveur AdMob");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Exception chargement pub interstitielle: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] Erreur chargement interstitiel: {ex.Message}");
                 }
             });
         }
@@ -145,8 +123,7 @@ namespace DonTroc.Platforms.Android
         {
             if (!IsRewardedAdReady())
             {
-                System.Diagnostics.Debug.WriteLine("⚠️ Publicité récompensée non disponible");
-                LoadRewardedAd(); // Tenter de recharger
+                LoadRewardedAd();
                 return false;
             }
 
@@ -175,7 +152,7 @@ namespace DonTroc.Platforms.Android
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Erreur affichage pub récompensée: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] Erreur affichage rewarded: {ex.Message}");
                     _rewardedAdTcs.TrySetResult(false);
                 }
             });
@@ -187,8 +164,7 @@ namespace DonTroc.Platforms.Android
         {
             if (!IsInterstitialAdReady())
             {
-                System.Diagnostics.Debug.WriteLine("⚠️ Publicité interstitielle non disponible");
-                LoadInterstitialAd(); // Tenter de recharger
+                LoadInterstitialAd();
                 return;
             }
 
@@ -209,15 +185,12 @@ namespace DonTroc.Platforms.Android
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Erreur affichage pub interstitielle: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] Erreur affichage interstitiel: {ex.Message}");
                 }
             });
         }
 
-        public void LogApiLimitation()
-        {
-            System.Diagnostics.Debug.WriteLine("ℹ️ Limitation API AdMob respectée");
-        }
+        public void LogApiLimitation() { }
 
         /// <summary>
         /// Récupère le contexte Android de manière fiable
@@ -240,9 +213,8 @@ namespace DonTroc.Platforms.Android
                 var mainContext = Microsoft.Maui.Controls.Application.Current?.MainPage?.Handler?.MauiContext?.Context;
                 return mainContext;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Erreur récupération contexte Android: {ex.Message}");
                 return null;
             }
         }
@@ -251,29 +223,37 @@ namespace DonTroc.Platforms.Android
         internal void OnRewardedAdLoaded(RewardedAd ad)
         {
             _rewardedAd = ad;
-            System.Diagnostics.Debug.WriteLine("✅ Publicité récompensée chargée");
+            _rewardedRetryCount = 0;
         }
 
         internal void OnRewardedAdFailedToLoad(LoadAdError error)
         {
             _rewardedAd = null;
-            System.Diagnostics.Debug.WriteLine($"❌ Échec chargement pub récompensée: {error.Message}");
-            // Retry après 30 secondes
-            Task.Delay(30000).ContinueWith(_ => LoadRewardedAd());
+            _rewardedRetryCount++;
+            if (_rewardedRetryCount <= MaxLoadRetries)
+            {
+                // Backoff exponentiel : 60s, 120s, 240s
+                var delay = 60000 * (int)Math.Pow(2, _rewardedRetryCount - 1);
+                Task.Delay(delay).ContinueWith(_ => LoadRewardedAd());
+            }
         }
 
         internal void OnInterstitialAdLoaded(InterstitialAd ad)
         {
             _interstitialAd = ad;
-            System.Diagnostics.Debug.WriteLine("✅ Publicité interstitielle chargée");
+            _interstitialRetryCount = 0;
         }
 
         internal void OnInterstitialAdFailedToLoad(LoadAdError error)
         {
             _interstitialAd = null;
-            System.Diagnostics.Debug.WriteLine($"❌ Échec chargement pub interstitielle: {error.Message}");
-            // Retry après 30 secondes
-            Task.Delay(30000).ContinueWith(_ => LoadInterstitialAd());
+            _interstitialRetryCount++;
+            if (_interstitialRetryCount <= MaxLoadRetries)
+            {
+                // Backoff exponentiel : 60s, 120s, 240s
+                var delay = 60000 * (int)Math.Pow(2, _interstitialRetryCount - 1);
+                Task.Delay(delay).ContinueWith(_ => LoadInterstitialAd());
+            }
         }
 
         internal void OnAdDismissed(bool isRewarded)
@@ -293,8 +273,6 @@ namespace DonTroc.Platforms.Android
 
         internal void OnAdFailedToShow(AdError error, bool isRewarded)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ Échec affichage pub: {error.Message}");
-
             if (isRewarded)
             {
                 _rewardedAdTcs?.TrySetResult(false);
@@ -310,17 +288,17 @@ namespace DonTroc.Platforms.Android
 
         internal void OnUserEarnedReward(IRewardItem reward)
         {
-            System.Diagnostics.Debug.WriteLine($"🎉 Récompense accordée: {reward.Amount} {reward.Type}");
             _rewardedAdTcs?.TrySetResult(true);
         }
     }
 
-    #region Callbacks Implementation
+    #region Callbacks
 
     /// <summary>
     /// Callback pour le chargement des publicités récompensées
     /// Utilise l'annotation Export pour résoudre le conflit de signature Java
     /// </summary>
+    [Preserve(AllMembers = true)]
     internal class RewardedAdLoadCallbackWrapper : RewardedAdLoadCallback
     {
         private readonly Action<LoadAdError> _onFailed;
@@ -334,23 +312,16 @@ namespace DonTroc.Platforms.Android
 
         // Utiliser la nouvelle signature avec le type spécifique via Export
         [Java.Interop.Export("onAdLoaded")]
-        public void OnRewardedAdLoaded(RewardedAd ad)
-        {
-            System.Diagnostics.Debug.WriteLine("📢 RewardedAdLoadCallback.OnAdLoaded appelé");
-            _onLoaded?.Invoke(ad);
-        }
+        public void OnRewardedAdLoaded(RewardedAd ad) => _onLoaded?.Invoke(ad);
 
-        public override void OnAdFailedToLoad(LoadAdError error)
-        {
-            System.Diagnostics.Debug.WriteLine($"📢 RewardedAdLoadCallback.OnAdFailedToLoad: {error?.Message}");
-            _onFailed?.Invoke(error);
-        }
+        public override void OnAdFailedToLoad(LoadAdError error) => _onFailed?.Invoke(error);
     }
 
     /// <summary>
     /// Callback pour le chargement des publicités interstitielles
     /// Utilise l'annotation Export pour résoudre le conflit de signature Java
     /// </summary>
+    [Preserve(AllMembers = true)]
     internal class InterstitialAdLoadCallbackWrapper : InterstitialAdLoadCallback
     {
         private readonly Action<LoadAdError> _onFailed;
@@ -364,22 +335,15 @@ namespace DonTroc.Platforms.Android
 
         // Utiliser la nouvelle signature avec le type spécifique via Export
         [Java.Interop.Export("onAdLoaded")]
-        public void OnInterstitialAdLoaded(InterstitialAd ad)
-        {
-            System.Diagnostics.Debug.WriteLine("📢 InterstitialAdLoadCallback.OnAdLoaded appelé");
-            _onLoaded?.Invoke(ad);
-        }
+        public void OnInterstitialAdLoaded(InterstitialAd ad) => _onLoaded?.Invoke(ad);
 
-        public override void OnAdFailedToLoad(LoadAdError error)
-        {
-            System.Diagnostics.Debug.WriteLine($"📢 InterstitialAdLoadCallback.OnAdFailedToLoad: {error?.Message}");
-            _onFailed?.Invoke(error);
-        }
+        public override void OnAdFailedToLoad(LoadAdError error) => _onFailed?.Invoke(error);
     }
 
     /// <summary>
     /// Callback pour la gestion du contenu plein écran
     /// </summary>
+    [Preserve(AllMembers = true)]
     internal class FullScreenContentCallbackImpl : FullScreenContentCallback
     {
         private readonly bool _isRewarded;
@@ -391,38 +355,22 @@ namespace DonTroc.Platforms.Android
             _isRewarded = isRewarded;
         }
 
-        public override void OnAdDismissedFullScreenContent()
-        {
-            _service.OnAdDismissed(_isRewarded);
-        }
-
-        public override void OnAdFailedToShowFullScreenContent(AdError error)
-        {
-            _service.OnAdFailedToShow(error, _isRewarded);
-        }
-
-        public override void OnAdShowedFullScreenContent()
-        {
-            // Publicité affichée avec succès
-        }
+        public override void OnAdDismissedFullScreenContent() => _service.OnAdDismissed(_isRewarded);
+        public override void OnAdFailedToShowFullScreenContent(AdError error) => _service.OnAdFailedToShow(error, _isRewarded);
+        public override void OnAdShowedFullScreenContent() { }
     }
 
     /// <summary>
     /// Callback pour la gestion des récompenses
     /// </summary>
+    [Preserve(AllMembers = true)]
     internal class UserEarnedRewardListenerImpl : Java.Lang.Object, IOnUserEarnedRewardListener
     {
         private readonly AdMobNativeService _service;
 
-        public UserEarnedRewardListenerImpl(AdMobNativeService service)
-        {
-            _service = service;
-        }
+        public UserEarnedRewardListenerImpl(AdMobNativeService service) => _service = service;
 
-        public void OnUserEarnedReward(IRewardItem reward)
-        {
-            _service.OnUserEarnedReward(reward);
-        }
+        public void OnUserEarnedReward(IRewardItem reward) => _service.OnUserEarnedReward(reward);
     }
 
     #endregion

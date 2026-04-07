@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:Class="DonTroc.Views.AdminDashboardPage"
+             x:DataType="viewModels:AdminDashboardViewModel"
+             Title="Administration"
+             BackgroundColor="{StaticResource GrisClair}">
+    
+    <ContentPage.Resources>
+        <Style x:Key="StatCardStyle" TargetType="Frame">
+            <Setter Property="BackgroundColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="HasShadow" Value="True"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        
+        <Style x:Key="StatValueStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="HorizontalOptions" Value="Center"/>
+        </Style>
+        
+        <Style x:Key="StatLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextColor" Value="{StaticResource Ardoise}"/>
+            <Setter Property="HorizontalOptions" Value="Center"/>
+        </Style>
+    </ContentPage.Resources>
+    
+    <RefreshView Command="{Binding RefreshCommand}"
+                 IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="15" Spacing="15">
+                
+                <!-- En-tête -->
+                <Frame BackgroundColor="{StaticResource Primaire}" 
+                       CornerRadius="15" 
+                       Padding="20"
+                       HasShadow="True">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="🛡️ Panneau d'Administration"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        <Label Text="{Binding WelcomeMessage}"
+                               FontSize="16"
+                               TextColor="White"
+                               Opacity="0.9"/>
+                        <Label Text="{Binding Stats.LastUpdated, StringFormat='Mis à jour: {0:dd/MM/yyyy HH:mm}'}"
+                               FontSize="12"
+                               TextColor="White"
+                               Opacity="0.7"/>
+                    </VerticalStackLayout>
+                </Frame>
+                
+                <!-- Section Utilisateurs -->
+                <Label Text="👥 Utilisateurs" 
+                       FontSize="18" 
+                       FontAttributes="Bold"
+                       Margin="5,10,0,5"/>
+                
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto">
+                    <Frame Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="👤" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding TotalUsersDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="{StaticResource Primaire}"/>
+                            <Label Text="Total" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    
+                    <Frame Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="✅" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding ActiveUsersDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="#27AE60"/>
+                            <Label Text="Actifs (30j)" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    
+                    <Frame Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="🚫" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding SuspendedUsersDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="#E74C3C"/>
+                            <Label Text="Suspendus" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+                
+                <Frame Style="{StaticResource StatCardStyle}" Margin="5">
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="{Binding NewUsersTodayDisplay}" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="#27AE60"/>
+                        <Label Text="nouveaux aujourd'hui" 
+                               FontSize="14"
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource Ardoise}"/>
+                    </HorizontalStackLayout>
+                </Frame>
+                
+                <!-- Section Annonces -->
+                <Label Text="📦 Annonces" 
+                       FontSize="18" 
+                       FontAttributes="Bold"
+                       Margin="5,10,0,5"/>
+                
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                    <Frame Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="📋" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding TotalAnnoncesDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="{StaticResource Primaire}"/>
+                            <Label Text="Total annonces" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    
+                    <Frame Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="🟢" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding ActiveAnnoncesDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="#27AE60"/>
+                            <Label Text="Actives" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+                
+                <!-- Section Signalements -->
+                <Label Text="🚨 Signalements" 
+                       FontSize="18" 
+                       FontAttributes="Bold"
+                       Margin="5,10,0,5"/>
+                
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                    <Frame Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="⏳" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding PendingReportsDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="{Binding PendingReportsColor}"/>
+                            <Label Text="En attente" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    
+                    <Frame Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                        <VerticalStackLayout>
+                            <Label Text="📊" FontSize="24" HorizontalOptions="Center"/>
+                            <Label Text="{Binding TotalReportsDisplay}" 
+                                   Style="{StaticResource StatValueStyle}"
+                                   TextColor="{StaticResource Ardoise}"/>
+                            <Label Text="Total" Style="{StaticResource StatLabelStyle}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+                
+                <!-- Équipe admin -->
+                <Frame Style="{StaticResource StatCardStyle}" Margin="5">
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="👑" FontSize="20"/>
+                        <Label Text="{Binding TeamDisplay}" 
+                               FontSize="14"
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource Ardoise}"/>
+                    </HorizontalStackLayout>
+                </Frame>
+                
+                <!-- Actions rapides -->
+                <Label Text="⚡ Actions rapides" 
+                       FontSize="18" 
+                       FontAttributes="Bold"
+                       Margin="5,10,0,5"/>
+                
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto" ColumnSpacing="10">
+                    <Button Grid.Column="0"
+                            Text="👥 Utilisateurs"
+                            Command="{Binding NavigateToUsersCommand}"
+                            BackgroundColor="{StaticResource Primaire}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Padding="10"
+                            FontSize="12"/>
+                    
+                    <Button Grid.Column="1"
+                            Text="🚨 Signalements"
+                            Command="{Binding NavigateToReportsCommand}"
+                            BackgroundColor="{StaticResource Terracotta}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Padding="10"
+                            FontSize="12"/>
+                    
+                    <Button Grid.Column="2"
+                            Text="📜 Historique"
+                            Command="{Binding NavigateToLogsCommand}"
+                            BackgroundColor="{StaticResource Ardoise}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Padding="10"
+                            FontSize="12"/>
+                </Grid>
+                
+                <!-- Logs récents -->
+                <Label Text="📜 Activité récente" 
+                       FontSize="18" 
+                       FontAttributes="Bold"
+                       Margin="5,15,0,5"/>
+                
+                <Frame BackgroundColor="White" 
+                       CornerRadius="15" 
+                       Padding="10"
+                       HasShadow="True">
+                    <CollectionView ItemsSource="{Binding RecentLogs}"
+                                    EmptyView="Aucune activité récente">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:AdminLog">
+                                <Grid ColumnDefinitions="Auto,*,Auto" 
+                                      Padding="10,5" 
+                                      RowSpacing="2">
+                                    <Label Grid.Column="0" 
+                                           Text="{Binding DisplayDescription}" 
+                                           FontSize="14"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" 
+                                           Text="{Binding AdminName}" 
+                                           FontSize="12"
+                                           TextColor="{StaticResource Ardoise}"
+                                           HorizontalOptions="End"
+                                           VerticalOptions="Center"
+                                           Margin="10,0"/>
+                                    <Label Grid.Column="2" 
+                                           Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
+                                           FontSize="11"
+                                           TextColor="{StaticResource GrisClair}"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Frame>
+                
+                <!-- Espacement en bas -->
+                <BoxView HeightRequest="20"/>
+                
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+    
+</ContentPage>
+

@@ -179,6 +179,31 @@
                 </StackLayout>
             </Frame>
 
+            <!-- Boutons d'action -->
+            <StackLayout Spacing="10" Margin="0,10,0,0">
+                <!-- Bouton Marquer comme terminée (visible si confirmée/en cours) -->
+                <Button Text="✅ Marquer comme terminée"
+                        Command="{Binding MarquerTermineeCommand}"
+                        BackgroundColor="{StaticResource Vert}"
+                        TextColor="White"
+                        CornerRadius="10"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        Padding="15,12"
+                        IsVisible="{Binding CanMarkComplete}" />
+
+                <!-- Bouton Laisser un avis (visible si terminée) -->
+                <Button Text="⭐ Laisser un avis"
+                        Command="{Binding LaisserAvisCommand}"
+                        BackgroundColor="{StaticResource Terracotta}"
+                        TextColor="White"
+                        CornerRadius="10"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        Padding="15,12"
+                        IsVisible="{Binding CanLeaveReview}" />
+            </StackLayout>
+
         </StackLayout>
     </ScrollView>
 </ContentPage>

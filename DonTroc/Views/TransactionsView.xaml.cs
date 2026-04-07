@@ -6,19 +6,24 @@ namespace DonTroc.Views;
 
 public partial class TransactionsView : ContentPage
 {
+    private readonly AdMobService _adMobService;
     private readonly ITipsService _tipsService;
     private bool _tipsShown = false;
 
-    public TransactionsView(TransactionsViewModel viewModel, ITipsService tipsService)
+    public TransactionsView(TransactionsViewModel viewModel, AdMobService adMobService, ITipsService tipsService)
     {
         InitializeComponent();
         BindingContext = viewModel;
+        _adMobService = adMobService;
         _tipsService = tipsService;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        
+        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
+        await _adMobService.TryShowInterstitialOnNavigationAsync("Transactions");
         
         if (BindingContext is TransactionsViewModel viewModel)
         {
@@ -43,9 +48,6 @@ public partial class TransactionsView : ContentPage
                 await TipOverlay.ShowTipAsync("transactions", _tipsService);
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Erreur affichage conseils: {ex.Message}");
-        }
+        catch { }
     }
 }

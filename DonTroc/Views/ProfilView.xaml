@@ -14,7 +14,11 @@
         <VerticalStackLayout Padding="20" Spacing="15">
 
             <!-- Bannière publicitaire en haut -->
-            <views:AdBannerView />
+            <views:AdBannerView
+                HeightRequest="50"
+                MinimumHeightRequest="50"
+                HorizontalOptions="Fill"
+                BackgroundColor="Transparent" />
 
             <!-- Accès rapide aux autres sections -->
             <Frame BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
@@ -28,7 +32,7 @@
                            FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}" />
                     
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
                         <!-- Bouton Carte -->
                         <Button Grid.Column="0" Grid.Row="0"
                                 Text="🗺️ Carte"
@@ -70,6 +74,30 @@
                                 FontAttributes="Bold"
                                 Padding="10"
                                 Command="{Binding DonateToDevCommand}" />
+                        
+                        <!-- Bouton Administration (visible uniquement pour admins/modérateurs) -->
+                        <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2"
+                                Text="🛡️ Panneau d'administration"
+                                BackgroundColor="{StaticResource Ardoise}"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Padding="10"
+                                Command="{Binding NavigateToAdminCommand}"
+                                IsVisible="{Binding IsAdminOrModerator}" />
+                        
+                        <!-- Bouton Configuration Admin (visible uniquement pour admins) -->
+                        <Button Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2"
+                                Text="⚙️ Configuration des admins"
+                                BackgroundColor="{StaticResource Terracotta}"
+                                TextColor="White"
+                                CornerRadius="10"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Padding="10"
+                                Command="{Binding NavigateToAdminSetupCommand}"
+                                IsVisible="{Binding IsAdmin}" />
                     </Grid>
                 </StackLayout>
             </Frame>
@@ -112,7 +140,7 @@
                                    FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
                                    HorizontalOptions="Center" />
-                            <Label Text="⭐⭐⭐⭐⭐"
+                            <Label Text="{Binding UserProfile.NoteMoyenne, Converter={StaticResource NoteToStarsConverter}}"
                                    FontSize="12"
                                    HorizontalOptions="Center" />
                             <Label Text="Note moyenne"
@@ -334,7 +362,15 @@
                                 <!-- Détails et boutons -->
                                 <VerticalStackLayout Grid.Column="1" Spacing="5">
                                     <Label Text="{Binding Titre}" FontAttributes="Bold" />
-                                    <Label Text="{Binding Type}" FontSize="Small" />
+                                    <Label Text="{Binding Type}" FontSize="Small" TextColor="{StaticResource Terracotta}" />
+                                    
+                                    <!-- Description de l'annonce -->
+                                    <Label Text="{Binding Description}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
+                                           Opacity="0.8"
+                                           MaxLines="5"
+                                           LineBreakMode="TailTruncation" />
                                     
                                     <!-- Première ligne de boutons -->
                                     <Grid ColumnDefinitions="*,*" ColumnSpacing="5" Margin="0,5,0,0">

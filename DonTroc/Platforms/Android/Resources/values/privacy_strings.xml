@@ -1,24 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Déclarations de confidentialité pour Google Play Console -->
+    <!-- Dernière mise à jour : 2 mars 2026 -->
     
     <!-- Permission CAMERA -->
     <string name="camera_permission_purpose">Prendre des photos des objets à donner ou échanger</string>
     <string name="camera_permission_description">Cette application utilise l\'appareil photo pour permettre aux utilisateurs de photographier les objets qu\'ils souhaitent partager sur la plateforme DonTroc. Les photos sont essentielles pour créer des annonces attractives et faciliter les échanges entre membres de la communauté.</string>
-    <string name="camera_data_usage">Les photos prises sont stockées localement sur votre appareil et peuvent être uploadées sur nos serveurs sécurisés uniquement avec votre consentement explicite lors de la création d\'une annonce.</string>
+    <string name="camera_data_usage">Les photos prises sont stockées localement sur votre appareil et peuvent être uploadées sur nos serveurs sécurisés (Cloudinary) uniquement avec votre consentement explicite lors de la création d\'une annonce.</string>
     <string name="camera_data_retention">Vous conservez le contrôle total sur vos photos. Elles peuvent être supprimées à tout moment depuis votre profil ou en supprimant votre compte.</string>
     
     <!-- Permission LOCATION -->
-    <string name="location_permission_purpose">Localiser les objets disponibles près de chez vous</string>
-    <string name="location_permission_description">Cette application utilise votre position approximative pour vous montrer les objets disponibles dans votre région et permettre aux autres utilisateurs de connaître la zone générale de vos annonces.</string>
-    <string name="location_data_usage">Seule votre position approximative (ville/quartier) est utilisée et affichée publiquement dans vos annonces. Votre adresse exacte n\'est jamais partagée.</string>
+    <string name="location_permission_purpose">Localiser les objets disponibles près de chez vous et envoyer des notifications de proximité</string>
+    <string name="location_permission_description">Cette application utilise votre position pour vous montrer les objets disponibles dans votre région, calculer les distances et vous envoyer des notifications lorsqu\'une nouvelle annonce est publiée à proximité.</string>
+    <string name="location_data_usage">Seule votre position approximative (ville/quartier) est utilisée et affichée publiquement dans vos annonces. Votre adresse exacte n\'est jamais partagée. Votre position est également utilisée pour le calcul de distances et les notifications de proximité (désactivables dans les paramètres).</string>
+    
+    <!-- Permission AD_ID -->
+    <string name="ad_id_permission_purpose">Affichage de publicités via Google AdMob</string>
+    <string name="ad_id_permission_description">L\'identifiant publicitaire de votre appareil est utilisé par Google AdMob pour afficher des publicités et financer l\'application gratuite.</string>
+    <string name="ad_id_data_usage">L\'identifiant publicitaire est un identifiant anonyme. Vous pouvez le réinitialiser ou désactiver la personnalisation des annonces dans Paramètres Android &gt; Google &gt; Annonces.</string>
     
     <!-- Privacy Policy -->
     <string name="privacy_policy_title">Politique de Confidentialité - DonTroc</string>
-    <string name="privacy_policy_summary">DonTroc respecte votre vie privée. Nous collectons uniquement les données nécessaires au fonctionnement de la plateforme de dons et d\'échanges.</string>
-    <string name="data_protection_notice">Vos données personnelles sont protégées selon le RGPD européen et ne sont jamais vendues à des tiers.</string>
+    <string name="privacy_policy_summary">DonTroc respecte votre vie privée. Nous collectons uniquement les données nécessaires au fonctionnement de la plateforme de dons et d\'échanges. L\'application est financée par la publicité via Google AdMob.</string>
+    <string name="data_protection_notice">Vos données personnelles sont protégées selon le RGPD et ne sont jamais vendues à des tiers. Google AdMob collecte des données anonymes pour le fonctionnement des publicités.</string>
+    
+    <!-- Advertising -->
+    <string name="advertising_notice">DonTroc affiche des publicités (bannières, interstitiels, vidéos récompensées) via Google AdMob. Les vidéos récompensées sont toujours optionnelles.</string>
+    <string name="advertising_networks">Réseau publicitaire : Google AdMob</string>
     
     <!-- User Controls -->
-    <string name="permission_control_notice">Vous pouvez révoquer ces permissions à tout moment dans les paramètres de votre appareil Android.</string>
-    <string name="data_deletion_notice">Pour supprimer définitivement toutes vos données, vous pouvez supprimer votre compte depuis les paramètres de l\'application.</string>
+    <string name="permission_control_notice">Vous pouvez révoquer les permissions (caméra, localisation) à tout moment dans les paramètres de votre appareil Android.</string>
+    <string name="data_deletion_notice">Pour supprimer définitivement toutes vos données, vous pouvez supprimer votre compte depuis les paramètres de l\'application. Vos données seront effacées sous 30 jours.</string>
+    <string name="ad_control_notice">Vous pouvez réinitialiser votre identifiant publicitaire ou désactiver la personnalisation des annonces dans Paramètres Android &gt; Google &gt; Annonces.</string>
 </resources>

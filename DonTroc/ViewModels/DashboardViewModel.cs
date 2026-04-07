@@ -49,9 +49,13 @@ public class DashboardViewModel : BaseViewModel
     public bool IsAdFreeActive => _premiumFeatures.IsAdFreeActive;
     public DateTime AdFreeUntil => _premiumFeatures.AdFreeUntil;
     public int BoostCredits => _premiumFeatures.BoostCredits;
+    public bool IsPermanentPremium => _premiumFeatures.IsPermanentPremium;
+    public string RemoveAdsPriceText => _premiumFeatures.RemoveAdsPriceText;
     public ICommand WatchAdForAdFreeCommand => _premiumFeatures.WatchAdForAdFreeCommand;
     public ICommand WatchAdForBoostCreditsCommand => _premiumFeatures.WatchAdForBoostCreditsCommand;
     public ICommand WatchAdForStatsCommand => _premiumFeatures.WatchAdForStatsCommand;
+    public ICommand PurchaseRemoveAdsCommand => _premiumFeatures.PurchaseRemoveAdsCommand;
+    public ICommand RestorePurchasesCommand => _premiumFeatures.RestorePurchasesCommand;
 
     // Commandes
     public ICommand GoToCreationAnnonceCommand { get; }

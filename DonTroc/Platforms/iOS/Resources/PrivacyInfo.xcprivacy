@@ -1,17 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-This is the minimum required version of the Apple Privacy Manifest for .NET MAUI apps.
-The contents below are needed because of APIs that are used in the .NET framework and .NET MAUI SDK.
-
-You are responsible for adding extra entries as needed for your application.
-
-More information: https://aka.ms/maui-privacy-manifest
+Apple Privacy Manifest pour DonTroc
+Ce fichier déclare les API requérant une justification (Required Reason APIs)
+Plus d'informations: https://aka.ms/maui-privacy-manifest
 -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Déclaration de la collecte de données pour App Store -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+        <!-- Identifiants publicitaires -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeDeviceID</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
+            </array>
+        </dict>
+        <!-- Localisation approximative -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeCoarseLocation</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+        <!-- Adresse email -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeEmailAddress</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+        <!-- Nom d'utilisateur -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeName</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+        <!-- Photos -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhotosorVideos</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- APIs requérant une justification (Required Reason APIs) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
+        <!-- File Timestamp API - Utilisé par .NET MAUI -->
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
@@ -20,6 +93,7 @@ More information: https://aka.ms/maui-privacy-manifest
                 <string>C617.1</string>
             </array>
         </dict>
+        <!-- System Boot Time API - Utilisé par .NET MAUI -->
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
@@ -28,6 +102,7 @@ More information: https://aka.ms/maui-privacy-manifest
                 <string>35F9.1</string>
             </array>
         </dict>
+        <!-- Disk Space API - Utilisé par .NET MAUI et pour vérifier l'espace disponible -->
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
@@ -36,8 +111,7 @@ More information: https://aka.ms/maui-privacy-manifest
                 <string>E174.1</string>
             </array>
         </dict>
-        <!--
-            The entry below is only needed when you're using the Preferences API in your app.
+        <!-- User Defaults API - Utilisé pour les préférences (thème, paramètres) -->
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
@@ -45,7 +119,18 @@ More information: https://aka.ms/maui-privacy-manifest
             <array>
                 <string>CA92.1</string>
             </array>
-        </dict> -->
+        </dict>
+    </array>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Déclaration de suivi (pour ATT - App Tracking Transparency) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <key>NSPrivacyTracking</key>
+    <true/>
+    <key>NSPrivacyTrackingDomains</key>
+    <array>
+        <string>googleads.g.doubleclick.net</string>
+        <string>pagead2.googlesyndication.com</string>
     </array>
 </dict>
 </plist>

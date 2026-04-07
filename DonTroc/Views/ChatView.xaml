@@ -13,6 +13,9 @@
         <DataTemplate x:Key="SentMessageTemplate" x:DataType="models:Message">
             <Grid Padding="5,10" MaximumWidthRequest="300" HorizontalOptions="End">
                 <Frame BackgroundColor="{StaticResource Terracotta}" CornerRadius="15" Padding="10" HasShadow="False">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMessageTapped" NumberOfTapsRequired="1"/>
+                    </Frame.GestureRecognizers>
                     <StackLayout>
                         <!-- Message texte -->
                         <Label Text="{Binding Text}" 
@@ -21,7 +24,6 @@
                         
                         <!-- Image -->
                         <Grid IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}">
-                            <!-- Remplacement par ImageButton pour gérer tap et appui long -->
                             <ImageButton Source="{Binding ImageUrl}"
                                          MaximumHeightRequest="200"
                                          Aspect="AspectFit"
@@ -60,6 +62,9 @@
         <DataTemplate x:Key="ReceivedMessageTemplate" x:DataType="models:Message">
             <Grid Padding="5,10" MaximumWidthRequest="300" HorizontalOptions="Start">
                 <Frame BackgroundColor="{StaticResource Gray200}" CornerRadius="15" Padding="10" HasShadow="False">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMessageTapped" NumberOfTapsRequired="1"/>
+                    </Frame.GestureRecognizers>
                     <StackLayout>
                         <!-- Message texte -->
                         <Label Text="{Binding Text}" 
@@ -68,7 +73,6 @@
 
                         <!-- Image -->
                         <Grid IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}">
-                            <!-- Utiliser ImageButton pour gérer tap + appui long de manière fiable sur mobile -->
                             <ImageButton Source="{Binding ImageUrl}"
                                          MaximumHeightRequest="200"
                                          Aspect="AspectFit"
@@ -96,15 +100,17 @@
                     </StackLayout>
                 </Frame>
             </Grid>
-        </DataTemplate>
-
-        <!-- Register the MessageTemplateSelector so CollectionView can use it (declared after templates) -->
+        </DataTemplate>        <!-- Register the MessageTemplateSelector so CollectionView can use it (declared after templates) -->
         <local:MessageTemplateSelector x:Key="MessageTemplateSelector"
                                        SentMessageTemplate="{StaticResource SentMessageTemplate}"
                                        ReceivedMessageTemplate="{StaticResource ReceivedMessageTemplate}" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="*,Auto">
+    <Grid RowDefinitions="*,Auto,Auto">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnBackgroundTapped" />
+        </Grid.GestureRecognizers>
+        
         <!-- Liste des messages -->
         <CollectionView Grid.Row="0"
                         ItemsSource="{Binding Messages}"
@@ -128,7 +134,7 @@
 
         <!-- Zone de saisie et envoi de message -->
         <Frame Grid.Row="1" Padding="0" Margin="8,5" BorderColor="{StaticResource Gray200}" BackgroundColor="White" CornerRadius="25" HasShadow="True">
-            <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" VerticalOptions="Center">
                 
                 <!-- Bouton pour les options multimédia (image, etc.) -->
                 <Button Grid.Column="0" 
@@ -140,19 +146,31 @@
                         BorderColor="Transparent"
                         Command="{Binding ToggleMediaOptionsCommand}"
                         VerticalOptions="Center"
-                        Padding="15,0"/>
+                        Padding="12,0,5,0"/>
+
+                <!-- Bouton pour les émojis -->
+                <Button Grid.Column="1" 
+                        Text="😊" 
+                        FontSize="22"
+                        TextColor="{StaticResource Primary}"
+                        BackgroundColor="Transparent"
+                        BorderColor="Transparent"
+                        Command="{Binding ToggleEmojiPickerCommand}"
+                        VerticalOptions="Center"
+                        Padding="5,0"/>
 
                 <!-- Champ de saisie du message -->
-                <Editor Grid.Column="1"
+                <Editor Grid.Column="2"
                         x:Name="MessageEditor"
                         Text="{Binding NewMessageText}"
                         Placeholder="Votre message..."
                         AutoSize="TextChanges"
                         VerticalOptions="Center"
-                        BackgroundColor="Transparent"/>
+                        BackgroundColor="Transparent"
+                        Focused="OnEditorFocused"/>
 
                 <!-- Bouton d'envoi ou d'enregistrement vocal -->
-                <Button Grid.Column="2"
+                <Button Grid.Column="3"
                         Text="{Binding SendButtonText}"
                         FontSize="{Binding SendButtonFontSize}"
                         BackgroundColor="{Binding SendButtonBackgroundColor}"
@@ -183,5 +201,12 @@
                 <Button Text="📍 Position" Command="{Binding SendLocationCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
             </StackLayout>
         </Frame>
+
+        <!-- Sélecteur d'émojis -->
+        <local:EmojiPickerView Grid.Row="2"
+                               IsVisible="{Binding IsEmojiPickerVisible}"
+                               EmojiSelectedCommand="{Binding InsertEmojiCommand}"
+                               HeightRequest="280"
+                               BackgroundColor="#F8F8F8"/>
     </Grid>
 </ContentPage>

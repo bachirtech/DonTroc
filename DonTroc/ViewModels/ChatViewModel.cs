@@ -148,6 +148,18 @@ namespace DonTroc.ViewModels
             set => SetProperty(ref _isMediaOptionsVisible, value);
         }
 
+        // Propriétés pour le sélecteur d'émojis
+        private bool _isEmojiPickerVisible;
+        public bool IsEmojiPickerVisible
+        {
+            get => _isEmojiPickerVisible;
+            set => SetProperty(ref _isEmojiPickerVisible, value);
+        }
+
+        // Commandes pour les émojis
+        public ICommand ToggleEmojiPickerCommand { get; }
+        public ICommand InsertEmojiCommand { get; }
+
         private bool _isRecording;
         public bool IsRecording
         {
@@ -347,7 +359,6 @@ namespace DonTroc.ViewModels
                     }
 
                     var imageUrl = imageUrls[0];
-                    Debug.WriteLine($"[TakePhoto] Photo uploadée avec succès: {imageUrl}");
 
                     // Créer le message avec l'URL Cloudinary
                     var message = new Message
@@ -367,7 +378,6 @@ namespace DonTroc.ViewModels
                     // Ajouter des points de gamification
                     await _gamificationService.AddPointsAsync(currentUserId, 5, "Photo envoyée");
                     
-                    Debug.WriteLine($"[TakePhoto] Message avec photo envoyé avec succès");
                 }
             }
             catch (Exception ex)
@@ -424,9 +434,18 @@ namespace DonTroc.ViewModels
             StartRecordingCommand = new Command(ExecuteStartRecordingCommandSafe);
             StopRecordingCommand = new Command(ExecuteStopRecordingCommandSafe);
             PlayVoiceMessageCommand = new Command<Message>(ExecutePlayVoiceMessageCommandSafe);
-            ToggleMediaOptionsCommand = new Command(() => IsMediaOptionsVisible = !IsMediaOptionsVisible);
+            ToggleMediaOptionsCommand = new Command(() =>
+            {
+                IsMediaOptionsVisible = !IsMediaOptionsVisible;
+                if (IsMediaOptionsVisible)
+                    IsEmojiPickerVisible = false;
+            });
             SendOrRecordCommand = new Command(ExecuteSendOrRecordCommandSafe);
             HandleVoiceMessageTapCommand = new Command<Message>(ExecuteHandleVoiceMessageTapCommand);
+
+            // Commandes pour les émojis
+            ToggleEmojiPickerCommand = new Command(ExecuteToggleEmojiPicker);
+            InsertEmojiCommand = new Command<string>(ExecuteInsertEmoji);
 
 
             // Timer pour les indicateurs de frappe
@@ -569,7 +588,7 @@ namespace DonTroc.ViewModels
                 var currentUserId = _authService.GetUserId();
                 var isMyMessage = message.SenderId == currentUserId;
 
-                string action;
+                string? action;
 
                 if (isMyMessage)
                 {
@@ -652,6 +671,37 @@ namespace DonTroc.ViewModels
                 IsBusy = false;
             }
         }
+
+
+        /// <summary>
+        /// Affiche ou masque le sélecteur d'émojis
+        /// </summary>
+        private void ExecuteToggleEmojiPicker()
+        {
+            IsEmojiPickerVisible = !IsEmojiPickerVisible;
+            
+            // Fermer les options multimédia si elles sont ouvertes
+            if (IsEmojiPickerVisible)
+            {
+                IsMediaOptionsVisible = false;
+            }
+            
+        }
+
+        /// <summary>
+        /// Insère un émoji dans le texte du message
+        /// </summary>
+        private void ExecuteInsertEmoji(string emoji)
+        {
+            if (string.IsNullOrEmpty(emoji))
+                return;
+
+            // Ajouter l'émoji à la position courante (à la fin du texte)
+            NewMessageText = (NewMessageText ?? "") + emoji;
+            
+        }
+
+
         private async void ExecuteStartRecordingCommandSafe()
         {
             try
@@ -822,7 +872,6 @@ namespace DonTroc.ViewModels
                     {
                         var recipientProfile = await _firebaseService.GetUserProfileAsync(_recipientUserId);
                         _recipientFcmToken = recipientProfile?.FcmToken;
-                        Debug.WriteLine($"[ChatViewModel] Destinataire: {_recipientUserId}, Token FCM: {(_recipientFcmToken != null ? "présent" : "absent")}");
                     }
                     
                     // Charger le nom de l'utilisateur actuel pour les notifications
@@ -846,7 +895,6 @@ namespace DonTroc.ViewModels
                 // Vérifier que nous avons les informations nécessaires
                 if (string.IsNullOrEmpty(_recipientFcmToken))
                 {
-                    Debug.WriteLine("[ChatViewModel] Pas de token FCM pour le destinataire, notification push ignorée");
                     return;
                 }
 
@@ -865,11 +913,9 @@ namespace DonTroc.ViewModels
 
                 if (success)
                 {
-                    Debug.WriteLine($"[ChatViewModel] Notification push envoyée au destinataire");
                 }
                 else
                 {
-                    Debug.WriteLine($"[ChatViewModel] Échec de l'envoi de la notification push");
                 }
             }
             catch (Exception ex)
@@ -885,6 +931,10 @@ namespace DonTroc.ViewModels
         {
             var currentUserId = _authService.GetUserId();
             message.IsSentByUser = message.SenderId == currentUserId;
+
+            // Ignorer les messages supprimés localement ("Supprimer pour moi")
+            var deletedKey = $"deleted_msg_{ConversationId}_{message.Id}";
+            if (Preferences.Get(deletedKey, false)) return;
 
             // Vérifier si ce message existe déjà (mise à jour de statut)
             var existingMessage = Messages.FirstOrDefault(m => m.Id == message.Id);
@@ -1179,7 +1229,6 @@ namespace DonTroc.ViewModels
                 // Ajouter des points de gamification
                 await _gamificationService.AddPointsAsync(currentUserId, 3, "Localisation partagée");
 
-                Debug.WriteLine($"[SendLocation] Localisation envoyée avec succès: {location.Latitude}, {location.Longitude}");
             }
             catch (Exception ex)
             {
@@ -1203,45 +1252,31 @@ namespace DonTroc.ViewModels
 
             try
             {
-                Debug.WriteLine($"[OpenImage] Tentative d'ouverture de l'image: {message.ImageUrl}");
-                
                 // Vérifier si l'URL est valide
                 if (!Uri.IsWellFormedUriString(message.ImageUrl, UriKind.RelativeOrAbsolute))
                 {
-                    Debug.WriteLine($"[OpenImage] URL malformée: {message.ImageUrl}");
                     await Shell.Current.DisplayAlert("Erreur", "L'image ne peut pas être ouverte (URL invalide).", "OK");
                     return;
                 }
 
-                // CORRECTION: Ne pas encoder l'URL entière, juste passer l'URL directement
-                // L'encodage excessif causait des problèmes de navigation
-                Debug.WriteLine($"[OpenImage] Navigation vers ImageViewerView avec URL: {message.ImageUrl}");
-                
                 // Naviguer vers ImageViewerView avec l'URL directe
                 await Shell.Current.GoToAsync($"ImageViewerView", new Dictionary<string, object>
                 {
                     ["imageUrls"] = message.ImageUrl
                 });
-                
-                Debug.WriteLine("[OpenImage] Navigation réussie vers ImageViewerView");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Debug.WriteLine($"[OpenImage] Erreur lors de l'ouverture d'image: {ex.Message}");
-                Debug.WriteLine($"[OpenImage] Stack trace: {ex.StackTrace}");
-                
                 // Essayer une approche alternative en cas d'erreur
                 try
                 {
-                    Debug.WriteLine("[OpenImage] Tentative de navigation alternative");
                     await Shell.Current.GoToAsync("ImageViewerView", new Dictionary<string, object>
                     {
                         ["ImageUrl"] = message.ImageUrl
                     });
                 }
-                catch (Exception fallbackEx)
+                catch (Exception)
                 {
-                    Debug.WriteLine($"[OpenImage] Erreur navigation alternative: {fallbackEx.Message}");
                     await Shell.Current.DisplayAlert("Erreur", "Impossible d'ouvrir l'image. Veuillez réessayer.", "OK");
                 }
             }

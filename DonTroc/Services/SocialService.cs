@@ -24,8 +24,13 @@ namespace DonTroc.Services
         {
             _firebaseService = firebaseService;
             _authService = authService;
-            // Créer notre propre client Firebase pour les opérations sociales
-            _firebaseClient = new FirebaseClient("https://dontroc-55570-default-rtdb.europe-west1.firebasedatabase.app/");
+            // Créer notre propre client Firebase authentifié pour les opérations sociales
+            _firebaseClient = new FirebaseClient(
+                "https://dontroc-55570-default-rtdb.europe-west1.firebasedatabase.app/",
+                new FirebaseOptions
+                {
+                    AuthTokenAsyncFactory = async () => await authService.GetAuthTokenAsync() ?? string.Empty
+                });
         }
 
         #region Système de parrainage
@@ -594,9 +599,6 @@ namespace DonTroc.Services
         /// </summary>
         private Task AddPointsForReferralAsync(string referrerId, string newUserId)
         {
-            // Le parrain gagne 50 points, le nouveau membre 25 points
-            // Cette logique pourrait être déplacée vers un service de points dédié
-            System.Diagnostics.Debug.WriteLine($"Points ajoutés : Parrain {referrerId} (+50), Nouveau {newUserId} (+25)");
             return Task.CompletedTask;
         }
 
@@ -605,8 +607,6 @@ namespace DonTroc.Services
         /// </summary>
         private Task AddPointsForShareAsync(string userId)
         {
-            // L'utilisateur gagne 10 points par partage
-            System.Diagnostics.Debug.WriteLine($"Points ajoutés : Utilisateur {userId} (+10 pour partage)");
             return Task.CompletedTask;
         }
 

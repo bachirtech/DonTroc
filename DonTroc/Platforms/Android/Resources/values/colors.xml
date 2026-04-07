@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Couleur de fond pour le splash screen - correspond à votre thème -->
-    <color name="maui_splash_color">#F6F1EB</color>
+    <!-- Couleur de fond pour le splash screen — correspond exactement
+         au fond du PNG embarqué dans splash.svg (#FFF8EE) -->
+    <color name="maui_splash_color">#FFF8EE</color>
     
     <!-- Autres couleurs de votre application -->
     <color name="colorPrimary">#F6F1EB</color>

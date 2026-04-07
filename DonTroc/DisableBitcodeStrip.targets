@@ -1,0 +1,43 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+    Désactive le bitcode stripping qui n'est plus supporté dans Xcode 14+ (iOS 16+).
+    Le bitcode a été déprécié par Apple et n'est plus inclus dans les builds.
+  -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <!-- Désactiver complètement le stripping de bitcode -->
+    <_StripBitcodeFromFrameworks>false</_StripBitcodeFromFrameworks>
+    <_ExportSymbolsFromBitcode>false</_ExportSymbolsFromBitcode>
+    <MtouchEnableBitcode>false</MtouchEnableBitcode>
+  </PropertyGroup>
+  
+  <!-- Vider les frameworks à stripper pour éviter l'exécution de bitcode_strip par Firebase -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+    <_FrameworkNamesToStripBitcode Remove="@(_FrameworkNamesToStripBitcode)" />
+  </ItemGroup>
+  
+  <!-- Override le target Firebase pour Mac pour ne rien faire -->
+  <Target Name="_FirebaseStripBitcodeFromFrameworksOnMac"
+          Condition="$(TargetFramework.Contains('-ios'))"
+          BeforeTargets="_FirebaseStripBitcodeFromFrameworksMasterTarget">
+    <Message Text="[DonTroc] Bitcode stripping skipped - deprecated in Xcode 14+" Importance="high" />
+  </Target>
+  
+  <!-- Override le target Firebase pour Windows pour ne rien faire -->
+  <Target Name="_FirebaseStripBitcodeFromFrameworksOnWindows"
+          Condition="$(TargetFramework.Contains('-ios'))"
+          BeforeTargets="_FirebaseStripBitcodeFromFrameworksMasterTarget">
+    <Message Text="[DonTroc] Bitcode stripping skipped on Windows" Importance="high" />
+  </Target>
+  
+  <!-- Override le target principal de Firebase -->
+  <Target Name="_FirebaseStripBitcodeFromFrameworksMasterTarget"
+          Condition="$(TargetFramework.Contains('-ios'))">
+    <Message Text="[DonTroc] Firebase bitcode stripping disabled" Importance="high" />
+  </Target>
+  
+  <!-- Override pour Google Sign-In -->
+  <Target Name="StripBitcode" 
+          Condition="$(TargetFramework.Contains('-ios'))">
+    <Message Text="[DonTroc] Google Sign-In bitcode stripping skipped" Importance="high" />
+  </Target>
+</Project>

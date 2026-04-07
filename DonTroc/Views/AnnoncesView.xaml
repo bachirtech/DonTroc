@@ -15,7 +15,11 @@
     <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="10" RowSpacing="10">
         
         <!-- Bannière publicitaire en haut -->
-        <views:AdBannerView Grid.Row="0" />
+        <views:AdBannerView Grid.Row="0"
+                            HeightRequest="50"
+                            MinimumHeightRequest="50"
+                            HorizontalOptions="Fill"
+                            BackgroundColor="Transparent" />
 
         <!-- Barre de recherche -->
         <Border Grid.Row="1" Style="{StaticResource InputContainer}">
@@ -186,10 +190,10 @@
                                         <!-- Description -->
                                         <Label Text="{Binding Description}"
                                                LineBreakMode="TailTruncation"
-                                               MaxLines="3"
+                                               MaxLines="5"
                                                FontSize="Small"
                                                TextColor="{StaticResource Ardoise}"
-                                               VerticalOptions="FillAndExpand" />
+                                               VerticalOptions="Start" />
 
                                         <!-- Informations en bas -->
                                         <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="5">
@@ -229,18 +233,20 @@
                                                  HorizontalOptions="End"
                                                  Spacing="8">
 
-                                        <!-- Bouton pour chatter -->
-                                        <Button Text="💬"
+                                        <!-- Bouton pour chatter avec animation pulse -->
+                                        <Button x:Name="ChatButton"
+                                                Text="💬"
                                                 FontSize="20"
                                                 SemanticProperties.Hint="Démarrer une conversation"
                                                 Clicked="OnChatClicked"
                                                 BindingContext="{Binding .}"
                                                 BackgroundColor="Transparent"
                                                 TextColor="#D98C6A"
-                                                WidthRequest="40"
-                                                HeightRequest="40"
-                                                CornerRadius="20"
-                                                Padding="0"/>
+                                                WidthRequest="44"
+                                                HeightRequest="44"
+                                                CornerRadius="22"
+                                                Padding="0"
+                                                Loaded="OnChatButtonLoaded"/>
                                                      
                                         <!-- Bouton pour les favoris -->
                                         <Button FontSize="20"

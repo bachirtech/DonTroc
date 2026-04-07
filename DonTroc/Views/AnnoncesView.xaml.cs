@@ -60,114 +60,87 @@ public partial class AnnoncesView : ContentPage
                 await TipOverlay.ShowTipAsync("annonces_list", _tipsService);
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Erreur affichage conseils: {ex.Message}");
-        }
+        catch { }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le tap sur l'image d'une annonce
-    /// </summary>
     private void OnImageTapped(object? sender, TappedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [AnnoncesView] OnImageTapped appelé");
+        Annonce? annonce = null;
         
-        if (sender is BoxView boxView && boxView.BindingContext is Annonce annonce)
+        // Essayer d'obtenir l'annonce depuis différentes sources
+        if (sender is VisualElement element)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [AnnoncesView] Annonce trouvée: {annonce.Id}");
+            annonce = element.BindingContext as Annonce;
+        }
+        
+        if (annonce != null)
+        {
             if (BindingContext is AnnoncesViewModel vm)
             {
                 vm.OpenImageViewerCommand.Execute(annonce);
             }
         }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [AnnoncesView] Annonce non trouvée dans le BindingContext");
-        }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton Chat
-    /// </summary>
-    private void OnChatClicked(object? sender, EventArgs e)
+    private async void OnChatClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [AnnoncesView] OnChatClicked appelé");
-        
-        if (sender is Button button && button.BindingContext is Annonce annonce)
+        if (sender is Button button)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [AnnoncesView] Annonce trouvée: {annonce.Id}");
-            if (BindingContext is AnnoncesViewModel vm)
+            // Animation de tap — scale down puis up
+            await button.ScaleTo(0.8, 80, Easing.CubicIn);
+            await button.ScaleTo(1.0, 80, Easing.CubicOut);
+            
+            if (button.BindingContext is Annonce annonce)
             {
-                vm.GoToChatCommand.Execute(annonce);
+                if (BindingContext is AnnoncesViewModel vm)
+                    vm.GoToChatCommand.Execute(annonce);
             }
         }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [AnnoncesView] Annonce non trouvée dans le BindingContext");
-        }
     }
 
     /// <summary>
-    /// Gestionnaire d'événement pour le bouton Favoris
+    /// Animation pulse continue sur le bouton chat quand il apparaît
     /// </summary>
+    private async void OnChatButtonLoaded(object? sender, EventArgs e)
+    {
+        if (sender is not Button button) return;
+
+        // Petit délai aléatoire pour décaler les animations entre items
+        await Task.Delay(Random.Shared.Next(0, 300));
+
+        // Boucle d'animation pulse douce et infinie
+        while (button.IsLoaded)
+        {
+            await button.ScaleTo(1.15, 600, Easing.SinInOut);
+            await button.ScaleTo(1.0, 600, Easing.SinInOut);
+            await Task.Delay(1500); // Pause entre les pulsations
+        }
+    }
+
     private void OnFavoriteClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [AnnoncesView] OnFavoriteClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [AnnoncesView] Annonce trouvée: {annonce.Id}");
             if (BindingContext is AnnoncesViewModel vm)
-            {
                 vm.ToggleFavoriteCommand.Execute(annonce);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [AnnoncesView] Annonce non trouvée dans le BindingContext");
         }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton Partager
-    /// </summary>
     private void OnShareClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [AnnoncesView] OnShareClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [AnnoncesView] Annonce trouvée: {annonce.Id}");
             if (BindingContext is AnnoncesViewModel vm)
-            {
                 vm.ShareAnnonceCommand.Execute(annonce);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [AnnoncesView] Annonce non trouvée dans le BindingContext");
         }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton Signaler
-    /// </summary>
     private void OnReportClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [AnnoncesView] OnReportClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [AnnoncesView] Annonce trouvée: {annonce.Id}");
             if (BindingContext is AnnoncesViewModel vm)
-            {
                 vm.ReportAnnonceCommand.Execute(annonce);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [AnnoncesView] Annonce non trouvée dans le BindingContext");
         }
     }
 }

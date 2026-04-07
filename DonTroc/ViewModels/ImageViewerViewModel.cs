@@ -150,30 +150,33 @@ public class ImageViewerViewModel : BaseViewModel, IQueryAttributable
                 
                 if (imageUrlsParam is string singleUrl)
                 {
-                    // Cas d'une seule URL passée directement
+                    // Cas d'une seule URL ou plusieurs URLs séparées
                     if (!string.IsNullOrEmpty(singleUrl))
                     {
-                        // Vérifier si l'URL est encodée et la décoder si nécessaire
-                        var finalUrl = singleUrl;
-                        if (singleUrl.Contains("%"))
+                        // Séparer les URLs multiples par | ou , puis décoder chacune
+                        var rawUrls = singleUrl.Split(new[] { '|', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        
+                        foreach (var rawUrl in rawUrls)
                         {
+                            var trimmedUrl = rawUrl.Trim();
+                            string decodedUrl;
+                            
+                            // Décoder l'URL si elle contient des caractères encodés
                             try
                             {
-                                finalUrl = Uri.UnescapeDataString(singleUrl);
-                                _logger?.LogInformation("URL décodée: {DecodedUrl}", finalUrl);
+                                decodedUrl = Uri.UnescapeDataString(trimmedUrl);
                             }
-                            catch (Exception decodeEx)
+                            catch
                             {
-                                _logger?.LogWarning("Erreur décodage URL, utilisation directe: {Error}", decodeEx.Message);
-                                finalUrl = singleUrl;
+                                decodedUrl = trimmedUrl;
+                            }
+                            
+                            if (!string.IsNullOrEmpty(decodedUrl))
+                            {
+                                imageUrls.Add(decodedUrl);
+                                _logger?.LogInformation("URL décodée ajoutée: {Url}", decodedUrl);
                             }
                         }
-                        
-                        // Séparer les URLs multiples si elles sont séparées par des virgules
-                        imageUrls = finalUrl.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            .Select(url => url.Trim())
-                            .Where(url => !string.IsNullOrEmpty(url))
-                            .ToList();
                     }
                 }
                 else if (imageUrlsParam is IEnumerable<string> urlList)
@@ -184,12 +187,6 @@ public class ImageViewerViewModel : BaseViewModel, IQueryAttributable
                 
                 _logger?.LogInformation("URLs d'images finales: {Count} images", imageUrls.Count);
                 
-                // Debug: afficher les URLs pour vérification
-                foreach (var url in imageUrls)
-                {
-                    _logger?.LogInformation("URL d'image: {Url}", url);
-                }
-                
                 Initialize(imageUrls, 0);
             }
             // CORRECTION: Support alternatif pour le paramètre "ImageUrl" (fallback)
@@ -198,6 +195,13 @@ public class ImageViewerViewModel : BaseViewModel, IQueryAttributable
                 var imageUrl = query["ImageUrl"]?.ToString();
                 if (!string.IsNullOrEmpty(imageUrl))
                 {
+                    // Décoder l'URL si nécessaire
+                    try
+                    {
+                        imageUrl = Uri.UnescapeDataString(imageUrl);
+                    }
+                    catch { }
+                    
                     _logger?.LogInformation("URL d'image alternative reçue: {Url}", imageUrl);
                     Initialize(new List<string> { imageUrl }, 0);
                 }

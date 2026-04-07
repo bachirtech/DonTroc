@@ -19,13 +19,11 @@ public class FcmService : IFirebaseCloudMessagingDelegate
 
     public Task OnTokenChanged(string fcmToken)
     {
-        Debug.WriteLine($"FCM token changed: {fcmToken}");
         return SendRegistrationToServer(fcmToken);
     }
 
     public Task OnMessageReceived(RemoteMessage remoteMessage)
     {
-        Debug.WriteLine("Message received");
 
         // Afficher la notification localement si l'application est au premier plan
         var notificationService = _serviceProvider.GetRequiredService<NotificationService>();
@@ -56,7 +54,6 @@ public class FcmService : IFirebaseCloudMessagingDelegate
                 {
                     userProfile.FcmToken = token;
                     await firebaseService.SaveUserProfileAsync(userProfile);
-                    Debug.WriteLine("FCM token saved to user profile.");
                 }
             }
         }

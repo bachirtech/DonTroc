@@ -15,8 +15,25 @@ public class PremiumFeaturesViewModel : BaseViewModel
 {
     private readonly AdMobService _adMobService;
     private readonly AuthService _authService;
+    private readonly InAppBillingService _billingService;
 
-    // Propriétés pour les statuts premium temporaires
+    // ── Achat permanent (in-app purchase) ──
+    private bool _isPermanentPremium;
+    public bool IsPermanentPremium
+    {
+        get => _isPermanentPremium;
+        set => SetProperty(ref _isPermanentPremium, value);
+    }
+
+    private string _removeAdsPriceText = "Chargement...";
+    /// <summary>Prix affiché pour la suppression des pubs (ex: "3,49 €")</summary>
+    public string RemoveAdsPriceText
+    {
+        get => _removeAdsPriceText;
+        set => SetProperty(ref _removeAdsPriceText, value);
+    }
+
+    // ── Statuts premium temporaires (rewarded ads) ──
     private bool _isAdFreeActive;
     public bool IsAdFreeActive
     {
@@ -42,19 +59,155 @@ public class PremiumFeaturesViewModel : BaseViewModel
     public ICommand WatchAdForAdFreeCommand { get; }
     public ICommand WatchAdForBoostCreditsCommand { get; }
     public ICommand WatchAdForStatsCommand { get; }
+    public ICommand PurchaseRemoveAdsCommand { get; }
+    public ICommand RestorePurchasesCommand { get; }
 
-    public PremiumFeaturesViewModel(AdMobService adMobService, AuthService authService)
+    public PremiumFeaturesViewModel(AdMobService adMobService, AuthService authService, InAppBillingService billingService)
     {
         _adMobService = adMobService;
         _authService = authService;
+        _billingService = billingService;
 
         // Initialiser les commandes
         WatchAdForAdFreeCommand = new Command(async () => await WatchAdForAdFree());
         WatchAdForBoostCreditsCommand = new Command(async () => await WatchAdForBoostCredits());
         WatchAdForStatsCommand = new Command(async () => await WatchAdForStats());
+        
+        // DÉSACTIVÉ : Achats in-app non disponibles (pas de profil marchand au Maroc)
+        // PurchaseRemoveAdsCommand = new Command(async () => await PurchaseRemoveAds());
+        // RestorePurchasesCommand = new Command(async () => await RestorePurchases());
+        PurchaseRemoveAdsCommand = new Command(() => { /* désactivé */ });
+        RestorePurchasesCommand = new Command(() => { /* désactivé */ });
 
-        // Charger les données utilisateur
+        // DÉSACTIVÉ : État premium toujours false
+        // IsPermanentPremium = _billingService.IsPermanentPremium;
+        // _billingService.PremiumStatusChanged += (_, isPremium) =>
+        // {
+        //     MainThread.BeginInvokeOnMainThread(() => IsPermanentPremium = isPremium);
+        // };
+        IsPermanentPremium = false;
+
+        // Charger les données utilisateur (temporaires / rewarded ads)
         LoadUserPremiumStatus();
+
+        // DÉSACTIVÉ : Pas de chargement de prix Store
+        // _ = LoadProductPriceAsync();
+        RemoveAdsPriceText = "Bientôt disponible";
+    }
+
+    /// <summary>
+    /// Charge le prix du produit depuis le Store pour l'afficher dans l'UI
+    /// DÉSACTIVÉ : Achats in-app non disponibles
+    /// </summary>
+    private Task LoadProductPriceAsync()
+    {
+        RemoveAdsPriceText = "Bientôt disponible";
+        return Task.CompletedTask;
+        /* ANCIEN CODE — Réactiver avec profil marchand
+        try
+        {
+            var product = await _billingService.GetProductInfoAsync();
+            if (product != null)
+            {
+                RemoveAdsPriceText = product.LocalizedPrice;
+            }
+            else
+            {
+                RemoveAdsPriceText = "3,49 €";
+            }
+        }
+        catch
+        {
+            RemoveAdsPriceText = "3,49 €";
+        }
+        */
+    }
+
+    /// <summary>
+    /// Lance l'achat de la suppression permanente des publicités
+    /// DÉSACTIVÉ : Achats in-app non disponibles (pas de profil marchand au Maroc)
+    /// </summary>
+    private Task PurchaseRemoveAds()
+    {
+        return Task.CompletedTask;
+        /* ANCIEN CODE — Réactiver avec profil marchand
+        if (IsBusy) return;
+        if (IsPermanentPremium)
+        {
+            await Shell.Current.DisplayAlert("Déjà Premium 👑",
+                "Vous bénéficiez déjà de la suppression permanente des publicités.", "OK");
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+
+            var success = await _billingService.PurchaseRemoveAdsAsync();
+
+            if (success)
+            {
+                IsPermanentPremium = true;
+                IsAdFreeActive = true;
+
+                await Shell.Current.DisplayAlert("Achat réussi ! 👑",
+                    "Merci pour votre achat !\nLes publicités ont été supprimées définitivement.", "Génial !");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Erreur",
+                "Une erreur s'est produite lors de l'achat. Veuillez réessayer.", "OK");
+            System.Diagnostics.Debug.WriteLine($"[Premium] Erreur achat: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+        */
+    }
+
+    /// <summary>
+    /// Restaure les achats précédents (réinstallation / changement d'appareil)
+    /// DÉSACTIVÉ : Achats in-app non disponibles
+    /// </summary>
+    private Task RestorePurchases()
+    {
+        return Task.CompletedTask;
+        /* ANCIEN CODE — Réactiver avec profil marchand
+        if (IsBusy) return;
+
+        try
+        {
+            IsBusy = true;
+
+            var restored = await _billingService.RestorePurchasesAsync();
+
+            if (restored)
+            {
+                IsPermanentPremium = true;
+                IsAdFreeActive = true;
+
+                await Shell.Current.DisplayAlert("Achats restaurés ! 👑",
+                    "Votre achat Premium a été restauré avec succès.\nLes publicités sont supprimées.", "Parfait !");
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Aucun achat trouvé",
+                    "Aucun achat Premium n'a été trouvé associé à votre compte Google Play.", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Erreur",
+                "Impossible de restaurer les achats. Vérifiez votre connexion.", "OK");
+            System.Diagnostics.Debug.WriteLine($"[Premium] Erreur restauration: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+        */
     }
 
     /// <summary>
@@ -256,10 +409,12 @@ public class PremiumFeaturesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Vérifie si l'utilisateur a le statut sans publicité actif
+    /// Vérifie si l'utilisateur doit voir des publicités.
+    /// Retourne false si Premium permanent OU si mode Ad-Free temporaire actif.
     /// </summary>
     public bool ShouldShowAds()
     {
+        if (IsPermanentPremium) return false;
         return !IsAdFreeActive || AdFreeUntil <= DateTime.Now;
     }
 

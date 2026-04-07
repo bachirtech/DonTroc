@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:Class="DonTroc.Views.UserManagementPage"
+             x:DataType="viewModels:UserManagementViewModel"
+             Title="Gestion des utilisateurs"
+             BackgroundColor="{StaticResource GrisClair}">
+    
+    <Grid RowDefinitions="Auto,Auto,*">
+        
+        <!-- Barre de recherche et filtres -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="White" 
+               Padding="15" 
+               CornerRadius="0"
+               HasShadow="True">
+            <VerticalStackLayout Spacing="10">
+                <!-- Recherche -->
+                <SearchBar Placeholder="Rechercher un utilisateur..."
+                           Text="{Binding SearchQuery}"
+                           BackgroundColor="{StaticResource GrisClair}"
+                           CancelButtonColor="{StaticResource Primaire}"/>
+                
+                <!-- Filtres -->
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                    <Picker Grid.Column="0"
+                            Title="Rôle"
+                            ItemsSource="{Binding RoleFilters}"
+                            SelectedItem="{Binding SelectedRoleFilter}"
+                            BackgroundColor="White"/>
+                    
+                    <HorizontalStackLayout Grid.Column="1" 
+                                           Spacing="5" 
+                                           VerticalOptions="Center"
+                                           Margin="10,0">
+                        <Switch IsToggled="{Binding ShowSuspendedOnly}"
+                                OnColor="{StaticResource Terracotta}"/>
+                        <Label Text="Suspendus"
+                               VerticalOptions="Center"
+                               FontSize="12"/>
+                    </HorizontalStackLayout>
+                    
+                    <Button Grid.Column="2"
+                            Text="🔄"
+                            Command="{Binding LoadUsersCommand}"
+                            BackgroundColor="{StaticResource Primaire}"
+                            TextColor="White"
+                            CornerRadius="20"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            Padding="0"/>
+                </Grid>
+                
+                <!-- Compteur -->
+                <Label HorizontalOptions="End">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding FilteredCount}" FontAttributes="Bold"/>
+                            <Span Text=" / "/>
+                            <Span Text="{Binding TotalUsers}"/>
+                            <Span Text=" utilisateurs"/>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </VerticalStackLayout>
+        </Frame>
+        
+        <!-- Indicateur de chargement -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           Color="{StaticResource Primaire}"
+                           HeightRequest="30"/>
+        
+        <!-- Liste des utilisateurs -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding FilteredUsers}"
+                        SelectionMode="None"
+                        EmptyView="Aucun utilisateur trouvé">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:UserProfile">
+                    <SwipeView>
+                        <SwipeView.LeftItems>
+                            <SwipeItems>
+                                <SwipeItem Text="Détails"
+                                           BackgroundColor="{StaticResource Primaire}"
+                                           Invoked="OnDetailsSwiped"/>
+                            </SwipeItems>
+                        </SwipeView.LeftItems>
+                        <SwipeView.RightItems>
+                            <SwipeItems>
+                                <SwipeItem Text="Suspendre"
+                                           BackgroundColor="{StaticResource Terracotta}"
+                                           Invoked="OnSuspendSwiped"
+                                           IsVisible="{Binding IsSuspended, Converter={StaticResource InverseBoolConverter}}"/>
+                                <SwipeItem Text="Réactiver"
+                                           BackgroundColor="#27AE60"
+                                           Invoked="OnUnsuspendSwiped"
+                                           IsVisible="{Binding IsSuspended}"/>
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                        
+                        <Frame Margin="10,5" 
+                               Padding="15" 
+                               CornerRadius="10"
+                               BackgroundColor="White"
+                               HasShadow="True">
+                            <Frame.Triggers>
+                                <DataTrigger TargetType="Frame" 
+                                             Binding="{Binding IsSuspended}" 
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#FFF0F0"/>
+                                </DataTrigger>
+                            </Frame.Triggers>
+                            
+                            <Grid ColumnDefinitions="50,*,Auto" ColumnSpacing="15">
+                                <!-- Avatar -->
+                                <Frame Grid.Column="0"
+                                       WidthRequest="50"
+                                       HeightRequest="50"
+                                       CornerRadius="25"
+                                       Padding="0"
+                                       IsClippedToBounds="True"
+                                       HasShadow="False"
+                                       BorderColor="{StaticResource GrisClair}">
+                                    <Image Source="{Binding ProfilePictureUrl}"
+                                           Aspect="AspectFill"
+                                           WidthRequest="50"
+                                           HeightRequest="50">
+                                        <Image.Triggers>
+                                            <DataTrigger TargetType="Image" 
+                                                         Binding="{Binding ProfilePictureUrl}" 
+                                                         Value="{x:Null}">
+                                                <Setter Property="Source" Value="user_icon.png"/>
+                                            </DataTrigger>
+                                        </Image.Triggers>
+                                    </Image>
+                                </Frame>
+                                
+                                <!-- Infos -->
+                                <VerticalStackLayout Grid.Column="1" 
+                                                     VerticalOptions="Center"
+                                                     Spacing="3">
+                                    <HorizontalStackLayout Spacing="8">
+                                        <Label Text="{Binding Name}" 
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation"/>
+                                        
+                                        <!-- Badge de rôle -->
+                                        <Frame Padding="5,2"
+                                               CornerRadius="8"
+                                               HasShadow="False"
+                                               IsVisible="{Binding IsModerator}">
+                                            <Frame.Triggers>
+                                                <DataTrigger TargetType="Frame" 
+                                                             Binding="{Binding Role}" 
+                                                             Value="Admin">
+                                                    <Setter Property="BackgroundColor" Value="#FFD700"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Frame" 
+                                                             Binding="{Binding Role}" 
+                                                             Value="Moderator">
+                                                    <Setter Property="BackgroundColor" Value="#87CEEB"/>
+                                                </DataTrigger>
+                                            </Frame.Triggers>
+                                            <Label Text="{Binding Role}"
+                                                   FontSize="10"
+                                                   TextColor="White"/>
+                                        </Frame>
+                                        
+                                        <!-- Badge suspendu -->
+                                        <Frame Padding="5,2"
+                                               CornerRadius="8"
+                                               BackgroundColor="#E74C3C"
+                                               HasShadow="False"
+                                               IsVisible="{Binding IsSuspended}">
+                                            <Label Text="🚫 Suspendu"
+                                                   FontSize="10"
+                                                   TextColor="White"/>
+                                        </Frame>
+                                    </HorizontalStackLayout>
+                                    
+                                    <Label Text="{Binding Email}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Ardoise}"
+                                           LineBreakMode="TailTruncation"/>
+                                    
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label FontSize="11" TextColor="{StaticResource GrisClair}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="📅 "/>
+                                                    <Span Text="{Binding DateInscription, StringFormat='{0:dd/MM/yyyy}'}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label FontSize="11" TextColor="{StaticResource GrisClair}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="⭐ "/>
+                                                    <Span Text="{Binding NoteMoyenne, StringFormat='{0:F1}'}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label FontSize="11" TextColor="{StaticResource GrisClair}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="🏆 "/>
+                                                    <Span Text="{Binding Points}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                                
+                                <!-- Menu actions -->
+                                <VerticalStackLayout Grid.Column="2" 
+                                                     VerticalOptions="Center"
+                                                     Spacing="5">
+                                    <!-- Bouton pour changer le rôle -->
+                                    <Button Text="👑"
+                                            WidthRequest="35"
+                                            HeightRequest="35"
+                                            CornerRadius="17"
+                                            Padding="0"
+                                            BackgroundColor="{StaticResource Primaire}"
+                                            TextColor="White"
+                                            FontSize="14"
+                                            Clicked="OnChangeRoleClicked"/>
+                                    
+                                    <!-- Bouton pour voir les détails -->
+                                    <Button Text="ℹ️"
+                                            WidthRequest="35"
+                                            HeightRequest="35"
+                                            CornerRadius="17"
+                                            Padding="0"
+                                            BackgroundColor="{StaticResource Ardoise}"
+                                            TextColor="White"
+                                            FontSize="14"
+                                            Clicked="OnViewDetailsClicked"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Frame>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+    
+</ContentPage>
+

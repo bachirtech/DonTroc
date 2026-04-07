@@ -136,6 +136,28 @@ public partial class ChatView : ContentPage, IQueryAttributable
     }
 
     /// <summary>
+    /// Gère le tap sur une bulle de message — affiche le menu contextuel (copier, supprimer pour moi / pour tous)
+    /// </summary>
+    private void OnMessageTapped(object? sender, TappedEventArgs e)
+    {
+        try
+        {
+            Message? message = null;
+            if (sender is BindableObject bindable)
+                message = bindable.BindingContext as Message;
+
+            if (message != null)
+            {
+                _viewModel.ShowMessageOptionsCommand.Execute(message);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ChatView] OnMessageTapped erreur: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Gère le début d'un contact sur un message (appui).
     /// </summary>
     private void OnPointerPressed(object sender, PointerEventArgs e)
@@ -207,10 +229,30 @@ public partial class ChatView : ContentPage, IQueryAttributable
     /// </summary>
     private void OnCollectionViewTapped(object sender, TappedEventArgs e)
     {
+        DismissOverlays();
         MessageEditor.Unfocus();
+    }
+
+    /// <summary>
+    /// Gère le tap sur le fond de la page pour fermer les panneaux.
+    /// </summary>
+    private void OnBackgroundTapped(object sender, TappedEventArgs e)
+    {
+        DismissOverlays();
+    }
+
+    /// <summary>
+    /// Ferme les panneaux d'options média et d'emoji s'ils sont ouverts.
+    /// </summary>
+    private void DismissOverlays()
+    {
         if (_viewModel.IsMediaOptionsVisible)
         {
             _viewModel.IsMediaOptionsVisible = false;
+        }
+        if (_viewModel.IsEmojiPickerVisible)
+        {
+            _viewModel.IsEmojiPickerVisible = false;
         }
     }
 
@@ -223,5 +265,13 @@ public partial class ChatView : ContentPage, IQueryAttributable
         {
             MessageEditor.Unfocus();
         }
+    }
+
+    /// <summary>
+    /// Quand l'Editor reçoit le focus, fermer les panneaux emoji/média.
+    /// </summary>
+    private void OnEditorFocused(object sender, FocusEventArgs e)
+    {
+        DismissOverlays();
     }
 }

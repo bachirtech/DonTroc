@@ -16,13 +16,15 @@ public class TransactionDetailsViewModel : INotifyPropertyChanged, IQueryAttribu
 {
     private readonly RatingService _ratingService;
     private readonly TransactionService _transactionService;
+    private readonly AuthService _authService;
     private Transaction? _transaction;
     private string? _transactionId;
 
-    public TransactionDetailsViewModel(TransactionService transactionService, RatingService ratingService)
+    public TransactionDetailsViewModel(TransactionService transactionService, RatingService ratingService, AuthService authService)
     {
         _transactionService = transactionService;
         _ratingService = ratingService;
+        _authService = authService;
 
         MarquerTermineeCommand = new Command(async () => await MarquerTermineeAsync());
         LaisserAvisCommand = new Command(async () => await LaisserAvisAsync());
@@ -37,6 +39,8 @@ public class TransactionDetailsViewModel : INotifyPropertyChanged, IQueryAttribu
             OnPropertyChanged();
             OnPropertyChanged(nameof(HasMessages));
             OnPropertyChanged(nameof(HasRendezVousInfo));
+            OnPropertyChanged(nameof(CanMarkComplete));
+            OnPropertyChanged(nameof(CanLeaveReview));
         }
     }
 
@@ -58,6 +62,21 @@ public class TransactionDetailsViewModel : INotifyPropertyChanged, IQueryAttribu
     public bool HasRendezVousInfo => Transaction != null &&
                                      (!string.IsNullOrEmpty(Transaction.LieuRendezVous) ||
                                       Transaction.DateRendezVous.HasValue);
+
+    /// <summary>
+    /// Peut marquer comme terminée si la transaction est Confirmée ou EnCours
+    /// </summary>
+    public bool CanMarkComplete => Transaction != null &&
+                                   (Transaction.Statut == StatutTransaction.Confirmee ||
+                                    Transaction.Statut == StatutTransaction.EnCours);
+
+    /// <summary>
+    /// Peut laisser un avis si terminée ET l'utilisateur est partie prenante (A évalue B, B évalue A)
+    /// </summary>
+    public bool CanLeaveReview => Transaction != null &&
+                                  Transaction.Statut == StatutTransaction.Terminee &&
+                                  (Transaction.ProprietaireId == _authService.GetUserId() ||
+                                   Transaction.DemandeurId == _authService.GetUserId());
 
     public ICommand MarquerTermineeCommand { get; }
     public ICommand LaisserAvisCommand { get; }
@@ -97,6 +116,8 @@ public class TransactionDetailsViewModel : INotifyPropertyChanged, IQueryAttribu
             await _transactionService.MarquerCommeTermineeAsync(Transaction.Id);
             Transaction.Statut = StatutTransaction.Terminee;
             OnPropertyChanged(nameof(Transaction));
+            OnPropertyChanged(nameof(CanMarkComplete));
+            OnPropertyChanged(nameof(CanLeaveReview));
 
             await Application.Current?.MainPage?.DisplayAlert("Succès", "Transaction marquée comme terminée", "OK");
         }

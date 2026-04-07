@@ -40,10 +40,7 @@ public partial class RewardsPage : ContentPage
                 await TipOverlay.ShowTipAsync("rewards", _tipsService);
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Erreur affichage conseils: {ex.Message}");
-        }
+        catch { }
     }
 }
 

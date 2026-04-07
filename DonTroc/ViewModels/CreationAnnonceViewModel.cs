@@ -420,7 +420,7 @@ public class CreationAnnonceViewModel : BaseViewModel
                 {
                     await _gamificationService.OnUserActionAfterConfirmationAsync(userId, "annonce_created");
                     
-                    // Notifier les utilisateurs à proximité (dans un rayon de 5 km)
+                    // Notifier les utilisateurs à proximité (dans un rayon de 50 km)
                     _ = Task.Run(async () =>
                     {
                         try

@@ -31,8 +31,6 @@ namespace DonTroc.Services.Providers
             
             _nativeService.Initialize();
             IsInitialized = true;
-            
-            System.Diagnostics.Debug.WriteLine("✅ AdMobProvider initialisé");
         }
 
         public void PreloadInterstitial()

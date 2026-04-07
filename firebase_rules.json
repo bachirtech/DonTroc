@@ -4,19 +4,58 @@
     ".write": false,
     
     "Annonces": {
-      ".indexOn": ["UtilisateurId", "Categorie", "Type", "DateCreationTimestamp"],
+      ".indexOn": ["UtilisateurId", "Categorie", "Type", "DateCreationTimestamp", "IsFlagged"],
       ".read": "auth != null",
       "$annonceId": {
-        ".write": "auth != null && (!data.exists() && newData.child('UtilisateurId').val() == auth.uid || data.child('UtilisateurId').val() == auth.uid)",
-        ".validate": "newData.hasChildren(['UtilisateurId', 'Titre', 'Description', 'Categorie', 'Type', 'DateCreationTimestamp']) && newData.child('UtilisateurId').val() == auth.uid && newData.child('Titre').isString() && newData.child('Titre').val().length > 0 && newData.child('Titre').val().length <= 100 && newData.child('Description').isString() && newData.child('Description').val().length <= 2000"
+        ".write": "auth != null && (!data.exists() && newData.child('UtilisateurId').val() == auth.uid || data.child('UtilisateurId').val() == auth.uid || root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1)",
+        ".validate": "newData.hasChildren(['UtilisateurId', 'Titre', 'Description', 'Categorie', 'Type', 'DateCreationTimestamp']) && newData.child('Titre').isString() && newData.child('Titre').val().length > 0 && newData.child('Titre').val().length <= 100 && newData.child('Description').isString() && newData.child('Description').val().length <= 2000",
+        "IsFlagged": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "FlagReason": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "FlaggedAt": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        }
       }
     },
 
     "UserProfiles": {
+      ".indexOn": ["Role", "DateInscription", "IsSuspended"],
       ".read": "auth != null",
       "$userId": {
-        ".write": "auth.uid == $userId",
-        ".validate": "newData.hasChildren(['Id', 'Name']) && newData.child('Id').val() == auth.uid && newData.child('Name').isString() && newData.child('Name').val().length <= 50"
+        ".write": "auth != null && (auth.uid == $userId || root.child('UserProfiles/' + auth.uid + '/Role').val() == 2)",
+        ".validate": "newData.hasChildren(['Id', 'Name']) && newData.child('Name').isString() && newData.child('Name').val().length <= 50",
+        "LastLatitude": { ".validate": "newData.isNumber()" },
+        "LastLongitude": { ".validate": "newData.isNumber()" },
+        "LastLocationUpdate": { ".validate": "newData.isString()" },
+        "ProximityNotificationsEnabled": { ".validate": "newData.isBoolean()" },
+        "NotificationRadius": { ".validate": "newData.isNumber()" },
+        "Role": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() == 2"
+        },
+        "IsSuspended": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "SuspensionReason": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "SuspensionDate": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "SuspensionEndDate": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "SuspendedBy": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1"
+        },
+        "IsDeleted": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() == 2"
+        },
+        "DeletedAt": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() == 2"
+        }
       }
     },
     
@@ -96,26 +135,35 @@
     },
     
     "Ratings": {
-      ".indexOn": ["RatedUserId", "RaterUserId", "DateCreation"],
+      ".indexOn": ["EvalueId", "EvaluateurId", "TransactionId", "DateCreation"],
       ".read": "auth != null",
       "$ratingId": {
-        ".write": "auth != null && newData.child('RaterUserId').val() == auth.uid",
-        ".validate": "newData.hasChildren(['RatedUserId', 'RaterUserId', 'Rating', 'DateCreation']) && newData.child('RaterUserId').val() == auth.uid && newData.child('Rating').isNumber() && newData.child('Rating').val() >= 1 && newData.child('Rating').val() <= 5"
+        ".write": "auth != null && newData.child('EvaluateurId').val() == auth.uid",
+        ".validate": "newData.hasChildren(['EvalueId', 'EvaluateurId', 'Note', 'TransactionId', 'DateCreation']) && newData.child('EvaluateurId').val() == auth.uid && newData.child('Note').isNumber() && newData.child('Note').val() >= 1 && newData.child('Note').val() <= 5"
       }
     },
     
     "reports": {
-      ".indexOn": ["ReporterId", "Status", "Timestamp"],
-      ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
+      ".indexOn": ["ReporterId", "Status", "Timestamp", "TargetType"],
+      ".read": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1",
       "$reportId": {
-        ".write": "auth != null && (!data.exists() && newData.child('ReporterId').val() == auth.uid || root.child('admins/' + auth.uid).exists())",
+        ".write": "auth != null && (!data.exists() && newData.child('ReporterId').val() == auth.uid || root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1)",
         ".validate": "newData.hasChildren(['ReporterId', 'Reason', 'Timestamp']) && newData.child('Reason').isString() && newData.child('Reason').val().length <= 1000"
       }
     },
     
     "admins": {
-      ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
-      ".write": false
+      ".read": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1",
+      ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() == 2"
+    },
+    
+    "admin_logs": {
+      ".indexOn": ["AdminId", "ActionType", "Timestamp"],
+      ".read": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1",
+      "$logId": {
+        ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1",
+        ".validate": "newData.hasChildren(['AdminId', 'ActionType', 'Timestamp'])"
+      }
     },
     
     "UserActions": {
@@ -131,7 +179,7 @@
     
     "ProximityNotificationStats": {
       ".indexOn": ["AnnonceId", "Timestamp"],
-      ".read": "auth != null && root.child('admins/' + auth.uid).exists()",
+      ".read": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1",
       "$annonceId": {
         ".write": "auth != null",
         ".validate": "newData.hasChildren(['AnnonceId', 'NotificationsSent', 'Timestamp'])"

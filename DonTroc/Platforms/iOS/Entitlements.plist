@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Push Notifications (pour Firebase Cloud Messaging) -->
+	<key>aps-environment</key>
+	<string>development</string>
+	
+	<!-- Accès au trousseau pour stocker les credentials de façon sécurisée -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.bachirdev.dontroc</string>
+	</array>
+	
+	<!-- Associated Domains (pour les liens universels si nécessaire) -->
+	<!-- Décommenter si vous avez configuré les liens universels sur votre serveur
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:dontroc.com</string>
+		<string>webcredentials:dontroc.com</string>
+	</array>
+	-->
+	
+	<!-- Background Modes -->
+	<key>com.apple.developer.background-modes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- Data Protection - Protection des données par défaut -->
+	<key>com.apple.developer.default-data-protection</key>
+	<string>NSFileProtectionComplete</string>
+	
+	<!-- Sign in with Apple (si vous voulez ajouter cette fonctionnalité) -->
+	<!-- Décommenter si nécessaire
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+	-->
+</dict>
+</plist>

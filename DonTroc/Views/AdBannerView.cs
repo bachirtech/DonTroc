@@ -15,38 +15,32 @@ namespace DonTroc.Views
         private Border? _bannerContainer;
         private Label? _bannerLabel;
 
+        /// <summary>
+        /// Indique si les bannières doivent être affichées
+        /// </summary>
+        public static bool ShouldShowBanners => DonTroc.Services.AdMobConfiguration.ADS_ENABLED;
+
         public AdBannerView()
         {
-            // ⚠️ Vérifier si les publicités sont désactivées (suspension AdMob)
-            if (!DonTroc.Services.AdMobConfiguration.ADS_ENABLED)
+            if (!ShouldShowBanners)
             {
                 IsVisible = false;
                 HeightRequest = 0;
-                System.Diagnostics.Debug.WriteLine(DonTroc.Services.AdMobConfiguration.GetStatusMessage());
                 return;
             }
 
             // Dimensions standard bannière AdMob (320x50 dp)
             HeightRequest = 50;
             MinimumHeightRequest = 50;
-            WidthRequest = 320;
-            MinimumWidthRequest = 320;
             HorizontalOptions = LayoutOptions.Fill;
             VerticalOptions = LayoutOptions.Start;
             BackgroundColor = Colors.Transparent;
 
-            // Ne pas charger de placeholder sur Android - le handler natif gère tout
 #if !ANDROID
             LoadPlaceholder();
 #endif
-
-            System.Diagnostics.Debug.WriteLine("📱 AdBannerView MAUI créée: HeightRequest=50, Width=320");
         }
 
-        /// <summary>
-        /// Charge un placeholder temporaire
-        /// Sur Android, ce contenu sera remplacé par le handler natif AdMobBannerHandler
-        /// </summary>
         private void LoadPlaceholder()
         {
             _bannerLabel = new Label
@@ -74,8 +68,6 @@ namespace DonTroc.Views
 
             Content = _bannerContainer;
             IsVisible = true;
-
-            System.Diagnostics.Debug.WriteLine("📱 AdBannerView créée (sera remplacée par une vraie pub sur Android)");
         }
     }
 }

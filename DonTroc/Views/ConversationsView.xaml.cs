@@ -1,3 +1,4 @@
+using DonTroc.Models;
 using DonTroc.Services;
 using DonTroc.ViewModels;
 
@@ -24,8 +25,7 @@ public partial class ConversationsView : ContentPage
     {
         base.OnAppearing();
 
-        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
-        await _adMobService.TryShowInterstitialOnNavigationAsync("Messages");
+        // ⚠️ Pas d'interstitiel sur la page Messages — contenu critique (règles Google AdMob)
 
         // Exécute la commande pour charger ou rafraîchir les conversations
         if (_viewModel.LoadConversationsCommand.CanExecute(null))

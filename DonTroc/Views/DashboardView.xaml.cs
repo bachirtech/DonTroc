@@ -55,10 +55,7 @@ public partial class DashboardView : ContentPage
                 await TipOverlay.ShowTipAsync("dashboard", _tipsService);
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Erreur affichage conseils: {ex.Message}");
-        }
+        catch { }
     }
 
     private async void StartButtonAnimations() // Méthode d'annimations des boutons

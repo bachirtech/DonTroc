@@ -1,22 +1,62 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <linker>
-  <assembly fullname="DonTroc" preserve="all" />
+  <!-- Assembly principale -->
+  <assembly fullname="DonTroc" preserve="all">
+    <type fullname="DonTroc.ViewModels.*" preserve="all" />
+    <type fullname="DonTroc.Services.*" preserve="all" />
+    <type fullname="DonTroc.Models.*" preserve="all" />
+    <type fullname="DonTroc.Views.*" preserve="all" />
+    <type fullname="DonTroc.Converters.*" preserve="all" />
+    <type fullname="DonTroc.Behaviors.*" preserve="all" />
+    <type fullname="DonTroc.Configuration.*" preserve="all" />
+    <type fullname="DonTroc.Extensions.*" preserve="all" />
+    <type fullname="DonTroc.Platforms.iOS.*" preserve="all" />
+  </assembly>
+
+  <!-- Frameworks MAUI -->
+  <assembly fullname="Microsoft.Maui.Controls" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Controls.Compatibility" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Essentials" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Graphics" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Controls.Maps" preserve="all" />
+
+  <!-- CommunityToolkit -->
+  <assembly fullname="CommunityToolkit.Mvvm" preserve="all" />
+  <assembly fullname="CommunityToolkit.Maui" preserve="all" />
+  <assembly fullname="CommunityToolkit.Maui.MediaElement" preserve="all" />
+
+  <!-- Firebase -->
   <assembly fullname="Plugin.Firebase" preserve="all" />
   <assembly fullname="Plugin.Firebase.Analytics" preserve="all" />
   <assembly fullname="Plugin.Firebase.Core" preserve="all" />
-  <assembly fullname="FirebaseAuthentication.net" preserve="all" />
-  <assembly fullname="FirebaseDatabase.net" preserve="all" />
-  <assembly fullname="Microsoft.Maui.Controls" preserve="all" />
-  <assembly fullname="Microsoft.Maui.Graphics" preserve="all" />
+  <assembly fullname="Firebase.Auth" preserve="all" />
+  <assembly fullname="Firebase" preserve="all" />
+
+  <!-- JSON -->
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
   <assembly fullname="System.Text.Json" preserve="all" />
+
+  <!-- Services tiers -->
   <assembly fullname="CloudinaryDotNet" preserve="all" />
-  <assembly fullname="CommunityToolkit.Mvvm" preserve="all" />
-  <assembly fullname="CommunityToolkit.Maui" preserve="all" />
+  <assembly fullname="Plugin.Maui.Audio" preserve="all" />
+  <assembly fullname="SixLabors.ImageSharp" preserve="all" />
+
+  <!-- UI -->
+  <assembly fullname="SkiaSharp" preserve="all" />
+  <assembly fullname="SkiaSharp.Views.Maui.Controls" preserve="all" />
   <assembly fullname="Syncfusion.Maui.Core" preserve="all" />
-  
-  <!-- Préserver les types liés à Firebase Analytics -->
-  <type fullname="Firebase.Analytics.*" preserve="all" />
-  <type fullname="Firebase.Core.*" preserve="all" />
-  <type fullname="Foundation.*" preserve="all" />
-  <type fullname="StoreKit.*" preserve="all" />
+  <assembly fullname="Syncfusion.Maui.ImageEditor" preserve="all" />
+
+  <!-- DI -->
+  <assembly fullname="Microsoft.Extensions.DependencyInjection" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.DependencyInjection.Abstractions" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Caching.Memory" preserve="all" />
+
+  <!-- Préserver les types liés à Firebase iOS natif -->
+  <assembly fullname="Firebase.Analytics">
+    <type fullname="Firebase.Analytics.*" preserve="all" />
+  </assembly>
+  <assembly fullname="Firebase.Core">
+    <type fullname="Firebase.Core.*" preserve="all" />
+  </assembly>
 </linker>

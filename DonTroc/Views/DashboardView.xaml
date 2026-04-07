@@ -17,11 +17,11 @@
 
                 <!-- Bannière publicitaire en haut -->
                 <views:AdBannerView
-                    HeightRequest="60"
-                    MinimumHeightRequest="60"
+                    HeightRequest="50"
+                    MinimumHeightRequest="50"
                     HorizontalOptions="Fill"
                     VerticalOptions="Start"
-                    BackgroundColor="LightGray"
+                    BackgroundColor="Transparent"
                     Margin="0,10,0,0" />
 
                 <!-- En-tête avec logo et message d'accueil -->
@@ -243,13 +243,88 @@
                                TextColor="{StaticResource Terracotta}"
                                HorizontalTextAlignment="Center" />
 
+                        <!-- ══ Bandeau Premium actif (achat permanent) ══ -->
+                        <Border BackgroundColor="#FFD700"
+                                Stroke="#FFD700"
+                                StrokeThickness="1"
+                                Padding="15,10"
+                                StrokeShape="RoundRectangle 10"
+                                IsVisible="{Binding IsPermanentPremium}">
+                            <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                                <Label Text="👑 Premium actif — Sans publicité à vie"
+                                       TextColor="#333"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="Merci pour votre soutien !"
+                                       TextColor="#555"
+                                       FontSize="12"
+                                       HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- ══ DÉSACTIVÉ : Achats in-app non disponibles (pas de profil marchand)
+                        <Frame BackgroundColor="#FFF3E0"
+                               CornerRadius="12"
+                               Padding="15"
+                               HasShadow="False"
+                               IsVisible="{Binding IsPermanentPremium, Converter={StaticResource InverseBoolConverter}}">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding PurchaseRemoveAdsCommand}" />
+                            </Frame.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Label Grid.Column="0" Text="👑" FontSize="28" VerticalTextAlignment="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                    <Label Text="Supprimer les pubs"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Ardoise}" />
+                                    <Label Text="Achat unique — sans publicité pour toujours"
+                                           FontSize="11"
+                                           TextColor="{StaticResource Ardoise}" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="2"
+                                        BackgroundColor="{StaticResource Terracotta}"
+                                        Stroke="{StaticResource Terracotta}"
+                                        StrokeShape="RoundRectangle 8"
+                                        Padding="12,6">
+                                    <Label Text="{Binding RemoveAdsPriceText}"
+                                           TextColor="White"
+                                           FontSize="13"
+                                           FontAttributes="Bold" />
+                                </Border>
+                            </Grid>
+                        </Frame>
+                        ══ Fin DÉSACTIVÉ ══ -->
+
+                        <!-- ══ DÉSACTIVÉ : Restauration achats non disponible
+                        <Label Text="🔄 Restaurer un achat précédent"
+                               FontSize="12"
+                               TextColor="{StaticResource Terracotta}"
+                               TextDecorations="Underline"
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding IsPermanentPremium, Converter={StaticResource InverseBoolConverter}}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding RestorePurchasesCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        ══ Fin DÉSACTIVÉ ══ -->
+
+                        <!-- ══ Séparateur ══ -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="#E0E0E0"
+                                 HorizontalOptions="Fill"
+                                 IsVisible="{Binding IsPermanentPremium, Converter={StaticResource InverseBoolConverter}}" />
+
                         <Label Text="Regardez une courte publicité pour débloquer des avantages !"
                                FontSize="14"
                                TextColor="{StaticResource Ardoise}"
-                               HorizontalTextAlignment="Center" />
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding IsPermanentPremium, Converter={StaticResource InverseBoolConverter}}" />
 
                         <!-- Grille des fonctionnalités premium -->
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10"
+                              IsVisible="{Binding IsPermanentPremium, Converter={StaticResource InverseBoolConverter}}">
 
                             <!-- Bouton pour 2h sans pub -->
                             <Frame Grid.Column="0" Grid.Row="0"

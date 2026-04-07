@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DonTroc.Views.AdminSetupPage"
+             Title="Configuration Admin"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource DonTrocBackgroundDark}}">
+
+    <ScrollView Padding="20">
+        <VerticalStackLayout Spacing="20">
+            
+            <!-- Titre -->
+            <Label Text="🔧 Configuration Admin"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="{StaticResource Terracotta}"/>
+            
+            <!-- Info utilisateur actuel -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   CornerRadius="15"
+                   Padding="20"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Utilisateur connecté"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <Label x:Name="CurrentUserIdLabel"
+                           Text="ID: Chargement..."
+                           FontSize="14"
+                           TextColor="{StaticResource Ardoise}"/>
+                    
+                    <Label x:Name="CurrentUserEmailLabel"
+                           Text="Email: Chargement..."
+                           FontSize="14"
+                           TextColor="{StaticResource Ardoise}"/>
+                    
+                    <Label x:Name="ProfileStatusLabel"
+                           Text="Statut du profil: Vérification..."
+                           FontSize="14"
+                           TextColor="{StaticResource Terracotta}"/>
+                    
+                    <Label x:Name="RoleStatusLabel"
+                           Text="Rôle: Vérification..."
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Clé secrète d'administration -->
+            <Frame x:Name="SecretKeyFrame"
+                   BackgroundColor="#FFE4E1"
+                   CornerRadius="15"
+                   Padding="20"
+                   HasShadow="True"
+                   IsVisible="False">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="🔐 Clé secrète d'administration"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="#C0392B"/>
+                    
+                    <Label Text="Cette clé est requise pour devenir administrateur. Seul le propriétaire de l'application la connaît."
+                           FontSize="12"
+                           TextColor="#856404"/>
+                    
+                    <Entry x:Name="SecretKeyEntry"
+                           Placeholder="Entrez la clé secrète..."
+                           IsPassword="True"
+                           BackgroundColor="White"
+                           TextColor="Black"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Actions -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   CornerRadius="15"
+                   Padding="20"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Actions disponibles"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <!-- Créer le profil si manquant -->
+                    <Button x:Name="CreateProfileButton"
+                            Text="📋 Créer mon profil Admin"
+                            BackgroundColor="{StaticResource Terracotta}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            IsVisible="False"
+                            Clicked="OnCreateProfileClicked"/>
+                    
+                    <!-- Se promouvoir admin (si aucun admin n'existe) -->
+                    <Button x:Name="PromoteToAdminButton"
+                            Text="👑 Devenir Admin"
+                            BackgroundColor="{StaticResource VertSauge}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            IsVisible="False"
+                            Clicked="OnPromoteToAdminClicked"/>
+                    
+                    <!-- Accéder au panneau admin -->
+                    <Button x:Name="GoToAdminButton"
+                            Text="🛡️ Aller au Panneau Admin"
+                            BackgroundColor="#512BD4"
+                            TextColor="White"
+                            CornerRadius="10"
+                            IsVisible="False"
+                            Clicked="OnGoToAdminClicked"/>
+                    
+                    <!-- Rafraîchir -->
+                    <Button Text="🔄 Actualiser"
+                            BackgroundColor="{StaticResource Ardoise}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Clicked="OnRefreshClicked"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Instructions -->
+            <Frame BackgroundColor="#FFF3CD"
+                   CornerRadius="15"
+                   Padding="15"
+                   HasShadow="False">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ℹ️ Instructions"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="#856404"/>
+                    
+                    <Label Text="1. Connectez-vous avec votre compte Firebase Auth"
+                           FontSize="12"
+                           TextColor="#856404"/>
+                    
+                    <Label Text="2. Entrez la clé secrète d'administration"
+                           FontSize="12"
+                           TextColor="#856404"/>
+                    
+                    <Label Text="3. Si votre profil n'existe pas, cliquez sur 'Créer mon profil Admin'"
+                           FontSize="12"
+                           TextColor="#856404"/>
+                    
+                    <Label Text="4. Ou si vous avez déjà un profil, cliquez sur 'Devenir Admin'"
+                           FontSize="12"
+                           TextColor="#856404"/>
+                    
+                    <Label Text="⚠️ Sans la clé secrète, vous ne pouvez pas devenir admin !"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="#C0392B"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Message de statut -->
+            <Label x:Name="StatusLabel"
+                   Text=""
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   TextColor="Red"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+

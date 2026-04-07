@@ -56,7 +56,7 @@ namespace DonTroc.ViewModels
 
         // === PROPRIÉTÉS DE FILTRAGE ===
         
-        private double _searchRadius = 10.0;
+        private double _searchRadius = 50.0; // Rayon par défaut: 50 km
         public double SearchRadius
         {
             get => _searchRadius;
@@ -223,7 +223,7 @@ namespace DonTroc.ViewModels
                         "Filtrer par distance",
                         "Annuler",
                         null,
-                        "5 km", "10 km", "20 km", "50 km");
+                        "5 km", "10 km", "20 km", "30 km", "40 km", "50 km");
 
                     if (result != null && result != "Annuler")
                     {
@@ -237,6 +237,12 @@ namespace DonTroc.ViewModels
                                 break;
                             case "20 km":
                                 SearchRadius = 20.0;
+                                break;
+                            case "30 km":
+                                SearchRadius = 30.0;
+                                break;
+                            case "40 km":
+                                SearchRadius = 40.0;
                                 break;
                             case "50 km":
                                 SearchRadius = 50.0;
@@ -290,13 +296,8 @@ namespace DonTroc.ViewModels
                 
                 // Vérifier l'authentification
                 var isAuth = await _authService.EnsureAuthenticatedAsync();
-                if (!isAuth)
-                {
-                    System.Diagnostics.Debug.WriteLine("[MapViewModel] Utilisateur non authentifié");
-                    return;
-                }
+                if (!isAuth) return;
 
-                // Charger toutes les annonces depuis Firebase
                 var allAnnouncements = await _firebaseService.GetAnnoncesAsync();
                 
                 if (allAnnouncements == null || !allAnnouncements.Any())
@@ -305,17 +306,16 @@ namespace DonTroc.ViewModels
                     return;
                 }
 
+
                 // Filtrer les annonces selon la position et le rayon
                 var filteredAnnouncements = new List<Annonce>();
                 
                 foreach (var annonce in allAnnouncements)
                 {
-                    // Ignorer les annonces sans coordonnées
                     if (!annonce.Latitude.HasValue || !annonce.Longitude.HasValue ||
                         annonce.Latitude == 0 || annonce.Longitude == 0)
                         continue;
 
-                    // Calculer la distance si on a la position utilisateur
                     if (UserLocation != null)
                     {
                         var distance = _geolocationService.CalculateDistance(
@@ -326,33 +326,31 @@ namespace DonTroc.ViewModels
                         
                         annonce.DistanceFromUser = distance;
                         
-                        // Filtrer par rayon de recherche
                         if (distance <= SearchRadius)
-                        {
                             filteredAnnouncements.Add(annonce);
-                        }
                     }
                     else
                     {
-                        // Si pas de position utilisateur, inclure toutes les annonces avec coordonnées
                         annonce.DistanceFromUser = double.MaxValue;
                         filteredAnnouncements.Add(annonce);
                     }
                 }
 
-                // Trier par distance (les plus proches en premier)
                 var sortedAnnouncements = filteredAnnouncements
                     .OrderBy(a => a.DistanceFromUser)
                     .ToList();
 
-                // Mettre à jour la collection ObservableCollection
-                NearbyAnnouncements.Clear();
-                foreach (var annonce in sortedAnnouncements)
-                {
-                    NearbyAnnouncements.Add(annonce);
-                }
 
-                System.Diagnostics.Debug.WriteLine($"[MapViewModel] Chargé {NearbyAnnouncements.Count} annonces à proximité");
+                // Mettre à jour la collection de manière atomique
+                // (évite les race conditions et les multiples événements CollectionChanged en Release/AOT)
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    NearbyAnnouncements.Clear();
+                    foreach (var annonce in sortedAnnouncements)
+                    {
+                        NearbyAnnouncements.Add(annonce);
+                    }
+                });
             }
             catch (Exception ex)
             {

@@ -1,6 +1,5 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿using System;
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿using System;
 using CommunityToolkit.Maui;
-using DonTroc.Platforms.Android;
 using DonTroc.Services;
 using DonTroc.ViewModels;
 using DonTroc.Views;
@@ -9,11 +8,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.LifecycleEvents;
+using Plugin.Firebase.Auth;
 using Plugin.Firebase.Bundled.Shared;
 using Plugin.Maui.Audio;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using Syncfusion.Maui.Core.Hosting;
 #if ANDROID
+using DonTroc.Platforms.Android;
 using Plugin.Firebase.Bundled.Platforms.Android;
 #endif
 
@@ -35,7 +36,7 @@ public static class MauiProgram
 #if ANDROID
                 events.AddAndroid(android => android.OnCreate((activity, _) =>
                 {
-                    CrossFirebase.Initialize(activity, CreateCrossFirebaseSettings());
+                    CrossFirebase.Initialize(activity, () => Microsoft.Maui.ApplicationModel.Platform.CurrentActivity!, CreateCrossFirebaseSettings());
                 }));
 #endif
 #if IOS
@@ -63,7 +64,7 @@ public static class MauiProgram
                 // Enregistrer le handler personnalisé pour AdBannerView sur Android (AdMob)
                 handlers.AddHandler<DonTroc.Views.AdBannerView, AdMobBannerHandler>();
                 
-                // Handler unifié pour UnifiedAdBannerView (bascule entre AppLovin et AdMob)
+                // Handler unifié pour UnifiedAdBannerView (AdMob)
                 handlers.AddHandler<DonTroc.Views.UnifiedAdBannerView, UnifiedAdBannerHandler>();
 #endif
             });
@@ -104,21 +105,16 @@ public static class MauiProgram
         builder.Services.AddSingleton<IAdMobService, DonTroc.Platforms.Android.AdMobNativeService>();
         // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
         // builder.Services.AddSingleton<GoogleAuthService, DonTroc.Platforms.Android.GoogleAuthService>();
+#elif IOS
+        builder.Services.AddSingleton<IAdMobService, DonTroc.Platforms.iOS.AdMobNativeService>();
 #else
         builder.Services.AddSingleton<IAdMobService, AdMobSimulationService>();
 #endif
         builder.Services.AddTransient<AdMobService>();
 
-        // Services AppLovin MAX - Plateforme de médiation publicitaire
-#if ANDROID
-        builder.Services.AddSingleton<IAppLovinService, AppLovinServiceAndroid>();
-#endif
-        builder.Services.AddTransient<AppLovinService>();
+        // Service d'achats in-app (suppression des pubs)
+        builder.Services.AddSingleton<InAppBillingService>();
 
-        // Services Unity Ads - Alternative à AdMob pendant la suspension (29 jours)
-#if ANDROID
-        builder.Services.AddSingleton<IUnityAdsService, DonTroc.Platforms.Android.UnityAdsService>();
-#endif
 
         // Autres services
         builder.Services.AddSingleton<GamificationService>();
@@ -144,6 +140,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITipsService>(sp => sp.GetRequiredService<TipsService>());
         builder.Services.AddSingleton<AppRatingService>();
         builder.Services.AddSingleton<ProximityNotificationService>();
+        
+        // Service d'administration
+        builder.Services.AddSingleton<AdminService>();
 
 #if ANDROID
         // Service pour les notifications Push FCM
@@ -176,6 +175,11 @@ public static class MauiProgram
         builder.Services.AddTransient<QuizViewModel>();
         builder.Services.AddTransient<WheelOfFortuneViewModel>();
         builder.Services.AddTransient<AllBadgesViewModel>();
+        
+        // ViewModels d'administration
+        builder.Services.AddTransient<AdminDashboardViewModel>();
+        builder.Services.AddTransient<UserManagementViewModel>();
+        builder.Services.AddTransient<AdminLogsViewModel>();
 
         // Vues
         builder.Services.AddSingleton<MainPage>();
@@ -200,6 +204,12 @@ public static class MauiProgram
         builder.Services.AddTransient<QuizPage>();
         builder.Services.AddTransient<WheelOfFortunePage>();
         builder.Services.AddTransient<AllBadgesPage>();
+        
+        // Pages d'administration
+        builder.Services.AddTransient<AdminDashboardPage>();
+        builder.Services.AddTransient<UserManagementPage>();
+        builder.Services.AddTransient<AdminLogsPage>();
+        builder.Services.AddTransient<AdminSetupPage>();
 
 #if DEBUG
         builder.Logging.SetMinimumLevel(LogLevel.Debug);

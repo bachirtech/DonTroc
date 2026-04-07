@@ -581,6 +581,36 @@ namespace DonTroc.Services
             }
         }
 
+        /// <summary>
+        /// Supprime une conversation et tous ses messages associés de Firebase.
+        /// </summary>
+        public async Task DeleteConversationAsync(string conversationId)
+        {
+            var currentUser = await _authService.GetCurrentUserAsync();
+            if (currentUser == null)
+                throw new UnauthorizedAccessException("Utilisateur non authentifié");
+
+            // Supprimer les messages de la conversation
+            try
+            {
+                await _firebaseClient
+                    .Child("Messages")
+                    .Child(conversationId)
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Firebase] Erreur suppression messages de {conversationId}: {ex.Message}");
+                // Continuer même si les messages n'existent pas
+            }
+
+            // Supprimer la conversation elle-même
+            await _firebaseClient
+                .Child("Conversations")
+                .Child(conversationId)
+                .DeleteAsync();
+        }
+
         public async Task<List<Message>>
             GetMessagesAsync(string conversationId) // Récupre les messages d'une conversation
         {
@@ -1115,8 +1145,9 @@ namespace DonTroc.Services
 
                 return profile;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[GetUserProfile] ❌ Erreur pour userId={userId}: {ex.Message}");
                 return null;
             }
         }
@@ -1445,6 +1476,24 @@ namespace DonTroc.Services
             }
         }
 
+        /// <summary>
+        /// Méthode générique pour sauvegarder n'importe quel objet dans Firebase
+        /// </summary>
+        public async Task SaveDataAsync<T>(string path, T data)
+        {
+            try
+            {
+                await _firebaseClient
+                    .Child(path)
+                    .PutAsync(data);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur lors de la sauvegarde: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task UpdateData(string s, Dictionary<string, object> updates)
         {
             try
@@ -1460,21 +1509,28 @@ namespace DonTroc.Services
             }
         }
 
-        public async Task<object> GetData<T>(string reports) // méthode de récuperation donnés
+        public async Task<Dictionary<string, T>?> GetData<T>(string path) // méthode de récuperation donnés
         {
             try
             {
                 var data = await _firebaseClient
-                    .Child(reports)
+                    .Child(path)
                     .OnceAsync<T>();
 
+                if (data == null || !data.Any())
+                {
+                    Debug.WriteLine($"[FirebaseService] GetData: Aucune donnée trouvée dans {path}");
+                    return null;
+                }
+
                 var result = data.ToDictionary(item => item.Key, item => item.Object);
+                Debug.WriteLine($"[FirebaseService] GetData: {result.Count} éléments trouvés dans {path}");
                 return result;
             }
             catch (Exception ex)
             {
-                // Log exception
-                throw new Exception($"Erreur lors de la récupération des données: {ex.Message}");
+                Debug.WriteLine($"[FirebaseService] Erreur GetData({path}): {ex.Message}");
+                return null;
             }
         }
 
@@ -1499,10 +1555,42 @@ namespace DonTroc.Services
                     .Child(userId)
                     .PatchAsync(updates);
             }
+            catch (Exception ex) when (ex.Message.Contains("Permission denied"))
+            {
+                try
+                {
+                    var profile = await GetUserProfileAsync(userId);
+                    if (profile != null)
+                    {
+                        profile.LastLatitude = latitude;
+                        profile.LastLongitude = longitude;
+                        profile.LastLocationUpdate = DateTime.UtcNow;
+                        await SaveUserProfileAsync(profile);
+                    }
+                    else
+                    {
+                        var currentUser = await _authService.GetCurrentUserAsync();
+                        var newProfile = new UserProfile
+                        {
+                            Id = userId,
+                            Name = currentUser?.DisplayName ?? "Utilisateur",
+                            LastLatitude = latitude,
+                            LastLongitude = longitude,
+                            LastLocationUpdate = DateTime.UtcNow,
+                            DateInscription = DateTime.UtcNow
+                        };
+                        await SaveUserProfileAsync(newProfile);
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    Debug.WriteLine($"[Location] Erreur fallback: {fallbackEx.Message}");
+                }
+            }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Erreur lors de la mise à jour de la position: {ex.Message}");
-                throw;
+                Debug.WriteLine($"[Location] Erreur MAJ position: {ex.Message}");
+                // Ne pas relancer - la mise à jour de position n'est pas critique
             }
         }
 
@@ -1524,10 +1612,26 @@ namespace DonTroc.Services
                     .Child(userId)
                     .PatchAsync(updates);
             }
+            catch (Exception ex) when (ex.Message.Contains("Permission denied"))
+            {
+                try
+                {
+                    var profile = await GetUserProfileAsync(userId);
+                    if (profile != null)
+                    {
+                        profile.ProximityNotificationsEnabled = enabled;
+                        profile.NotificationRadius = radiusKm;
+                        await SaveUserProfileAsync(profile);
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    Debug.WriteLine($"[Proximity] Erreur fallback: {fallbackEx.Message}");
+                }
+            }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Erreur lors de la mise à jour des préférences de proximité: {ex.Message}");
-                throw;
+                Debug.WriteLine($"[Proximity] Erreur MAJ préférences: {ex.Message}");
             }
         }
 

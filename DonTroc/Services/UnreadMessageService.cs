@@ -280,9 +280,8 @@ namespace DonTroc.Services
                 
                 return Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"[UnreadMessageService] Erreur lors du chargement des temps de lecture: {ex.Message}");
                 return Task.CompletedTask;
             }
         }

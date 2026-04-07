@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using DonTroc.Platforms.Android;
 using Firebase.Auth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.ApplicationModel;
@@ -172,77 +171,61 @@ public class AuthService : ObservableObject
     {
         try
         {
-            _logger.LogInformation("🔵 Tentative de connexion avec Google...");
-            System.Diagnostics.Debug.WriteLine("🔵 [AuthService] Démarrage connexion Google");
+            _logger.LogInformation("Tentative de connexion avec Google...");
             
 #if ANDROID
-            // Essayer plusieurs méthodes pour obtenir le service GoogleAuth
             GoogleAuthService? googleAuthService = null;
             
-            // Méthode 1: Via Application.Current
             googleAuthService = Application.Current?.Handler?.MauiContext?.Services.GetService<GoogleAuthService>();
             
-            // Méthode 2: Via MauiContext direct si la première échoue
             if (googleAuthService == null)
             {
-                System.Diagnostics.Debug.WriteLine("⚠️ [AuthService] Tentative via MauiContext alternatif...");
                 var mauiContext = Application.Current?.Windows?.FirstOrDefault()?.Handler?.MauiContext;
                 googleAuthService = mauiContext?.Services.GetService<GoogleAuthService>();
             }
             
             if (googleAuthService != null)
             {
-                System.Diagnostics.Debug.WriteLine("✅ [AuthService] GoogleAuthService trouvé, démarrage authentification...");
-                
-                // Utiliser la méthode combinée qui fait Google Sign-In + Firebase Auth
                 var authResult = await googleAuthService.SignInAndAuthenticateWithFirebaseAsync();
                 
                 if (authResult != null)
                 {
-                    _logger.LogInformation("✅ Connexion Google Firebase réussie pour: {Email}", authResult.Email);
-                    System.Diagnostics.Debug.WriteLine($"✅ [AuthService] Connexion réussie: {authResult.Email}");
+                    _logger.LogInformation("Connexion Google réussie: {Email}", authResult.Email);
                     await SecureStorage.SetAsync("auth_provider", "google");
                     return authResult;
                 }
                 else
                 {
-                    _logger.LogWarning("❌ Échec de l'authentification Firebase avec Google - authResult est null");
-                    System.Diagnostics.Debug.WriteLine("❌ [AuthService] authResult est null après SignInAndAuthenticateWithFirebaseAsync");
+                    _logger.LogWarning("Échec auth Firebase avec Google - authResult null");
                     await ShowGenericErrorAlert("La connexion Google a échoué. Veuillez vérifier que vous avez sélectionné un compte Google valide.");
                     return null;
                 }
             }
             else
             {
-                _logger.LogError("❌ Service Google Auth non disponible - vérifier l'injection de dépendances");
-                System.Diagnostics.Debug.WriteLine("❌ [AuthService] GoogleAuthService est NULL!");
+                _logger.LogError("Service Google Auth non disponible");
                 await ShowGenericErrorAlert("Le service de connexion Google n'est pas disponible. Veuillez redémarrer l'application.");
             }
 #else
-            // Sur les autres plateformes, afficher un message
             await ShowGenericErrorAlert("La connexion Google n'est disponible que sur Android pour le moment.");
 #endif
             
-            _logger.LogWarning("Connexion Google annulée ou échouée");
             return null;
         }
         catch (TaskCanceledException)
         {
             _logger.LogInformation("Connexion Google annulée par l'utilisateur");
-            System.Diagnostics.Debug.WriteLine("ℹ️ [AuthService] Connexion annulée par l'utilisateur");
             return null;
         }
         catch (Exception ex) when (ex.GetBaseException() is FirebaseException firebaseEx)
         {
-            _logger.LogError(ex, "Erreur Firebase lors de la connexion Google: {Message}", firebaseEx.Message);
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] FirebaseException: {firebaseEx.Message}");
+            _logger.LogError(ex, "Erreur Firebase connexion Google: {Message}", firebaseEx.Message);
             await ShowAuthErrorAlert(firebaseEx.Message);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la connexion avec Google: {Message}", ex.Message);
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] Exception: {ex.Message}\n{ex.StackTrace}");
+            _logger.LogError(ex, "Erreur connexion Google: {Message}", ex.Message);
             await ShowGenericErrorAlert($"Une erreur est survenue lors de la connexion avec Google: {ex.Message}");
             return null;
         }
@@ -348,65 +331,42 @@ public class AuthService : ObservableObject
     {
         try
         {
-            _logger.LogInformation("🔐 Tentative d'envoi d'email de réinitialisation pour : {Email}", email);
-            System.Diagnostics.Debug.WriteLine($"🔐 [AuthService] SendPasswordResetEmailAsync - Email: {email}");
+            _logger.LogInformation("Tentative d'envoi d'email de réinitialisation pour : {Email}", email);
             
             if (string.IsNullOrWhiteSpace(email))
             {
-                var errorMsg = "L'adresse email est requise";
-                _logger.LogWarning("❌ {Error}", errorMsg);
-                System.Diagnostics.Debug.WriteLine($"❌ [AuthService] {errorMsg}");
-                throw new ArgumentException(errorMsg);
+                throw new ArgumentException("L'adresse email est requise");
             }
             
             if (!email.Contains('@') || !email.Contains('.'))
             {
-                var errorMsg = "L'adresse email n'est pas valide";
-                _logger.LogWarning("❌ {Error}", errorMsg);
-                System.Diagnostics.Debug.WriteLine($"❌ [AuthService] {errorMsg}");
-                throw new ArgumentException(errorMsg);
+                throw new ArgumentException("L'adresse email n'est pas valide");
             }
             
-            // Normaliser l'email (lowercase, trim)
             email = email.Trim().ToLowerInvariant();
-            System.Diagnostics.Debug.WriteLine($"📧 [AuthService] Email normalisé: {email}");
-            
-            // Appel Firebase pour envoyer l'email
-            System.Diagnostics.Debug.WriteLine($"📤 [AuthService] Appel Firebase SendPasswordResetEmailAsync...");
             await _client.SendPasswordResetEmailAsync(email);
             
-            _logger.LogInformation("✅ Email de réinitialisation envoyé avec succès pour : {Email}", email);
-            System.Diagnostics.Debug.WriteLine($"✅ [AuthService] Email de réinitialisation envoyé avec succès pour : {email}");
+            _logger.LogInformation("Email de réinitialisation envoyé pour : {Email}", email);
         }
         catch (FirebaseException firebaseEx)
         {
-            _logger.LogError(firebaseEx, "❌ Erreur Firebase lors de l'envoi de l'email de réinitialisation pour {Email}", email);
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] FirebaseException: {firebaseEx.Message}");
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] StackTrace: {firebaseEx.StackTrace}");
-            
-            // Traduire les erreurs Firebase en messages utilisateur
+            _logger.LogError(firebaseEx, "Erreur Firebase reset password pour {Email}", email);
             var userMessage = GetPasswordResetErrorMessage(firebaseEx.Message);
             throw new InvalidOperationException(userMessage, firebaseEx);
         }
         catch (Exception ex) when (ex.GetBaseException() is FirebaseException baseFirebaseEx)
         {
-            _logger.LogError(ex, "❌ Erreur Firebase (base) lors de l'envoi de l'email de réinitialisation pour {Email}", email);
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] Base FirebaseException: {baseFirebaseEx.Message}");
-            
+            _logger.LogError(ex, "Erreur Firebase (base) reset password pour {Email}", email);
             var userMessage = GetPasswordResetErrorMessage(baseFirebaseEx.Message);
             throw new InvalidOperationException(userMessage, ex);
         }
         catch (ArgumentException)
         {
-            // Re-throw les ArgumentException sans modification
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erreur générale lors de l'envoi de l'email de réinitialisation pour {Email}", email);
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] Exception générale: {ex.GetType().Name} - {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"❌ [AuthService] StackTrace: {ex.StackTrace}");
-            
+            _logger.LogError(ex, "Erreur générale reset password pour {Email}", email);
             throw new InvalidOperationException(
                 "Une erreur est survenue lors de l'envoi de l'email de réinitialisation. " +
                 "Veuillez vérifier votre connexion internet et réessayer.", ex);

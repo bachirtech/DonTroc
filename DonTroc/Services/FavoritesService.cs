@@ -53,14 +53,12 @@ public class FavoritesService
             var userId = _authService.GetUserId();
             if (string.IsNullOrEmpty(userId))
             {
-                System.Diagnostics.Debug.WriteLine("[FavoritesService] Utilisateur non connecté");
                 return false;
             }
 
             // Vérifier si déjà en favoris
             if (await IsFavoriteAsync(annonce.Id))
             {
-                System.Diagnostics.Debug.WriteLine($"[FavoritesService] Annonce {annonce.Id} déjà en favoris");
                 return false;
             }
 
@@ -98,7 +96,6 @@ public class FavoritesService
                 await UpdateListItemCountAsync(listName);
             }
             
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Favori ajouté: {annonce.Titre}");
             
             // Déclencher une notification locale
             await _notificationService.ShowMessageNotificationAsync(
@@ -145,7 +142,6 @@ public class FavoritesService
             // Supprimer du cache local
             _userFavorites.Remove(favorite);
             
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Favori supprimé: {favorite.AnnonceTitle}");
 
             return true;
         }
@@ -227,7 +223,6 @@ public class FavoritesService
                 .PutAsync(list);
             
             _userLists.Add(list);
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Liste créée: {name}");
 
             return true;
         }
@@ -317,7 +312,6 @@ public class FavoritesService
                 .PutAsync(alert);
             
             _userAlerts.Add(alert);
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Alerte créée: {name}");
 
             return true;
         }
@@ -366,7 +360,6 @@ public class FavoritesService
                 .DeleteAsync();
             
             _userAlerts.Remove(alert);
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Alerte supprimée: {alert.Name}");
 
             return true;
         }
@@ -394,14 +387,12 @@ public class FavoritesService
                 .Child(ALERTS_COLLECTION)
                 .Child(alert.Id)
                 .PutAsync(alert);
-            
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Alerte {(isActive ? "activée" : "désactivée")}: {alert.Name}");
 
             return true;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Erreur lors du toggle de l'alerte: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Erreur toggle alerte: {ex.Message}");
             return false;
         }
     }
@@ -421,7 +412,6 @@ public class FavoritesService
             if (list == null)
                 return false;
 
-            // Supprimer tous les favoris de cette liste
             var favoritesToDelete = _userFavorites.Where(f => f.ListName == list.Name).ToList();
             foreach (var favorite in favoritesToDelete)
             {
@@ -432,20 +422,18 @@ public class FavoritesService
                 _userFavorites.Remove(favorite);
             }
 
-            // Supprimer la liste
             await _firebaseClient
                 .Child(FAVORITE_LISTS_COLLECTION)
                 .Child(list.Id)
                 .DeleteAsync();
             
             _userLists.Remove(list);
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Liste supprimée: {list.Name}");
 
             return true;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Erreur lors de la suppression de la liste: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Erreur suppression liste: {ex.Message}");
             return false;
         }
     }
@@ -481,7 +469,6 @@ public class FavoritesService
             
             // Mettre à jour le compteur de la nouvelle liste
             await UpdateListItemCountAsync(newListName);
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Favori déplacé vers: {newListName}");
 
             return true;
         }
@@ -669,12 +656,10 @@ public class FavoritesService
                     "alerts"
                 );
             }
-
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Alerte déclenchée: {alert.Name} pour {annonce.Titre}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Erreur lors du déclenchement de l'alerte: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FavoritesService] Erreur déclenchement alerte: {ex.Message}");
         }
     }
 

@@ -2,31 +2,41 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DonTroc.Views.ImageViewerView"
-             BackgroundColor="#AA000000">
+             BackgroundColor="#000000"
+             Shell.NavBarIsVisible="False">
 
     <Grid>
+        <!-- Indicateur de chargement -->
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           IsRunning="True"
+                           IsVisible="True"
+                           Color="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           HeightRequest="50"
+                           WidthRequest="50"/>
+        
         <!-- Visionneuse d'images avec un carrousel pour plusieurs images -->
         <CarouselView x:Name="ImagesCarousel"
                       ItemsSource="{Binding DisplayableImageUrls}"
                       IndicatorView="IndicatorView"
                       HorizontalOptions="FillAndExpand"
-                      VerticalOptions="FillAndExpand">
+                      VerticalOptions="FillAndExpand"
+                      Loop="False">
             <CarouselView.ItemTemplate>
                 <DataTemplate>
                     <!-- Conteneur pour le zoom -->
-                    <ContentView>
-                        <Grid>
-                            <Image Source="{Binding .}"
-                                   Aspect="AspectFit"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center">
-                                <Image.GestureRecognizers>
-                                    <!-- Reconnaissance du pincement pour le zoom -->
-                                    <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
-                                </Image.GestureRecognizers>
-                            </Image>
-                        </Grid>
-                    </ContentView>
+                    <Grid BackgroundColor="Transparent">
+                        <Image Source="{Binding .}"
+                               Aspect="AspectFit"
+                               HorizontalOptions="FillAndExpand"
+                               VerticalOptions="FillAndExpand">
+                            <Image.GestureRecognizers>
+                                <!-- Reconnaissance du pincement pour le zoom -->
+                                <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
+                            </Image.GestureRecognizers>
+                        </Image>
+                    </Grid>
                 </DataTemplate>
             </CarouselView.ItemTemplate>
         </CarouselView>
@@ -37,10 +47,11 @@
                        SelectedIndicatorColor="White"
                        HorizontalOptions="Center"
                        VerticalOptions="End"
-                       Margin="0,0,0,20"/>
+                       Margin="0,0,0,30"/>
 
         <!-- Bouton de fermeture en haut à droite -->
-        <Button Text="X"
+        <Button Text="✕"
+                FontSize="20"
                 FontAttributes="Bold"
                 TextColor="White"
                 BackgroundColor="#80000000"
@@ -48,9 +59,24 @@
                 Clicked="OnCloseButtonClicked"
                 HorizontalOptions="End"
                 VerticalOptions="Start"
-                Margin="10"
-                WidthRequest="40"
-                HeightRequest="40"
-                CornerRadius="20"/>
+                Margin="15"
+                WidthRequest="44"
+                HeightRequest="44"
+                CornerRadius="22"/>
+        
+        <!-- Compteur d'images -->
+        <Frame x:Name="ImageCounter"
+               BackgroundColor="#80000000"
+               BorderColor="Transparent"
+               CornerRadius="15"
+               Padding="10,5"
+               HorizontalOptions="Start"
+               VerticalOptions="Start"
+               Margin="15">
+            <Label x:Name="CounterLabel"
+                   TextColor="White"
+                   FontSize="14"
+                   HorizontalOptions="Center"/>
+        </Frame>
     </Grid>
 </ContentPage>

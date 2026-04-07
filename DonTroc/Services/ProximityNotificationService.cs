@@ -9,7 +9,7 @@ namespace DonTroc.Services
 {
     /// <summary>
     /// Service pour gérer les notifications de proximité des nouvelles annonces.
-    /// Notifie les utilisateurs dans un rayon défini (par défaut 5 km) lorsqu'une nouvelle annonce est publiée.
+    /// Notifie les utilisateurs dans un rayon défini (par défaut 50 km) lorsqu'une nouvelle annonce est publiée.
     /// </summary>
     public class ProximityNotificationService
     {
@@ -21,7 +21,7 @@ namespace DonTroc.Services
         private readonly PushNotificationService _pushNotificationService;
 
         // Rayon par défaut en kilomètres
-        private const double DEFAULT_RADIUS_KM = 5.0;
+        private const double DEFAULT_RADIUS_KM = 50.0;
         
         // Limite du nombre de notifications à envoyer par annonce
         private const int MAX_NOTIFICATIONS_PER_ANNONCE = 100;
@@ -76,7 +76,7 @@ namespace DonTroc.Services
         }
 
         /// <summary>
-        /// Notifie tous les utilisateurs dans un rayon de 5 km d'une nouvelle annonce
+        /// Notifie tous les utilisateurs dans un rayon de 50 km d'une nouvelle annonce
         /// </summary>
         /// <param name="annonce">L'annonce nouvellement créée</param>
         public async Task NotifyNearbyUsersAsync(Annonce annonce)
@@ -269,8 +269,8 @@ namespace DonTroc.Services
         /// Configure les préférences de notification de proximité pour l'utilisateur
         /// </summary>
         /// <param name="enabled">Activer/désactiver</param>
-        /// <param name="radiusKm">Rayon en kilomètres (1-50)</param>
-        public async Task ConfigureProximityNotificationsAsync(bool enabled, double radiusKm = 5.0)
+        /// <param name="radiusKm">Rayon en kilomètres (5-50)</param>
+        public async Task ConfigureProximityNotificationsAsync(bool enabled, double radiusKm = 50.0)
         {
             try
             {
@@ -278,8 +278,8 @@ namespace DonTroc.Services
                 if (string.IsNullOrEmpty(userId))
                     return;
 
-                // Valider le rayon (entre 1 et 50 km)
-                radiusKm = Math.Clamp(radiusKm, 1.0, 50.0);
+                // Valider le rayon (entre 5 et 50 km)
+                radiusKm = Math.Clamp(radiusKm, 5.0, 50.0);
 
                 await _firebaseService.UpdateProximityPreferencesAsync(userId, enabled, radiusKm);
                 

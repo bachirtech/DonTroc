@@ -64,11 +64,18 @@
     <AndroidDuplicateResourcesWarning Condition="'$(Configuration)' == 'Release'">false</AndroidDuplicateResourcesWarning>
   </PropertyGroup>
 
-  <!-- Exclusion des assemblies problématiques qui causent les erreurs XABBA7023 -->
+  <!-- ============================================================ -->
+  <!-- IMPORTANT: NE PAS utiliser AndroidPackagesToSkipResourceProcessing -->
+  <!-- pour Microsoft.Maui.Controls / Microsoft.Maui.Controls.Core !     -->
+  <!-- Ces packages contiennent les layouts Android du Shell MAUI         -->
+  <!-- (shellcontent.xml, shelltablayout.xml, etc.).                      -->
+  <!-- Les exclure provoque un crash InvalidCastException :               -->
+  <!--   'Android.Widget.TextView' → 'CoordinatorLayout' dans            -->
+  <!--   ShellContentFragment.OnCreateView.                               -->
+  <!-- Les erreurs XABBA7023 sont gérées par AndroidStrictResourceErrors. -->
+  <!-- ============================================================ -->
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <!-- Exclure les DLL localisées qui causent des erreurs de fichiers manquants -->
-    <AndroidPackagesToSkipResourceProcessing Include="Microsoft.Maui.Controls.Core" />
-    <AndroidPackagesToSkipResourceProcessing Include="Microsoft.Maui.Controls" />
+    <!-- Seul SkiaSharp peut être exclu sans risque (pas de layouts Shell) -->
     <AndroidPackagesToSkipResourceProcessing Include="SkiaSharp.Views.Maui.Controls" />
   </ItemGroup>
 </Project>

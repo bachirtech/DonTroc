@@ -287,7 +287,8 @@ public class TransactionsViewModel : BaseViewModel
 
             // Une transaction peut être évaluée seulement si :
             // 1. Elle est terminée
-            // 2. L'utilisateur actuel est soit le propriétaire soit le demandeur
+            // 2. L'utilisateur actuel est partie prenante (propriétaire OU demandeur)
+            //    Chacun évalue l'AUTRE : A évalue B, B évalue A
             transaction.PeutEtreEvaluee = transaction.Statut == StatutTransaction.Terminee &&
                                          (transaction.ProprietaireId == currentUserId || 
                                           transaction.DemandeurId == currentUserId);

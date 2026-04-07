@@ -77,6 +77,13 @@
             <converters:BoolToReminderTextConverter x:Key="BoolToReminderTextConverter" />
             <converters:BoolToReminderColorConverter x:Key="BoolToReminderColorConverter" />
             
+            <!-- Convertisseurs pour le panneau d'administration -->
+            <converters:BoolToSuspendTextConverter x:Key="BoolToSuspendTextConverter" />
+            <converters:BoolToSelectionModeTextConverter x:Key="BoolToSelectionModeTextConverter" />
+            <converters:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+            <converters:RoleToColorConverter x:Key="RoleToColorConverter" />
+            <converters:ReportStatusToColorConverter x:Key="ReportStatusToColorConverter" />
+            
             <Color x:Key="Primaire" />
             <Color x:Key="GrisClair" />
             <Style x:Key="CardFrame" TargetType="Frame" />

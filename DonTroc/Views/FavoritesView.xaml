@@ -10,9 +10,16 @@
              x:Name="ThisPage"
              Title="Favoris">
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Bannière publicitaire en haut -->
+        <views:AdBannerView Grid.Row="0"
+                            HeightRequest="50"
+                            MinimumHeightRequest="50"
+                            HorizontalOptions="Fill"
+                            BackgroundColor="Transparent" />
+
         <!-- Onglets -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,*" Padding="10" ColumnSpacing="10">
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" Padding="10" ColumnSpacing="10">
             <Button x:Name="FavoritesTabButton"
                     Text="⭐ Favoris"
                     Clicked="OnFavoritesTabClicked"
@@ -31,7 +38,7 @@
         </Grid>
 
         <!-- Contenu -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <!-- Vue Favoris -->
             <Grid x:Name="FavoritesContent" RowDefinitions="Auto,Auto,*" IsVisible="True" Padding="10" RowSpacing="10">
                 <!-- Entête + création de liste -->
@@ -171,7 +178,7 @@
         </Grid>
 
         <!-- Overlays superposés -->
-        <Grid x:Name="CreateListOverlay" Grid.RowSpan="2" IsVisible="{Binding ShowCreateListDialog}"
+        <Grid x:Name="CreateListOverlay" Grid.RowSpan="3" IsVisible="{Binding ShowCreateListDialog}"
               BackgroundColor="#80000000">
             <Border BackgroundColor="White" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center"
                     Padding="20">
@@ -192,7 +199,7 @@
             </Border>
         </Grid>
 
-        <Grid x:Name="CreateAlertOverlay" Grid.RowSpan="2" IsVisible="{Binding ShowCreateAlertDialog}"
+        <Grid x:Name="CreateAlertOverlay" Grid.RowSpan="3" IsVisible="{Binding ShowCreateAlertDialog}"
               BackgroundColor="#80000000">
             <Border BackgroundColor="White" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center"
                     Padding="20">
@@ -215,6 +222,6 @@
         </Grid>
         
         <!-- Overlay pour les conseils -->
-        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="2" />
+        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="3" />
     </Grid>
 </ContentPage>

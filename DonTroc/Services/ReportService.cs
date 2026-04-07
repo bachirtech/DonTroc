@@ -51,30 +51,24 @@ namespace DonTroc.Services
                 var reporterProfile = await _firebaseService.GetUserProfileAsync(report.ReporterId);
                 var reporterName = reporterProfile?.DisplayName ?? "Un utilisateur";
                 
-                // Récupérer la liste des administrateurs depuis Firebase
-                var adminsData = await _firebaseService.GetData<Dictionary<string, UserProfile>>("admins");
+                // Récupérer tous les utilisateurs admin depuis UserProfiles
+                var usersData = await _firebaseService.GetData<UserProfile>("UserProfiles");
                 
-                if (adminsData != null)
+                if (usersData != null)
                 {
-                    // Convertir en Dictionary si nécessaire
-                    var admins = adminsData as Dictionary<string, UserProfile>;
+                    var admins = usersData.Values.Where(u => u != null && u.Role == UserRole.Admin).ToList();
                     
-                    if (admins != null && admins.Any())
+                    foreach (var admin in admins)
                     {
-                        foreach (var adminEntry in admins)
+                        // Envoyer une notification push via FCM si l'admin a un token FCM
+                        if (!string.IsNullOrEmpty(admin.FcmToken))
                         {
-                            var admin = adminEntry.Value;
-                            
-                            // Envoyer une notification push via FCM si l'admin a un token FCM
-                            if (!string.IsNullOrEmpty(admin.FcmToken))
-                            {
-                                await _pushNotificationService.SendReportNotificationToAdminAsync(
-                                    admin.FcmToken, 
-                                    reporterName, 
-                                    report.Reason, 
-                                    report.Id
-                                );
-                            }
+                            await _pushNotificationService.SendReportNotificationToAdminAsync(
+                                admin.FcmToken, 
+                                reporterName, 
+                                report.Reason, 
+                                report.Id
+                            );
                         }
                     }
                 }
@@ -93,18 +87,12 @@ namespace DonTroc.Services
         {
             try
             {
-                var reportsData = await _firebaseService.GetData<Dictionary<string, Report>>("reports");
+                var reportsData = await _firebaseService.GetData<Report>("reports");
                 
-                if (reportsData == null)
+                if (reportsData == null || reportsData.Count == 0)
                     return new List<Report>();
                 
-                // Cast l'objet en Dictionary
-                if (reportsData is Dictionary<string, Report> reports)
-                {
-                    return reports.Values.ToList();
-                }
-                
-                return new List<Report>();
+                return reportsData.Values.Where(r => r != null).ToList();
             }
             catch (Exception )
             {

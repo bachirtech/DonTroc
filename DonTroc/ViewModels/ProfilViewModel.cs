@@ -73,6 +73,10 @@ public class ProfilViewModel : BaseViewModel
         DeleteAccountCommand = new Command(async void () => await OnDeleteAccount());
         // Initialisation de la commande pour faire un don au développeur
         DonateToDevCommand = new Command(async void () => await OnDonateToDevAsync());
+        // Initialisation de la commande pour accéder au panneau admin
+        NavigateToAdminCommand = new Command(async void () => await OnNavigateToAdmin());
+        // Initialisation de la commande pour accéder à la configuration admin
+        NavigateToAdminSetupCommand = new Command(async void () => await OnNavigateToAdminSetup());
 
         _ = LoadUserProfile();
         // Exécute la commande pour charger les annonces au démarrage du ViewModel
@@ -89,7 +93,15 @@ public class ProfilViewModel : BaseViewModel
     public UserProfile UserProfile
     {
         get => _userProfile;
-        private set => SetProperty(ref _userProfile, value);
+        private set
+        {
+            if (SetProperty(ref _userProfile, value))
+            {
+                // Notifier les propriétés dépendantes du rôle admin
+                OnPropertyChanged(nameof(IsAdminOrModerator));
+                OnPropertyChanged(nameof(IsAdmin));
+            }
+        }
     }
 
     // Collection pour stocker les annonces de l'utilisateur
@@ -133,20 +145,23 @@ public class ProfilViewModel : BaseViewModel
 
     // Commande pour faire un don au développeur
     public ICommand DonateToDevCommand { get; }
+    
+    // Commande pour accéder au panneau d'administration
+    public ICommand NavigateToAdminCommand { get; }
+    
+    // Commande pour accéder à la configuration admin
+    public ICommand NavigateToAdminSetupCommand { get; }
+    
+    // Propriété pour vérifier si l'utilisateur est admin ou modérateur
+    public bool IsAdminOrModerator => UserProfile?.CanAccessAdminPanel ?? false;
+    
+    // Propriété pour vérifier si l'utilisateur est admin (pas juste modérateur)
+    public bool IsAdmin => UserProfile?.IsAdmin ?? false;
 
-    private async Task OnBoostAnnonce(Annonce? annonce) // Méthode pour booster une annonce
+    private async Task OnBoostAnnonce(Annonce? annonce)
     {
-        System.Diagnostics.Debug.WriteLine($"🔵 [BoostAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
-        if (annonce == null)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [BoostAnnonceCommand] Annonce est NULL");
-            return;
-        }
+        if (annonce == null) return;
 
-        System.Diagnostics.Debug.WriteLine($"🔵 [BoostAnnonceCommand] Tentative de boost de: {annonce.Titre}");
-
-        // Demander confirmation à l'utilisateur
         var confirm = await Shell.Current.DisplayAlert(
             "Booster l'annonce",
             $"Voulez-vous utiliser 1 crédit pour mettre en avant \"{annonce.Titre}\" pendant 24 heures ?",
@@ -154,7 +169,6 @@ public class ProfilViewModel : BaseViewModel
             "Annuler"
         );
 
-        System.Diagnostics.Debug.WriteLine($"🔵 [BoostAnnonceCommand] Confirmation: {confirm}");
 
         if (!confirm) return;
 
@@ -232,13 +246,11 @@ public class ProfilViewModel : BaseViewModel
         }
         catch (UnauthorizedAccessException)
         {
-            System.Diagnostics.Debug.WriteLine(
-                "[ProfilViewModel] Utilisateur non authentifié, chargement des annonces ignoré.");
-            // Silencieux: ne pas afficher d'alerte pour ce cas
+            // Silencieux: utilisateur non authentifié
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(ex);
+            System.Diagnostics.Debug.WriteLine($"[Profil] Erreur chargement annonces: {ex.Message}");
             if (Application.Current?.MainPage != null)
             {
                 await Application.Current.MainPage.DisplayAlert("Erreur", "Impossible de charger les annonces.", "OK");
@@ -250,64 +262,39 @@ public class ProfilViewModel : BaseViewModel
         }
     }
 
-    private async Task OnSupprimerAnnonce(Annonce annonce) // Méthode pour supprimer une annonce
+    private async Task OnSupprimerAnnonce(Annonce annonce)
     {
-        System.Diagnostics.Debug.WriteLine($"🔵 [DeleteAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
-        if (annonce == null!)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [DeleteAnnonceCommand] Annonce est NULL");
-            return;
-        }
+        if (annonce == null!) return;
 
-        System.Diagnostics.Debug.WriteLine($"🔵 [DeleteAnnonceCommand] Tentative de suppression de: {annonce.Titre}");
-
-        // Demande de confirmation à l'utilisateur
         bool confirm = await Application.Current?.MainPage?.DisplayAlert("Confirmer",
             $"Êtes-vous sûr de vouloir supprimer l'annonce \"{annonce.Titre}\" ?", "Oui", "Non")!;
-
-        System.Diagnostics.Debug.WriteLine($"🔵 [DeleteAnnonceCommand] Confirmation: {confirm}");
 
         if (confirm)
         {
             try
             {
-                // Supprime l'annonce de Firebase
                 await _firebaseService.DeleteAnnonceAsync(annonce.Id);
-                // Supprime l'annonce de la liste affichée
                 MesAnnonces.Remove(annonce);
-                System.Diagnostics.Debug.WriteLine("✅ [DeleteAnnonceCommand] Annonce supprimée avec succès");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ [DeleteAnnonceCommand] Exception: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Profil] Erreur suppression: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert("Erreur",
                     "Une erreur est survenue lors de la suppression.", "OK");
             }
         }
     }
 
-    private async Task OnModifierAnnonce(Annonce? annonce) // Méthode pour modifier une annonce
+    private async Task OnModifierAnnonce(Annonce? annonce)
     {
-        System.Diagnostics.Debug.WriteLine($"🔵 [EditAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
-        if (annonce == null)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [EditAnnonceCommand] Annonce est NULL");
-            return;
-        }
+        if (annonce == null) return;
 
-        System.Diagnostics.Debug.WriteLine($"🔵 [EditAnnonceCommand] Tentative de modification de: {annonce.Titre}");
-
-        // Prépare les données de l'annonce pour la navigation
         var navigationParameters = new Dictionary<string, object>
         {
             { "annonce", JsonSerializer.Serialize(annonce) }
         };
 
-        // Navigue vers la page de modification en passant l'annonce en paramètre
         await Shell.Current.GoToAsync(nameof(EditAnnonceView), navigationParameters);
-        System.Diagnostics.Debug.WriteLine("✅ [EditAnnonceCommand] Navigation réussie");
     }
 
     private async Task OnGoToConversations() // Méthode pour naviguer vers la page des conversations
@@ -337,6 +324,30 @@ public class ProfilViewModel : BaseViewModel
             var userProfile = await _firebaseService.GetUserProfileAsync(userId);
             if (userProfile != null)
             {
+                // Charger les dernières évaluations via le RatingService
+                try
+                {
+                    var ratingService = _serviceProvider.GetService<RatingService>();
+                    if (ratingService != null)
+                    {
+                        var evaluations = await ratingService.GetEvaluationsUtilisateurAsync(userId, 5);
+                        userProfile.DernieresEvaluations = evaluations;
+                        
+                        // Recalculer les stats à jour si besoin
+                        var (noteMoyenne, nombreEvaluations) = await ratingService.CalculerStatistiquesAsync(userId);
+                        if (nombreEvaluations > 0)
+                        {
+                            userProfile.NoteMoyenne = noteMoyenne;
+                            userProfile.NombreEvaluations = nombreEvaluations;
+                            userProfile.CalculerBadgeConfiance();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Impossible de charger les évaluations");
+                }
+                
                 UserProfile = userProfile;
                 UserEmail = userProfile.Email; // Récupérer l'email depuis le profil
             }
@@ -541,6 +552,47 @@ public class ProfilViewModel : BaseViewModel
                 "Erreur",
                 "Impossible d'ouvrir la page de donation. Veuillez réessayer.",
                 "OK");
+        }
+    }
+    
+    /// <summary>
+    /// Navigue vers le panneau d'administration
+    /// </summary>
+    private async Task OnNavigateToAdmin()
+    {
+        if (!IsAdminOrModerator)
+        {
+            await Shell.Current.DisplayAlert("⚠️ Accès refusé", 
+                "Vous n'avez pas les permissions pour accéder au panneau d'administration.", "OK");
+            return;
+        }
+        
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(AdminDashboardPage));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers le panneau admin");
+            await Shell.Current.DisplayAlert("Erreur", 
+                "Impossible d'accéder au panneau d'administration.", "OK");
+        }
+    }
+    
+    /// <summary>
+    /// Navigue vers la page de configuration admin
+    /// </summary>
+    private async Task OnNavigateToAdminSetup()
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(AdminSetupPage));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers la configuration admin");
+            await Shell.Current.DisplayAlert("Erreur", 
+                "Impossible d'accéder à la configuration admin.", "OK");
         }
     }
 }

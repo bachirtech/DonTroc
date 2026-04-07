@@ -403,29 +403,23 @@ public class FavoritesViewModel : BaseViewModel
     /// </summary>
     private async Task NavigateToAnnonceAsync(Favorite favorite)
     {
-        System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesViewModel] NavigateToAnnonceAsync appelé pour: {favorite?.AnnonceId ?? "NULL"}");
-        
         if (favorite == null)
         {
-            System.Diagnostics.Debug.WriteLine("❌ [FavoritesViewModel] Favorite est NULL");
             return;
         }
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesViewModel] AnnonceImageUrl: {favorite.AnnonceImageUrl ?? "NULL"}");
-            System.Diagnostics.Debug.WriteLine($"🔵 [FavoritesViewModel] AnnonceTitle: {favorite.AnnonceTitle ?? "NULL"}");
-
             // Si on a une URL d'image, on ouvre le visualiseur d'images
             if (!string.IsNullOrEmpty(favorite.AnnonceImageUrl) && Uri.IsWellFormedUriString(favorite.AnnonceImageUrl, UriKind.Absolute))
             {
-                System.Diagnostics.Debug.WriteLine($"✅ [FavoritesViewModel] Navigation vers ImageViewerView avec URL: {favorite.AnnonceImageUrl}");
-                await Shell.Current.GoToAsync($"ImageViewerView?imageUrls={favorite.AnnonceImageUrl}");
+                // Encoder l'URL pour éviter les problèmes de caractères spéciaux
+                var encodedUrl = Uri.EscapeDataString(favorite.AnnonceImageUrl);
+                await Shell.Current.GoToAsync($"ImageViewerView?imageUrls={encodedUrl}");
             }
             else
             {
-                // Sinon, on navigue vers la liste des annonces
-                System.Diagnostics.Debug.WriteLine("⚠️ [FavoritesViewModel] Pas d'URL d'image valide, navigation vers AnnoncesView");
+                // Sinon, on affiche les détails
                 await Shell.Current.DisplayAlert(
                     favorite.AnnonceTitle,
                     $"Type: {favorite.AnnonceType}\nCatégorie: {favorite.AnnonceCategory}\nLocalisation: {favorite.AnnonceLocation}\n\nPour voir les détails complets, recherchez cette annonce dans la liste des annonces.",
@@ -433,9 +427,8 @@ public class FavoritesViewModel : BaseViewModel
                 );
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ [FavoritesViewModel] Erreur lors de la navigation: {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible d'ouvrir l'annonce", "OK");
         }
     }

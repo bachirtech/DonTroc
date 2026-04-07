@@ -62,3 +62,19 @@
 -keeppackagenames com.google.android.gms.internal.measurement
 -keeppackagenames com.google.firebase.analytics
 
+# ===== Kotlin (utilisé par les SDK modernes) =====
+-keep class kotlin.** { *; }
+-keep class kotlinx.** { *; }
+-dontwarn kotlin.**
+-dontwarn kotlinx.**
+
+# ===== OkHttp / OkIO =====
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# ===== Protobuf =====
+-keep class com.google.protobuf.** { *; }
+-dontwarn com.google.protobuf.**
+

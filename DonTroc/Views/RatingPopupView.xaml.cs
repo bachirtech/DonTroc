@@ -27,10 +27,7 @@ public partial class RatingPopupView : ContentView
             
             RatingCompleted?.Invoke(this, RatingResult.Rated);
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Erreur lors du clic sur Noter: {ex.Message}");
-        }
+        catch { }
     }
 
     private async void OnLaterClicked(object sender, EventArgs e)

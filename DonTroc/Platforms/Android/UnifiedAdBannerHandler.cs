@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Android.Gms.Ads;
+using Google.Android.Gms.Ads;
 using Android.Views;
 using Android.Widget;
 using Microsoft.Maui.ApplicationModel;
@@ -12,13 +12,7 @@ using View = Microsoft.Maui.Controls.View;
 namespace DonTroc
 {
     /// <summary>
-    /// Handler unifié pour les bannières publicitaires sur Android.
-    /// Bascule automatiquement entre AppLovin MAX et AdMob selon la configuration.
-    /// 
-    /// Priorité:
-    /// 1. AppLovin MAX (si activé et configuré)
-    /// 2. AdMob (si activé)
-    /// 3. Placeholder (si aucun n'est actif)
+    /// Handler unifié pour les bannières publicitaires AdMob sur Android.
     /// </summary>
     public class UnifiedAdBannerHandler : ContentViewHandler
     {
@@ -30,7 +24,15 @@ namespace DonTroc
         private AdProvider _activeProvider = AdProvider.None;
 
         // IDs AdMob
-        private const string AdMobBannerAdUnitId = "ca-app-pub-5085236088670848/2349645674";
+        private const string ProductionAdMobBannerAdUnitId = "ca-app-pub-5085236088670848/2349645674";
+        // ID de test Google (affiche toujours une bannière test)
+        private const string TestAdMobBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111";
+        
+#if DEBUG
+        private const string AdMobBannerAdUnitId = TestAdMobBannerAdUnitId;
+#else
+        private const string AdMobBannerAdUnitId = ProductionAdMobBannerAdUnitId;
+#endif
 
         public UnifiedAdBannerHandler() : base(new PropertyMapper<IContentView, IContentViewHandler>(),
             new CommandMapper<IContentView, IContentViewHandler>())
@@ -46,7 +48,6 @@ namespace DonTroc
 
             if (_activeProvider == AdProvider.None)
             {
-                System.Diagnostics.Debug.WriteLine("📱 UnifiedAdBanner: Aucune pub active");
                 HideView(platformView);
                 return;
             }
@@ -60,14 +61,7 @@ namespace DonTroc
 
         private static AdProvider GetActiveAdProvider()
         {
-            // Priorité 1: AppLovin MAX
-            if (DonTroc.Services.AppLovinConfiguration.APPLOVIN_ENABLED &&
-                DonTroc.Services.AppLovinConfiguration.IsConfigurationValid())
-            {
-                return AdProvider.AppLovin;
-            }
-
-            // Priorité 2: AdMob
+            // Utiliser AdMob si activé
             if (DonTroc.Services.AdMobConfiguration.ADS_ENABLED)
             {
                 return AdProvider.AdMob;
@@ -115,9 +109,6 @@ namespace DonTroc
                 // Initialiser selon le provider actif
                 switch (_activeProvider)
                 {
-                    case AdProvider.AppLovin:
-                        InitializeAppLovinBanner(context, container, bannerWidthPx, bannerHeightPx);
-                        break;
 
                     case AdProvider.AdMob:
                         InitializeAdMobBanner(context, container, bannerWidthPx, bannerHeightPx);
@@ -171,7 +162,6 @@ namespace DonTroc
                 adView.LoadAd(adRequest);
 
                 _adView = adView;
-                System.Diagnostics.Debug.WriteLine("📱 AdMob banner initialisée");
             }
             catch (Exception ex)
             {
@@ -180,40 +170,6 @@ namespace DonTroc
             }
         }
 
-        /// <summary>
-        /// Initialise une bannière AppLovin MAX
-        /// </summary>
-        private void InitializeAppLovinBanner(global::Android.Content.Context context,
-            ContentViewGroup container, int width, int height)
-        {
-            try
-            {
-                // TODO: Implémenter avec le SDK AppLovin MAX
-                // Une fois le package NuGet ajouté:
-                /*
-                var adView = new MaxAdView(Services.AppLovinConfiguration.BANNER_AD_UNIT_ID, context);
-                adView.SetListener(new AppLovinBannerListener(this));
-                
-                var layoutParams = new FrameLayout.LayoutParams(width, height)
-                {
-                    Gravity = GravityFlags.CenterHorizontal | GravityFlags.Top
-                };
-                adView.LayoutParameters = layoutParams;
-                
-                container.AddView(adView);
-                adView.LoadAd();
-                _adView = adView;
-                */
-
-                ShowPlaceholder(container, "AppLovin - À configurer");
-                System.Diagnostics.Debug.WriteLine("📱 AppLovin placeholder - SDK à ajouter");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ AppLovin init error: {ex.Message}");
-                ShowPlaceholder(container, "Erreur AppLovin");
-            }
-        }
 
         private void ShowPlaceholder(ContentViewGroup container, string message)
         {
@@ -288,7 +244,6 @@ namespace DonTroc
         internal void OnAdLoaded()
         {
             _isLoaded = true;
-            System.Diagnostics.Debug.WriteLine($"✅ {_activeProvider} banner chargée");
 
             if (_adView != null && _container != null)
             {
@@ -319,14 +274,14 @@ namespace DonTroc
         private enum AdProvider
         {
             None,
-            AdMob,
-            AppLovin
+            AdMob
         }
     }
 
     /// <summary>
     /// Listener AdMob pour le handler unifié
     /// </summary>
+    [global::Android.Runtime.Preserve(AllMembers = true)]
     internal class UnifiedAdMobListener : AdListener
     {
         private readonly UnifiedAdBannerHandler _handler;
@@ -345,6 +300,28 @@ namespace DonTroc
         public override void OnAdFailedToLoad(LoadAdError error)
         {
             base.OnAdFailedToLoad(error);
+            
+            // Diagnostic détaillé médiation
+            System.Diagnostics.Debug.WriteLine("[UnifiedBanner] ❌ Échec: " + error.Message + " (code=" + error.Code + ")");
+            
+            var responseInfo = error.ResponseInfo;
+            if (responseInfo != null)
+            {
+                System.Diagnostics.Debug.WriteLine("[UnifiedBanner]    Adapter: " + (responseInfo.MediationAdapterClassName ?? "aucun"));
+                var adapterResponses = responseInfo.AdapterResponses;
+                if (adapterResponses != null)
+                {
+                    foreach (var adapter in adapterResponses)
+                    {
+                        var adapterName = adapter.AdapterClassName ?? "inconnu";
+                        var latency = adapter.LatencyMillis;
+                        var adError = adapter.AdError?.Message ?? "aucune";
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[UnifiedBanner]    → {adapterName}: latence={latency}ms, erreur={adError}");
+                    }
+                }
+            }
+            
             _handler.OnAdFailedToLoad(error.Message);
         }
     }

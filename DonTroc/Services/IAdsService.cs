@@ -26,13 +26,13 @@ namespace DonTroc.Services
 
     /// <summary>
     /// Interface unifiée pour les services de publicité
-    /// Permet d'abstraire le provider de publicité (AdMob, IronSource, Meta, etc.)
+    /// Permet d'abstraire le provider de publicité (AdMob, etc.)
     /// et de basculer facilement entre différents réseaux.
     /// </summary>
     public interface IAdsService
     {
         /// <summary>
-        /// Nom du provider actif (AdMob, IronSource, Meta, etc.)
+        /// Nom du provider actif (AdMob, etc.)
         /// </summary>
         string ProviderName { get; }
 

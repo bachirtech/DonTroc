@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 	<application 
@@ -7,7 +7,8 @@
 		android:theme="@style/Maui.SplashTheme"
 		android:allowBackup="false" 
 		android:supportsRtl="true"
-		android:usesCleartextTraffic="false">
+		android:usesCleartextTraffic="true"
+		android:resizeableActivity="true">
 		
 		<!-- Configuration Google Maps API Key -->
 		<meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyBBr5uAyAsABZXFCoQV5eUPmmIEWSAaNhc" />
@@ -24,71 +25,39 @@
 		<meta-data
 			android:name="com.google.android.gms.ads.APPLICATION_ID"
 			android:value="ca-app-pub-5085236088670848~9868416380"/>
-    
 	</application>
-
-	<!-- DÉCLARATIONS DE PERMISSIONS AVEC JUSTIFICATIONS POUR GOOGLE PLAY -->
 	
-	<!-- 
-		Permission CAMERA - JUSTIFICATION GOOGLE PLAY:
-		Utilisée pour permettre aux utilisateurs de prendre des photos d'objets 
-		qu'ils souhaitent donner ou échanger sur la plateforme DonTroc.
-		L'utilisateur doit explicitement appuyer sur un bouton pour activer la caméra.
-		Les photos sont stockées sur les serveurs uniquement après confirmation de l'utilisateur.
-	-->
+	<!-- PERMISSIONS -->
+	<!-- DÉSACTIVÉ: Achats in-app non disponibles (pas de profil marchand)
+	<uses-permission android:name="com.android.vending.BILLING" /> -->
 	<uses-permission android:name="android.permission.CAMERA" />
-	
-	<!-- Permissions réseau essentielles pour la communication avec Firebase -->
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
-
-	<!-- Permissions notifications (Android 13+) pour les messages et alertes -->
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
-
-	<!-- 
-		Permissions LOCALISATION - JUSTIFICATION GOOGLE PLAY:
-		Utilisées pour afficher les objets disponibles à proximité de l'utilisateur.
-		La localisation n'est jamais partagée avec des tiers.
-		L'utilisateur peut désactiver cette fonctionnalité à tout moment.
-	-->
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 	
-	<!-- Déclaration des fonctionnalités GPS requises -->
-	<uses-feature 
-		android:name="android.hardware.location" 
-		android:required="false" />
-	<uses-feature 
-		android:name="android.hardware.location.gps" 
-		android:required="false" />
-	<uses-feature 
-		android:name="android.hardware.location.network" 
-		android:required="false" />
+	<!-- Fonctionnalités optionnelles -->
+	<uses-feature android:name="android.hardware.location" android:required="false" />
+	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
+	<uses-feature android:name="android.hardware.location.network" android:required="false" />
+	<uses-feature android:name="android.hardware.camera" android:required="false" />
+	<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 	
-	<!-- Déclaration de l'utilisation de la caméra pour la confidentialité -->
-	<uses-feature 
-		android:name="android.hardware.camera"
-		android:required="false" />
-	<uses-feature 
-		android:name="android.hardware.camera.autofocus"
-		android:required="false" />
-	
-	<!-- Permissions stockage sécurisées -->
+	<!-- Stockage et audio -->
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-	
-	<!-- Permissions audio -->
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-	<!-- Permissions Firebase Cloud Messaging -->
+	<!-- Firebase Cloud Messaging -->
 	<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	
-	<!-- Queries pour détecter les applications (Android 11+) -->
+	<!-- Queries pour Android 11+ -->
 	<queries>
-		<!-- Applications de partage social sécurisées -->
 		<intent>
 			<action android:name="android.intent.action.SEND" />
 			<data android:mimeType="text/plain" />
@@ -97,11 +66,9 @@
 			<action android:name="android.intent.action.SEND" />
 			<data android:mimeType="image/*" />
 		</intent>
-		<!-- Caméra pour prise de photos -->
 		<intent>
 			<action android:name="android.media.action.IMAGE_CAPTURE" />
 		</intent>
-		<!-- Galerie pour sélection d'images -->
 		<intent>
 			<action android:name="android.intent.action.PICK" />
 			<data android:mimeType="image/*" />

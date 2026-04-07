@@ -6,13 +6,7 @@ using Microsoft.Maui.Graphics;
 namespace DonTroc.Views
 {
     /// <summary>
-    /// Vue de bannière publicitaire unifiée
-    /// Bascule automatiquement entre AppLovin MAX et AdMob selon la configuration
-    /// 
-    /// Priorité:
-    /// 1. AppLovin MAX (si activé et configuré)
-    /// 2. AdMob (si activé)
-    /// 3. Aucune publicité (invisible)
+    /// Vue de bannière publicitaire unifiée pour AdMob
     /// </summary>
     public class UnifiedAdBannerView : ContentView
     {
@@ -55,14 +49,7 @@ namespace DonTroc.Views
         /// </summary>
         private static AdProvider GetActiveAdProvider()
         {
-            // Priorité 1: AppLovin MAX
-            if (Services.AppLovinConfiguration.APPLOVIN_ENABLED &&
-                Services.AppLovinConfiguration.IsConfigurationValid())
-            {
-                return AdProvider.AppLovin;
-            }
-
-            // Priorité 2: AdMob
+            // Utiliser AdMob si activé
             if (Services.AdMobConfiguration.ADS_ENABLED)
             {
                 return AdProvider.AdMob;
@@ -110,8 +97,7 @@ namespace DonTroc.Views
         private enum AdProvider
         {
             None,
-            AdMob,
-            AppLovin
+            AdMob
         }
     }
 }

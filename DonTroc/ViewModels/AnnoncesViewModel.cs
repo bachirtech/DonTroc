@@ -32,8 +32,11 @@ public class AnnoncesViewModel : BaseViewModel
     private List<Annonce> _allAnnonces = new List<Annonce>();
     private Location? _userLocation; // Stocke la position de l'utilisateur
     private string _searchText = string.Empty; // Initialiser pour éviter les warnings
-    private int _chatClickCount = 0; // Compteur pour les publicités interstitielles
-
+    private string? _currentUserId; // ID de l'utilisateur connecté pour filtrage
+ 
+    
+    
+    
     // Propriété pour gérer l'affichage du skeleton loading lors du chargement initial
     private bool _isInitialLoading = true;
     public bool IsInitialLoading
@@ -104,8 +107,8 @@ public class AnnoncesViewModel : BaseViewModel
     public List<string> Types { get; } = new List<string> { "Tous", "Don", "Troc" };
     public List<string> Categories { get; } = new List<string> { "Toutes", "Vêtements", "Meubles", "Livres", "Électronique", "Maison", "Jardin", "Outils", "Loisirs", "Autre" };
     
-    // Liste pour les distances maximales (en km)
-    public List<int> DistanceOptions { get; } = new List<int> { 5, 10, 25, 50, 100, 1000 };
+    // Liste pour les distances maximales (en km) - Rayon géolocalisé pour les annonces
+    public List<int> DistanceOptions { get; } = new List<int> { 5, 10, 20, 30, 40, 50 };
 
     // Collection observable d'annonces pour la vue
     public ObservableCollection<Annonce> Annonces { get; }
@@ -160,7 +163,7 @@ public class AnnoncesViewModel : BaseViewModel
         // Initialiser les filtres
         _selectedType = "Tous";
         _selectedCategory = "Toutes";
-        _maxDistance = 1000; // Valeur par défaut à 1000 km
+        _maxDistance = 50; // Valeur par défaut: rayon de 50 km
     }
 
     /// <summary>
@@ -174,8 +177,7 @@ public class AnnoncesViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"❌ [SafeExecuteAsync] Exception non gérée: {ex.Message}");
-            Debug.WriteLine($"❌ StackTrace: {ex.StackTrace}");
+            Debug.WriteLine($"❌ [SafeExecuteAsync] {ex.Message}");
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
                 await Shell.Current.DisplayAlert("Erreur", "Une erreur inattendue s'est produite.", "OK");
@@ -197,31 +199,43 @@ public class AnnoncesViewModel : BaseViewModel
             return;
         }
         
-        Debug.WriteLine($"[ApplyFilters] Starting with {_allAnnonces.Count} total announcements.");
-        Debug.WriteLine($"[ApplyFilters] Filters: Type='{SelectedType}', Category='{SelectedCategory}', Search='{SearchText}', MaxDistance='{MaxDistance}', SortByDistance='{IsSortedByDistance}'");
 
         var filtered = _allAnnonces.Where(a =>
+            // Double sécurité : exclure les annonces de l'utilisateur connecté
+            (string.IsNullOrEmpty(_currentUserId) || !string.Equals(a.UtilisateurId?.Trim(), _currentUserId.Trim(), StringComparison.Ordinal)) &&
             (SelectedType == "Tous" || a.Type == SelectedType) &&
             (SelectedCategory == "Toutes" || a.Categorie == SelectedCategory) &&
             (string.IsNullOrWhiteSpace(SearchText) || a.Titre.ToLower().Contains(SearchText.ToLower())) &&
-            // Modifie le filtre de distance pour inclure les annonces sans géolocalisation
-            (a.DistanceFromUser == double.MaxValue || a.DistanceFromUser <= MaxDistance) // Si distance inconnue (MaxValue) ou dans le rayon
+            // Filtre de distance:
+            // - Si position utilisateur non disponible, afficher toutes les annonces
+            // - Sinon, afficher seulement les annonces dans le rayon MaxDistance
+            // - Les annonces sans coordonnées (DistanceFromUser == MaxValue) sont exclues si position dispo
+            (!IsLocationAvailable || (a.DistanceFromUser != double.MaxValue && a.DistanceFromUser <= MaxDistance))
         );
 
         // Appliquer le tri : d'abord par boost, puis par distance ou date
-        var sorted = IsSortedByDistance
-            ? filtered.OrderByDescending(a => a.IsBoosted).ThenBy(a => a.DistanceFromUser)
-            : filtered.OrderByDescending(a => a.IsBoosted).ThenByDescending(a => a.DateCreation);
+        IEnumerable<Annonce> sorted;
+        if (IsSortedByDistance)
+        {
+            // Trier par distance, mais mettre les annonces sans coordonnées à la fin
+            sorted = filtered
+                .OrderByDescending(a => a.IsBoosted)
+                .ThenBy(a => a.DistanceFromUser == double.MaxValue ? 1 : 0) // Annonces avec distance connue d'abord
+                .ThenBy(a => a.DistanceFromUser == double.MaxValue ? 0 : a.DistanceFromUser); // Puis par distance
+        }
+        else
+        {
+            sorted = filtered.OrderByDescending(a => a.IsBoosted).ThenByDescending(a => a.DateCreation);
+        }
 
         Annonces.Clear();
         var finalList = sorted.ToList();
-        Debug.WriteLine($"[ApplyFilters] Found {finalList.Count} announcements after filtering and sorting.");
+        Debug.WriteLine($"[ApplyFilters] {_allAnnonces.Count} → {finalList.Count} résultats");
         
         foreach (var annonce in finalList)
         {
             Annonces.Add(annonce);
         }
-        Debug.WriteLine($"[ApplyFilters] Public 'Annonces' collection now has {Annonces.Count} items.");
     }
 
     /// <summary>
@@ -229,21 +243,13 @@ public class AnnoncesViewModel : BaseViewModel
     /// </summary>
     private async Task ExecuteReportAnnonceCommand(Annonce annonce)
     {
-        Debug.WriteLine($"🔵 [ReportAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
-        if (annonce == null)
-        {
-            Debug.WriteLine("❌ [ReportAnnonceCommand] Annonce est NULL");
-            return;
-        }
+        if (annonce == null) return;
 
         var reason = await Shell.Current.DisplayPromptAsync("Signaler l'annonce", "Pourquoi signalez-vous cette annonce ?", "Envoyer", "Annuler", "Ex: Contenu inapproprié");
-        Debug.WriteLine($"🔵 [ReportAnnonceCommand] Raison saisie: {reason ?? "NULL/Annulé"}");
 
         if (!string.IsNullOrWhiteSpace(reason))
         {
             var currentUserId = _authService.GetUserId();
-            Debug.WriteLine($"🔵 [ReportAnnonceCommand] UserId: {currentUserId ?? "NULL"}");
             if (string.IsNullOrEmpty(currentUserId))
             {
                 await Shell.Current.DisplayAlert("Erreur", "Vous devez être connecté pour signaler une annonce.", "OK");
@@ -314,6 +320,35 @@ public class AnnoncesViewModel : BaseViewModel
             return;
         }
 
+        // Vérifier que le GPS est activé avant de permettre le contact
+        if (!IsLocationAvailable)
+        {
+            // Tenter de récupérer la position maintenant
+            try
+            {
+                _userLocation = await _geolocationService.GetCurrentLocationAsync();
+                OnPropertyChanged(nameof(IsLocationAvailable));
+            }
+            catch (Exception geoEx)
+            {
+                Debug.WriteLine($"[Chat] Géoloc échouée: {geoEx.Message}");
+                _userLocation = null;
+            }
+
+            if (!IsLocationAvailable)
+            {
+                await Shell.Current.DisplayAlert("GPS requis 📍",
+                    "Vous devez activer votre GPS pour pouvoir contacter un annonceur.\n\n" +
+                    "Cela permet de :\n" +
+                    "• Vérifier que vous êtes à proximité\n" +
+                    "• Garantir des échanges locaux\n" +
+                    "• Assurer la sécurité des utilisateurs\n\n" +
+                    "Veuillez activer le GPS dans les paramètres de votre appareil et réessayer.",
+                    "Compris");
+                return;
+            }
+        }
+
         if (IsBusy)
         {
             return;
@@ -343,22 +378,12 @@ public class AnnoncesViewModel : BaseViewModel
             var encodedConversationId = Uri.EscapeDataString(conversation.Id);
             await Shell.Current.GoToAsync($"ChatView?conversationId={encodedConversationId}");
 
-            // Incrémente le compteur de clics sur le chat
-            _chatClickCount++;
-
-            // Affiche une publicité interstitielle tous les 3 clics (par exemple)
-            if (_chatClickCount >= 3)
-            {
-                // Réinitialise le compteur après l'affichage de la publicité
-                _chatClickCount = 0;
-
-                // Affiche la publicité interstitielle
-                await _adMobService.ShowInterstitialAdAsync();
-            }
+            // Tenter un interstitiel après navigation (respecte cooldown/limites)
+            await _adMobService.TryShowInterstitialOnNavigationAsync("ChatFromAnnonce");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Erreur lors du démarrage du chat : {ex.Message}");
+            Debug.WriteLine($"[Chat] Erreur: {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible de démarrer la conversation.", "OK");
         }
         finally
@@ -386,7 +411,6 @@ public class AnnoncesViewModel : BaseViewModel
 
             if (transactionExistante != null)
             {
-                Debug.WriteLine($"Transaction existante trouvée pour l'annonce {annonce.Id}");
                 return; // Une transaction existe déjà
             }
 
@@ -396,15 +420,13 @@ public class AnnoncesViewModel : BaseViewModel
             await _transactionService.ProposerTransactionAsync(
                 annonce.Id, 
                 annonce.UtilisateurId, 
-                null, // Pas d'annonce d'échange pour l'instant (sera géré plus tard si nécessaire)
+                null,
                 message
             );
-
-            Debug.WriteLine($"Transaction automatique créée pour l'annonce {annonce.Id}");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Erreur lors de la création automatique de transaction : {ex.Message}");
+            Debug.WriteLine($"[Transaction] Erreur auto: {ex.Message}");
             // On ne bloque pas le processus si la création de transaction échoue
         }
     }
@@ -417,12 +439,10 @@ public class AnnoncesViewModel : BaseViewModel
         try
         {
             IsBusy = true;
-            Debug.WriteLine("[ExecuteLoadAnnoncesCommand] Loading announcements...");
 
             var userForAuth = await _authService.GetCurrentUserAsync();
             if (userForAuth == null)
             {
-                Debug.WriteLine("[ExecuteLoadAnnoncesCommand] User not authenticated after trying. Aborting load.");
                 IsBusy = false;
                 IsInitialLoading = false;
                 Annonces.Clear();
@@ -430,32 +450,27 @@ public class AnnoncesViewModel : BaseViewModel
                 return;
             }
 
-            Debug.WriteLine($"[ExecuteLoadAnnoncesCommand] Utilisateur authentifié: {userForAuth.Uid}");
+            _currentUserId = userForAuth.Uid;
             
-            // GAMIFICATION: Enregistrer l'action de navigation dans les annonces
+            // GAMIFICATION
             try
             {
                 await _gamificationService.OnUserActionAsync(userForAuth.Uid, "browse_annonces");
             }
             catch (Exception gamEx)
             {
-                Debug.WriteLine($"[Gamification] Erreur lors de l'enregistrement de l'action browse_annonces: {gamEx.Message}");
-                // Ne pas faire échouer le chargement pour une erreur de gamification
+                Debug.WriteLine($"[Gamification] Erreur browse_annonces: {gamEx.Message}");
             }
             
-            // La connexion Firebase sera vérifiée via les appels authentifiés
-            Debug.WriteLine("[ExecuteLoadAnnoncesCommand] Connexion Firebase vérifiée via appel authentifié.");
-            
-            // 1. Récupérer la position actuelle de l'utilisateur
+            // Récupérer la position
             try
             {
                 _userLocation = await _geolocationService.GetCurrentLocationAsync();
-                Debug.WriteLine($"[ExecuteLoadAnnoncesCommand] Géolocalisation: {(_userLocation != null ? "Réussie" : "Échouée")}");
             }
             catch (Exception geoEx)
             {
-                Debug.WriteLine($"[ExecuteLoadAnnoncesCommand] Erreur géolocalisation: {geoEx.Message}");
-                _userLocation = null; // Continuer sans géolocalisation
+                Debug.WriteLine($"[Annonces] Géoloc échouée: {geoEx.Message}");
+                _userLocation = null;
             }
             
             // Notifier que la propriété IsLocationAvailable a peut-être changé
@@ -465,7 +480,10 @@ public class AnnoncesViewModel : BaseViewModel
             var annoncesFromDb = await _firebaseService.GetAnnoncesAsync();
 
             // Filtrer les annonces de l'utilisateur actuel
-            _allAnnonces = annoncesFromDb.Where(a => a.UtilisateurId != userForAuth.Uid).ToList();
+            _allAnnonces = annoncesFromDb
+                .Where(a => !string.IsNullOrEmpty(a.UtilisateurId) && 
+                            !string.Equals(a.UtilisateurId.Trim(), userForAuth.Uid.Trim(), StringComparison.Ordinal))
+                .ToList();
             
             // Calculer la distance pour chaque annonce
             if (_userLocation != null)
@@ -476,6 +494,17 @@ public class AnnoncesViewModel : BaseViewModel
                     {
                         annonce.DistanceFromUser = Location.CalculateDistance(_userLocation, new Location(annonce.Latitude.Value, annonce.Longitude.Value), DistanceUnits.Kilometers);
                     }
+                    else
+                    {
+                        annonce.DistanceFromUser = double.MaxValue;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var annonce in _allAnnonces)
+                {
+                    annonce.DistanceFromUser = double.MaxValue;
                 }
             }
 
@@ -499,60 +528,60 @@ public class AnnoncesViewModel : BaseViewModel
     // Méthode pour ouvrir le visualiseur d'images
     private async Task ExecuteOpenImageViewerCommand(Annonce annonce)
     {
-        Debug.WriteLine($"🔵 [OpenImageViewerCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
         try
         {
             if (annonce?.PhotosUrls == null || !annonce.PhotosUrls.Any())
             {
-                Debug.WriteLine("❌ [OpenImageViewerCommand] Pas de photos dans l'annonce");
                 await Shell.Current.DisplayAlert("Aucune image", "Cette annonce ne contient aucune image.", "OK");
                 return;
             }
 
-            Debug.WriteLine($"🔵 [OpenImageViewerCommand] {annonce.PhotosUrls.Count} photos trouvées");
-
-            // Enregistrer l'action de l'utilisateur pour les suggestions
+            // Enregistrer l'action de l'utilisateur pour les suggestions (en arrière-plan)
             var userId = _authService.GetUserId();
             if (!string.IsNullOrEmpty(userId))
             {
-                var userAction = new UserAction
+                _ = Task.Run(async () =>
                 {
-                    UserId = userId,
-                    ActionType = "view_annonce",
-                    Category = annonce.Categorie ?? "Inconnue",
-                    Timestamp = DateTime.UtcNow,
-                    Metadata = new Dictionary<string, object> { { "annonceId", annonce.Id } }
-                };
-                await _firebaseService.SaveUserActionAsync(userAction);
+                    try
+                    {
+                        var userAction = new UserAction
+                        {
+                            UserId = userId,
+                            ActionType = "view_annonce",
+                            Category = annonce.Categorie ?? "Inconnue",
+                            Timestamp = DateTime.UtcNow,
+                            Metadata = new Dictionary<string, object> { { "annonceId", annonce.Id } }
+                        };
+                        await _firebaseService.SaveUserActionAsync(userAction);
+                    }
+                    catch { }
+                });
             }
 
             // Filtrer les URLs valides
             var validUrls = annonce.PhotosUrls
-                .Where(url => !string.IsNullOrEmpty(url) && Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                .Where(url => !string.IsNullOrEmpty(url) && 
+                              (Uri.IsWellFormedUriString(url, UriKind.Absolute) || url.StartsWith("http")))
                 .ToList();
 
             if (!validUrls.Any())
             {
-                Debug.WriteLine("❌ [OpenImageViewerCommand] Aucune URL valide trouvée");
                 await Shell.Current.DisplayAlert("Images invalides", "Les images de cette annonce ne sont pas disponibles.", "OK");
                 return;
             }
 
-            _logger.LogInformation("Ouverture du visualiseur d'images pour l'annonce {AnnonceId} avec {Count} images", annonce.Id, validUrls.Count);
-            Debug.WriteLine($"✅ [OpenImageViewerCommand] Navigation avec {validUrls.Count} URLs valides");
+            // Joindre les URLs avec le séparateur pipe
+            var urlsParameter = string.Join("|", validUrls);
 
-            // CORRECTION: Ne pas encoder les URLs - les passer directement
-            // Les URLs Cloudinary sont déjà bien formées et l'encodage les corrompait
-            var urlsParameter = string.Join(",", validUrls);
-
-            // Naviguer vers le visualiseur d'images en passant les URLs
-            await Shell.Current.GoToAsync($"ImageViewerView?imageUrls={urlsParameter}");
-            Debug.WriteLine("✅ [OpenImageViewerCommand] Navigation réussie");
+            // Naviguer vers le visualiseur d'images avec un dictionnaire de paramètres
+            var navigationParameters = new Dictionary<string, object>
+            {
+                { "imageUrls", urlsParameter }
+            };
+            await Shell.Current.GoToAsync("ImageViewerView", navigationParameters);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"❌ [OpenImageViewerCommand] Exception: {ex.Message}");
             _logger.LogError(ex, "Erreur lors de l'ouverture du visualiseur d'images pour l'annonce {AnnonceId}", annonce?.Id);
             await Shell.Current.DisplayAlert("Erreur", "Impossible d'ouvrir les images. Veuillez réessayer.", "OK");
         }
@@ -561,20 +590,11 @@ public class AnnoncesViewModel : BaseViewModel
     // Méthode pour ajouter ou retirer une annonce des favoris
     private async Task ExecuteToggleFavoriteCommand(Annonce annonce)
     {
-        Debug.WriteLine($"🔵 [ToggleFavoriteCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
-        if (annonce == null)
-        {
-            Debug.WriteLine("❌ [ToggleFavoriteCommand] Annonce est NULL");
-            return;
-        }
+        if (annonce == null) return;
 
         var userId = _authService.GetUserId();
-        Debug.WriteLine($"🔵 [ToggleFavoriteCommand] UserId: {userId ?? "NULL"}");
-        
         if (string.IsNullOrEmpty(userId))
         {
-            Debug.WriteLine("❌ [ToggleFavoriteCommand] Utilisateur non connecté");
             await Shell.Current.DisplayAlert("Connexion requise", "Vous devez être connecté pour gérer vos favoris.", "OK");
             await Shell.Current.GoToAsync("//LoginView");
             return;
@@ -582,26 +602,21 @@ public class AnnoncesViewModel : BaseViewModel
 
         try
         {
-            annonce.IsFavorite = !annonce.IsFavorite; // Mettre à jour l'UI immédiatement
-            Debug.WriteLine($"🔵 [ToggleFavoriteCommand] IsFavorite changé à: {annonce.IsFavorite}");
+            annonce.IsFavorite = !annonce.IsFavorite;
 
             if (annonce.IsFavorite)
             {
-                // Passer l'annonce complète pour sauvegarder toutes les données (titre, image, etc.)
                 await _favoritesService.AddToFavoritesAsync(annonce);
-                await _gamificationService.OnUserActionAsync(userId, "add_favorite"); // GAMIFICATION
-                Debug.WriteLine("✅ [ToggleFavoriteCommand] Ajouté aux favoris");
+                await _gamificationService.OnUserActionAsync(userId, "add_favorite");
             }
             else
             {
                 await _favoritesService.RemoveFavoriteAsync(userId, annonce.Id);
-                Debug.WriteLine("✅ [ToggleFavoriteCommand] Retiré des favoris");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"❌ [ToggleFavoriteCommand] Exception: {ex.Message}");
-            // Annuler le changement visuel en cas d'erreur
+            Debug.WriteLine($"[Favoris] Erreur: {ex.Message}");
             annonce.IsFavorite = !annonce.IsFavorite;
             await Shell.Current.DisplayAlert("Erreur", "Impossible de mettre à jour vos favoris.", "OK");
         }
@@ -610,21 +625,12 @@ public class AnnoncesViewModel : BaseViewModel
     // Méthode pour partager une annonce
     private async Task ExecuteShareAnnonceCommand(Annonce annonce)
     {
-        Debug.WriteLine($"🔵 [ShareAnnonceCommand] Commande appelée, annonce: {annonce?.Id ?? "NULL"}");
-        
-        if (annonce == null)
-        {
-            Debug.WriteLine("❌ [ShareAnnonceCommand] Annonce est NULL");
-            return;
-        }
+        if (annonce == null) return;
 
         try
         {
-            Debug.WriteLine($"🔵 [ShareAnnonceCommand] Partage de: {annonce.Titre}");
             await _socialService.ShareAnnonceAsync(annonce);
-            Debug.WriteLine("✅ [ShareAnnonceCommand] Partage réussi");
             
-            // GAMIFICATION uniquement si l'utilisateur est connecté
             var userId = _authService.GetUserId();
             if (!string.IsNullOrEmpty(userId))
             {
@@ -633,7 +639,7 @@ public class AnnoncesViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"❌ [ShareAnnonceCommand] Exception: {ex.Message}");
+            Debug.WriteLine($"[Partage] Erreur: {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible de partager cette annonce.", "OK");
         }
     }

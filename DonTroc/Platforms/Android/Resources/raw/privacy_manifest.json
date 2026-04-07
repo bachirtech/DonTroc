@@ -1,20 +1,35 @@
 {
   "privacy_policy": {
     "url": "https://dontroc.com/privacy-policy",
+    "last_updated": "2026-03-02",
     "permissions": {
       "android.permission.CAMERA": {
         "purpose": "Permet aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc",
-        "data_collection": "Photos stockées localement et sur serveurs sécurisés",
+        "data_collection": "Photos stockées localement et sur serveurs sécurisés (Cloudinary)",
         "data_sharing": "Aucun partage avec des tiers sans consentement",
         "data_retention": "Photos supprimées avec le compte utilisateur",
         "user_control": "L'utilisateur peut supprimer ses photos à tout moment"
       },
       "android.permission.ACCESS_FINE_LOCATION": {
-        "purpose": "Localiser les objets disponibles près de l'utilisateur",
+        "purpose": "Localiser les objets disponibles près de l'utilisateur et envoyer des notifications de proximité",
+        "data_collection": "Position approximative pour calcul de distances et notifications de proximité",
+        "data_sharing": "Position approximative (ville/quartier) affichée dans les annonces. Position exacte jamais partagée publiquement",
+        "data_retention": "Supprimée après suppression du compte utilisateur",
+        "user_control": "Permission révocable dans les paramètres. Notifications de proximité désactivables dans le profil"
+      },
+      "android.permission.ACCESS_COARSE_LOCATION": {
+        "purpose": "Localisation approximative pour les annonces à proximité",
         "data_collection": "Position approximative uniquement",
-        "data_sharing": "Position approximative affichée dans les annonces",
-        "data_retention": "Supprimée après suppression de l'annonce",
+        "data_sharing": "Utilisée uniquement pour le calcul de distances",
+        "data_retention": "Supprimée après suppression du compte",
         "user_control": "Permission révocable dans les paramètres"
+      },
+      "com.google.android.gms.permission.AD_ID": {
+        "purpose": "Identifiant publicitaire pour le fonctionnement de Google AdMob",
+        "data_collection": "Identifiant publicitaire anonyme (GAID)",
+        "data_sharing": "Partagé avec Google AdMob pour la diffusion de publicités",
+        "data_retention": "Géré par Google AdMob selon ses propres politiques",
+        "user_control": "Réinitialisable dans Paramètres Android > Google > Annonces. Personnalisation désactivable"
       }
     }
   },
@@ -23,9 +38,25 @@
       "permission": "android.permission.CAMERA",
       "purpose": "photo_capture",
       "data_category": "photo",
-      "description": "Cette permission est utilisée pour permettre aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc. Les photos sont essentielles pour présenter les objets de manière attrayante et favoriser les échanges entre utilisateurs.",
+      "description": "Cette permission est utilisée pour permettre aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc.",
       "usage": "user_initiated",
       "retention": "user_controlled"
+    },
+    {
+      "permission": "android.permission.ACCESS_FINE_LOCATION",
+      "purpose": "proximity_features",
+      "data_category": "location",
+      "description": "Cette permission est utilisée pour afficher les annonces proches, calculer les distances et envoyer des notifications de proximité.",
+      "usage": "app_functionality",
+      "retention": "account_deletion"
+    },
+    {
+      "permission": "com.google.android.gms.permission.AD_ID",
+      "purpose": "advertising",
+      "data_category": "advertising_id",
+      "description": "L'identifiant publicitaire est utilisé par Google AdMob pour diffuser des publicités.",
+      "usage": "automatic",
+      "retention": "third_party_managed"
     }
   ],
   "data_usage": [
@@ -34,9 +65,46 @@
       "collection_purpose": "app_functionality",
       "sharing": "none",
       "retention_policy": "user_controlled",
-      "description": "Les photos prises via l'appareil photo sont utilisées uniquement pour créer des annonces d'objets à donner ou échanger. Elles sont stockées localement et uploadées vers notre service cloud sécurisé uniquement avec le consentement de l'utilisateur."
+      "description": "Les photos prises via l'appareil photo sont utilisées uniquement pour créer des annonces. Elles sont stockées localement et uploadées vers Cloudinary (cloud sécurisé) avec le consentement de l'utilisateur."
+    },
+    {
+      "data_type": "location",
+      "collection_purpose": "app_functionality",
+      "sharing": "approximate_only",
+      "retention_policy": "account_deletion",
+      "description": "La localisation est utilisée pour calculer les distances, afficher les annonces à proximité et envoyer des notifications de proximité. Seule la position approximative est visible publiquement."
+    },
+    {
+      "data_type": "advertising_id",
+      "collection_purpose": "advertising",
+      "sharing": "ad_networks",
+      "retention_policy": "third_party_managed",
+      "description": "L'identifiant publicitaire est partagé avec Google AdMob pour afficher des publicités et financer l'application gratuite."
+    },
+    {
+      "data_type": "gamification_data",
+      "collection_purpose": "app_functionality",
+      "sharing": "none",
+      "retention_policy": "account_deletion",
+      "description": "Points d'expérience, niveaux, badges et défis sont stockés localement pour enrichir l'expérience utilisateur."
     }
   ],
-  "third_party_services": [],
-  "contact": "contact@bachirdev.com"
+  "third_party_services": [
+    {
+      "name": "Firebase (Google)",
+      "purpose": "Authentification, base de données temps réel, notifications push",
+      "privacy_policy": "https://firebase.google.com/support/privacy"
+    },
+    {
+      "name": "Cloudinary",
+      "purpose": "Hébergement sécurisé des photos",
+      "privacy_policy": "https://cloudinary.com/privacy"
+    },
+    {
+      "name": "Google AdMob",
+      "purpose": "Réseau publicitaire",
+      "privacy_policy": "https://policies.google.com/privacy"
+    }
+  ],
+  "contact": "bachirdev.pro@gmail.com"
 }

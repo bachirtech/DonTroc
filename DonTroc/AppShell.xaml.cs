@@ -50,6 +50,13 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(WheelOfFortunePage), typeof(WheelOfFortunePage));
         // Enregistre la route pour la page de tous les badges
         Routing.RegisterRoute(nameof(AllBadgesPage), typeof(AllBadgesPage));
+        
+        // Routes pour le panneau d'administration
+        Routing.RegisterRoute(nameof(AdminDashboardPage), typeof(AdminDashboardPage));
+        Routing.RegisterRoute(nameof(UserManagementPage), typeof(UserManagementPage));
+        Routing.RegisterRoute(nameof(AdminLogsPage), typeof(AdminLogsPage));
+        Routing.RegisterRoute(nameof(ModerationPage), typeof(ModerationPage));
+        Routing.RegisterRoute(nameof(AdminSetupPage), typeof(AdminSetupPage));
 
         UpdateMessagesBadge();
     }

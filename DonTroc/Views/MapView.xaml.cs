@@ -4,7 +4,9 @@ using Microsoft.Maui.Maps;
 using DonTroc.ViewModels;
 using DonTroc.Models;
 using System;
+using System.Linq;
 using System.Collections.Specialized;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices.Sensors;
 
 namespace DonTroc.Views
@@ -12,6 +14,8 @@ namespace DonTroc.Views
     public partial class MapView : ContentPage
     {
         private MapViewModel _viewModel;
+        private bool _isUpdatingPins;
+        private bool _eventsInitialized;
 
         public MapView(MapViewModel viewModel)
         {
@@ -19,33 +23,42 @@ namespace DonTroc.Views
             _viewModel = viewModel;
             BindingContext = _viewModel;
 
-            // Initialiser les événements et la carte
-            InitializeMapEvents();
+            // Position initiale par défaut pour que la carte s'affiche immédiatement
+            try
+            {
+                var defaultLocation = new Location(46.2276, 2.2137);
+                GoogleMap.MoveToRegion(MapSpan.FromCenterAndRadius(defaultLocation, Distance.FromKilometers(500)));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Map] Erreur position initiale: {ex.Message}");
+            }
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
 
-            // Initialiser le ViewModel quand la page apparaît
-            await _viewModel.InitializeAsync();
+            // Attacher les événements une seule fois pour éviter les doublons
+            if (!_eventsInitialized)
+            {
+                InitializeMapEvents();
+                _eventsInitialized = true;
+            }
 
-            // Mettre à jour les pins sur la carte
-            UpdateMapPins();
+            // Initialiser le ViewModel — les pins seront mis à jour via les événements PropertyChanged
+            await _viewModel.InitializeAsync();
         }
 
         private void InitializeMapEvents()
         {
-            // S'abonner aux changements du ViewModel
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-            // S'abonner aux changements de la collection d'annonces
             if (_viewModel.NearbyAnnouncements != null)
             {
                 _viewModel.NearbyAnnouncements.CollectionChanged += OnAnnouncementsChanged;
             }
 
-            // Événement de clic sur la carte
             GoogleMap.MapClicked += OnMapClicked;
         }
 
@@ -54,92 +67,122 @@ namespace DonTroc.Views
             switch (e.PropertyName)
             {
                 case nameof(MapViewModel.UserLocation):
-                    UpdateMapCenter();
+                    // Forcer l'exécution sur le MainThread (critique en Release/AOT)
+                    MainThread.BeginInvokeOnMainThread(UpdateMapCenter);
                     break;
                 case nameof(MapViewModel.NearbyAnnouncements):
-                    UpdateMapPins();
-                    // S'abonner aux nouveaux changements de collection
+                    // Réabonner à la nouvelle collection
                     if (_viewModel.NearbyAnnouncements != null)
                     {
+                        _viewModel.NearbyAnnouncements.CollectionChanged -= OnAnnouncementsChanged;
                         _viewModel.NearbyAnnouncements.CollectionChanged += OnAnnouncementsChanged;
                     }
-
+                    MainThread.BeginInvokeOnMainThread(UpdateMapPins);
                     break;
             }
         }
 
         private void OnAnnouncementsChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            // Mettre à jour les pins quand la collection change
-            UpdateMapPins();
+            // Rafraîchir les pins seulement pour un Reset ou Add
+            if (e.Action == NotifyCollectionChangedAction.Reset || 
+                e.Action == NotifyCollectionChangedAction.Add)
+            {
+                MainThread.BeginInvokeOnMainThread(UpdateMapPins);
+            }
         }
 
         private void OnMapClicked(object? sender, MapClickedEventArgs e)
         {
-            // Notifier le ViewModel de la nouvelle position sélectionnée
             _viewModel.OnMapLocationSelected(e.Location.Latitude, e.Location.Longitude);
         }
 
         private void UpdateMapCenter()
         {
-            if (_viewModel.UserLocation != null)
+            if (_viewModel.UserLocation == null) return;
+            
+            try
             {
                 var location = new Location(_viewModel.UserLocation.Latitude, _viewModel.UserLocation.Longitude);
-                var mapSpan = new MapSpan(location, 0.01, 0.01); // Zoom proche
-                GoogleMap.MoveToRegion(mapSpan);
+                
+                // Adapter le zoom selon le rayon de recherche
+                var radiusKm = _viewModel.SearchRadius;
+                var mapDistance = Distance.FromKilometers(Math.Max(radiusKm * 1.5, 2));
+                
+                GoogleMap.MoveToRegion(MapSpan.FromCenterAndRadius(location, mapDistance));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Map] Erreur UpdateMapCenter: {ex.Message}");
             }
         }
 
         private void UpdateMapPins()
         {
-            // Vider les pins existants
-            GoogleMap.Pins.Clear();
-
-            // Ajouter des pins pour chaque annonce
-            foreach (var annonce in _viewModel.NearbyAnnouncements)
+            // Éviter les appels multiples simultanés
+            if (_isUpdatingPins) return;
+            _isUpdatingPins = true;
+            
+            try
             {
-                // Vérifier que les coordonnées sont valides et non nulles
-                if (!annonce.Latitude.HasValue || !annonce.Longitude.HasValue)
-                    continue;
+                GoogleMap.Pins.Clear();
 
-                if (annonce.Latitude == 0 && annonce.Longitude == 0)
-                    continue;
+                // Copier la collection pour éviter les race conditions 
+                // (la collection peut changer pendant l'itération en Release)
+                var announcements = _viewModel.NearbyAnnouncements?.ToList();
+                if (announcements == null) return;
 
-                var pin = new Pin
+                foreach (var annonce in announcements)
                 {
-                    Label = annonce.Titre,
-                    Address = annonce.Description,
-                    Type = PinType.Place,
-                    Location = new Location(annonce.Latitude.Value, annonce.Longitude.Value)
-                };
+                    if (!annonce.Latitude.HasValue || !annonce.Longitude.HasValue)
+                        continue;
+                    if (annonce.Latitude == 0 && annonce.Longitude == 0)
+                        continue;
 
-                // Personnaliser l'apparence selon le type d'annonce
-                pin.MarkerClicked += (s, args) => OnPinClicked(annonce);
+                    var distanceText = FormatDistance(annonce.DistanceFromUser);
+                    var descSnippet = annonce.Description != null
+                        ? annonce.Description.Substring(0, Math.Min(annonce.Description.Length, 50))
+                        : "";
+                    
+                    var pin = new Pin
+                    {
+                        Label = annonce.Titre ?? "Annonce",
+                        Address = $"{distanceText} — {descSnippet}",
+                        Type = PinType.Place,
+                        Location = new Location(annonce.Latitude.Value, annonce.Longitude.Value)
+                    };
 
-                GoogleMap.Pins.Add(pin);
+                    pin.MarkerClicked += (s, args) => OnPinClicked(annonce);
+                    GoogleMap.Pins.Add(pin);
+                }
+
+                // Pin position utilisateur
+                if (_viewModel.UserLocation != null)
+                {
+                    var userPin = new Pin
+                    {
+                        Label = "📍 Votre position",
+                        Address = _viewModel.CurrentLocationText,
+                        Type = PinType.Generic,
+                        Location = new Location(_viewModel.UserLocation.Latitude, _viewModel.UserLocation.Longitude)
+                    };
+                    GoogleMap.Pins.Add(userPin);
+                }
             }
-
-            // Ajouter un pin pour la position utilisateur si disponible
-            if (_viewModel.UserLocation != null)
+            catch (Exception ex)
             {
-                var userPin = new Pin
-                {
-                    Label = "Votre position",
-                    Address = _viewModel.CurrentLocationText,
-                    Type = PinType.Generic,
-                    Location = new Location(_viewModel.UserLocation.Latitude, _viewModel.UserLocation.Longitude)
-                };
-
-                GoogleMap.Pins.Add(userPin);
+                System.Diagnostics.Debug.WriteLine($"[Map] Erreur UpdateMapPins: {ex.Message}");
+            }
+            finally
+            {
+                _isUpdatingPins = false;
             }
         }
 
         private async void OnPinClicked(Annonce annonce)
         {
-            // Créer le texte de distance formaté
             string distanceText = FormatDistance(annonce.DistanceFromUser);
 
-            // Afficher les détails de l'annonce dans une popup
             var action = await DisplayActionSheet(
                 $"{annonce.Titre}",
                 "Fermer",
@@ -152,26 +195,34 @@ namespace DonTroc.Views
             switch (action)
             {
                 case "Voir les détails":
-                    // Naviguer vers les détails de l'annonce
                     await Shell.Current.GoToAsync($"//AnnoncesView?annonceId={annonce.Id}");
                     break;
                 case "Contacter":
-                    // Naviguer vers le chat
+                    // Vérifier que le GPS est activé avant de permettre le contact
+                    if (_viewModel.UserLocation == null)
+                    {
+                        await DisplayAlert("GPS requis 📍",
+                            "Vous devez activer votre GPS pour pouvoir contacter un annonceur.\n\n" +
+                            "Cela permet de :\n" +
+                            "• Vérifier que vous êtes à proximité\n" +
+                            "• Garantir des échanges locaux\n" +
+                            "• Assurer la sécurité des utilisateurs\n\n" +
+                            "Veuillez activer le GPS dans les paramètres de votre appareil et réessayer.",
+                            "Compris");
+                        return;
+                    }
                     await Shell.Current.GoToAsync($"//ConversationsView?userId={annonce.UtilisateurId}");
                     break;
             }
         }
 
-        /// <summary>
-        /// Formate la distance pour l'affichage
-        /// </summary>
         private string FormatDistance(double? distance)
         {
             if (!distance.HasValue || distance == double.MaxValue)
                 return "Distance inconnue";
 
             if (distance < 1)
-                return $"{(int)(distance * 1000)} m"; // Afficher en mètres si < 1km
+                return $"{(int)(distance * 1000)} m";
 
             return $"{distance:F1} km";
         }
@@ -179,19 +230,8 @@ namespace DonTroc.Views
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-
-            // Se désabonner des événements pour éviter les fuites mémoire
-            if (_viewModel != null)
-            {
-                _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-
-                if (_viewModel.NearbyAnnouncements != null)
-                {
-                    _viewModel.NearbyAnnouncements.CollectionChanged -= OnAnnouncementsChanged;
-                }
-            }
-
-            GoogleMap.MapClicked -= OnMapClicked;
+            // Ne PAS détacher les événements ici — ils sont gérés par _eventsInitialized
+            // Détacher causerait des problèmes quand la page revient (tab navigation)
         }
     }
 }

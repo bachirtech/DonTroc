@@ -157,13 +157,11 @@ public class LoginViewModel : BaseViewModel
                 if (!string.IsNullOrEmpty(savedEmail))
                 {
                     Email = savedEmail;
-                    System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Email chargé depuis SecureStorage: {savedEmail}");
                 }
                 
                 if (!string.IsNullOrEmpty(savedPassword))
                 {
                     Password = savedPassword;
-                    System.Diagnostics.Debug.WriteLine("[LoginViewModel] Mot de passe chargé depuis SecureStorage");
                 }
 
                 RememberMe = true;
@@ -227,7 +225,6 @@ public class LoginViewModel : BaseViewModel
                 try
                 {
                     await _globalNotificationService.InitializeAsync();
-                    System.Diagnostics.Debug.WriteLine("[LoginViewModel] Service de notifications en temps réel initialisé");
                 }
                 catch (Exception notifEx)
                 {
@@ -334,11 +331,7 @@ public class LoginViewModel : BaseViewModel
         IsBusy = true;
         try
         {
-            System.Diagnostics.Debug.WriteLine($"🔐 [LoginViewModel] Demande de réinitialisation pour l'email : {normalizedEmail}");
-            
             await _authService.SendPasswordResetEmailAsync(normalizedEmail);
-            
-            System.Diagnostics.Debug.WriteLine($"✅ [LoginViewModel] Réinitialisation réussie pour : {normalizedEmail}");
             
             await Shell.Current.DisplayAlert("Email envoyé ✉️", 
                 $"Un e-mail de réinitialisation a été envoyé à :\n{normalizedEmail}\n\n" +
@@ -350,18 +343,15 @@ public class LoginViewModel : BaseViewModel
         }
         catch (ArgumentException argEx)
         {
-            System.Diagnostics.Debug.WriteLine($"⚠️ [LoginViewModel] Argument invalide : {argEx.Message}");
             await Shell.Current.DisplayAlert("Erreur de saisie", argEx.Message, "OK");
         }
         catch (InvalidOperationException opEx)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ [LoginViewModel] Erreur opération : {opEx.Message}");
             await Shell.Current.DisplayAlert("Échec de l'envoi", opEx.Message, "OK");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ [LoginViewModel] Erreur inattendue : {ex.GetType().Name} - {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"❌ [LoginViewModel] StackTrace: {ex.StackTrace}");
+            System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur reset password: {ex.Message}");
             
             await Shell.Current.DisplayAlert("Erreur", 
                 "Une erreur inattendue est survenue lors de l'envoi de l'email de réinitialisation.\n\n" +

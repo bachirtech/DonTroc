@@ -5,6 +5,16 @@ using System.Collections.Generic;
 
 namespace DonTroc.Models
 {
+    /// <summary>
+    /// Énumération des rôles utilisateur
+    /// </summary>
+    public enum UserRole
+    {
+        Standard = 0,    // Utilisateur normal
+        Moderator = 1,   // Modérateur (peut gérer les signalements et suspendre temporairement)
+        Admin = 2        // Administrateur (tous les droits)
+    }
+
     public class UserProfile // Modèle de données pour le profil utilisateur
     { 
         public string Id { get; set; } = null!;
@@ -17,6 +27,53 @@ namespace DonTroc.Models
         public string? ProfilePictureUrl { get; set; }
         // Alias pour compatibilité XAML existante (SocialView.xaml lie "PhotoProfil")
         public string? PhotoProfil { get => ProfilePictureUrl; set => ProfilePictureUrl = value; }
+
+        // === SYSTÈME DE RÔLES ET PERMISSIONS ===
+        
+        /// <summary>
+        /// Rôle de l'utilisateur (Standard, Moderator, Admin)
+        /// </summary>
+        public UserRole Role { get; set; } = UserRole.Standard;
+
+        /// <summary>
+        /// Indique si l'utilisateur est suspendu
+        /// </summary>
+        public bool IsSuspended { get; set; } = false;
+
+        /// <summary>
+        /// Raison de la suspension (si applicable)
+        /// </summary>
+        public string? SuspensionReason { get; set; }
+
+        /// <summary>
+        /// Date de début de la suspension
+        /// </summary>
+        public DateTime? SuspensionDate { get; set; }
+
+        /// <summary>
+        /// Date de fin de la suspension (null = indéfinie)
+        /// </summary>
+        public DateTime? SuspensionEndDate { get; set; }
+
+        /// <summary>
+        /// ID de l'admin qui a effectué la suspension
+        /// </summary>
+        public string? SuspendedBy { get; set; }
+
+        /// <summary>
+        /// Vérifie si l'utilisateur est admin
+        /// </summary>
+        public bool IsAdmin => Role == UserRole.Admin;
+
+        /// <summary>
+        /// Vérifie si l'utilisateur est modérateur ou admin
+        /// </summary>
+        public bool IsModerator => Role == UserRole.Moderator || Role == UserRole.Admin;
+
+        /// <summary>
+        /// Vérifie si l'utilisateur peut accéder au panneau d'administration
+        /// </summary>
+        public bool CanAccessAdminPanel => IsModerator && !IsSuspended;
 
         // === SYSTÈME DE NOTATION ===
         
@@ -78,9 +135,9 @@ namespace DonTroc.Models
         public DateTime? LastLocationUpdate { get; set; }
 
         /// <summary>
-        /// Rayon de notification préféré (en km) - par défaut 5 km
+        /// Rayon de notification préféré (en km) - par défaut 50 km
         /// </summary>
-        public double NotificationRadius { get; set; } = 5.0;
+        public double NotificationRadius { get; set; } = 50.0;
 
         /// <summary>
         /// Activer/désactiver les notifications de proximité
@@ -121,6 +178,23 @@ namespace DonTroc.Models
             NombreEvaluations++;
             NoteMoyenne = Math.Round(totalPoints / NombreEvaluations, 1);
             CalculerBadgeConfiance();
+        }
+
+        /// <summary>
+        /// Vérifie si la suspension est expirée et la lève automatiquement
+        /// </summary>
+        public bool CheckAndClearExpiredSuspension()
+        {
+            if (IsSuspended && SuspensionEndDate.HasValue && SuspensionEndDate.Value <= DateTime.UtcNow)
+            {
+                IsSuspended = false;
+                SuspensionReason = null;
+                SuspensionDate = null;
+                SuspensionEndDate = null;
+                SuspendedBy = null;
+                return true;
+            }
+            return false;
         }
     }
 

@@ -31,8 +31,7 @@ public partial class ProfilView : ContentPage
     {
         base.OnAppearing();
 
-        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
-        await _adMobService.TryShowInterstitialOnNavigationAsync("Profil");
+        // ⚠️ Pas d'interstitiel sur la page Profil — page personnelle critique
 
         if (BindingContext is not ProfilViewModel vm) return;
         await vm.LoadUserProfile();
@@ -56,72 +55,33 @@ public partial class ProfilView : ContentPage
                 await TipOverlay.ShowTipAsync("profil", _tipsService);
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Erreur affichage conseils: {ex.Message}");
-        }
+        catch { }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton Modifier une annonce
-    /// </summary>
     private void OnEditAnnonceClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [ProfilView] OnEditAnnonceClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [ProfilView] Annonce trouvée: {annonce.Id}");
             if (BindingContext is ProfilViewModel vm)
-            {
                 vm.EditAnnonceCommand.Execute(annonce);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [ProfilView] Annonce non trouvée dans le BindingContext");
         }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton Supprimer une annonce
-    /// </summary>
     private void OnDeleteAnnonceClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [ProfilView] OnDeleteAnnonceClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [ProfilView] Annonce trouvée: {annonce.Id}");
             if (BindingContext is ProfilViewModel vm)
-            {
                 vm.DeleteAnnonceCommand.Execute(annonce);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [ProfilView] Annonce non trouvée dans le BindingContext");
         }
     }
 
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton Booster une annonce
-    /// </summary>
     private void OnBoostAnnonceClicked(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("🔵 [ProfilView] OnBoostAnnonceClicked appelé");
-        
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
-            System.Diagnostics.Debug.WriteLine($"🔵 [ProfilView] Annonce trouvée: {annonce.Id}");
             if (BindingContext is ProfilViewModel vm)
-            {
                 vm.BoostAnnonceCommand.Execute(annonce);
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("❌ [ProfilView] Annonce non trouvée dans le BindingContext");
         }
     }
 

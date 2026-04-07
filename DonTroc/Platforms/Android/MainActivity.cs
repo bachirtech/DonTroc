@@ -1,18 +1,17 @@
-﻿﻿﻿﻿using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Gms.Ads;
-using Android.Views;
+using Google.Android.Gms.Ads;
 using AndroidX.Core.View;
 using System.Collections.Generic;
 using Microsoft.Maui;
 using DonTroc.Services;
-using DonTroc.Platforms.Android;
 
 namespace DonTroc;
 
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop,
+    ResizeableActivity = true,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode |
                            ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
@@ -24,7 +23,7 @@ public class MainActivity : MauiAppCompatActivity
         // ✅ Activer l'affichage Edge-to-Edge pour Android 15+ (SDK 35)
         EnableEdgeToEdge();
 
-        // ✅ Initialisation AdMob au démarrage de l'application
+        // ✅ Initialisation AdMob
         InitializeAdMob();
     }
 
@@ -64,83 +63,44 @@ public class MainActivity : MauiAppCompatActivity
                     windowInsetsController.AppearanceLightNavigationBars = !isDarkTheme;
                 }
             }
-
-            System.Diagnostics.Debug.WriteLine("✅ Edge-to-Edge activé avec succès");
         }
-        catch (System.Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"⚠️ Erreur lors de l'activation Edge-to-Edge: {ex.Message}");
-            // Ne pas bloquer l'app si Edge-to-Edge échoue
-        }
+        catch { }
     }
 
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
     {
         base.OnActivityResult(requestCode, resultCode, data);
-        
-        System.Diagnostics.Debug.WriteLine($"🔵 [MainActivity] OnActivityResult - requestCode: {requestCode}, resultCode: {resultCode}");
-        
-        // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
-        /*
-        // Transmettre le résultat au service Google Auth
-        if (requestCode == RequestCodes.GoogleSignIn)
-        {
-            System.Diagnostics.Debug.WriteLine($"🔵 [MainActivity] Google Sign-In result reçu, resultCode: {resultCode}");
-            
-            try
-            {
-                // Essayer plusieurs méthodes pour obtenir le service
-                GoogleAuthService? googleAuthService = null;
-                
-                // Méthode 1: Via IPlatformApplication
-                googleAuthService = IPlatformApplication.Current?.Services.GetService<GoogleAuthService>();
-                
-                // Méthode 2: Via Application.Current si la première échoue
-                if (googleAuthService == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ [MainActivity] Tentative via Application.Current...");
-                    googleAuthService = Microsoft.Maui.Controls.Application.Current?.Handler?.MauiContext?.Services.GetService<GoogleAuthService>();
-                }
-                
-                if (googleAuthService != null)
-                {
-                    System.Diagnostics.Debug.WriteLine("✅ [MainActivity] GoogleAuthService trouvé, transmission du résultat...");
-                    googleAuthService.HandleActivityResult(requestCode, resultCode, data);
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("❌ [MainActivity] GoogleAuthService est NULL!");
-                }
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ [MainActivity] Erreur lors du traitement Google Sign-In: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"❌ [MainActivity] StackTrace: {ex.StackTrace}");
-            }
-        }
-        */
     }
 
     private void InitializeAdMob()
     {
         try
         {
-            // ⚠️ Vérifier si les publicités sont désactivées (suspension AdMob)
-            if (!DonTroc.Services.AdMobConfiguration.ADS_ENABLED)
-            {
-                System.Diagnostics.Debug.WriteLine(DonTroc.Services.AdMobConfiguration.GetStatusMessage());
-                System.Diagnostics.Debug.WriteLine("🚫 Initialisation AdMob ignorée - compte suspendu");
-                return;
-            }
+            if (!AdMobConfiguration.ADS_ENABLED) return;
 
-            System.Diagnostics.Debug.WriteLine("🎯 Initialisation du SDK AdMob...");
+#if DEBUG
+            // ============================================================
+            // MODE TEST RÉSEAUX PARTENAIRES (Debug uniquement)
+            // setTestDeviceIds() d'AdMob ne s'applique QU'à AdMob.
+            // Chaque réseau partenaire a son propre mode test qu'il faut
+            // activer séparément via leurs APIs Java (réflexion JNI).
+            // ============================================================
+            DonTroc.Platforms.Android.MediationTestHelper.EnablePartnerTestModes("c91e98ae-8285-4cd6-bc6c-0f687f7b2584");
+#endif
 
-            // Configuration des appareils de test
+            // ============================================================
+            // APPAREILS DE TEST
+            // L'ID de votre appareil physique s'affiche dans les logs au 
+            // premier chargement d'une pub : "Use RequestConfiguration
+            // .Builder().setTestDeviceIds(Arrays.asList("XXXXXXX"))…"
+            // Copiez-le ici pour recevoir des pubs de test (AdMob + médiation).
+            // ============================================================
             var testDeviceIds = new List<string>
             {
-                AdRequest.DeviceIdEmulator, // Émulateur Android
-                // Ajoutez l'ID de votre appareil de test ici après l'avoir obtenu des logs
-                // Exemple: "33BE2250B43518CCDA7DE426D04EE231"
+                AdRequest.DeviceIdEmulator,
+                // TODO: Remplacez par l'ID réel de votre appareil physique
+                // visible dans Logcat lors du premier chargement d'une pub.
+              "c91e98ae-8285-4cd6-bc6c-0f687f7b2584"
             };
 
             var requestConfiguration = new RequestConfiguration.Builder()
@@ -149,17 +109,41 @@ public class MainActivity : MauiAppCompatActivity
 
             MobileAds.RequestConfiguration = requestConfiguration;
 
-            // Initialiser le SDK AdMob
-            MobileAds.Initialize(this);
-
-            System.Diagnostics.Debug.WriteLine("✅ SDK AdMob initialisé avec succès");
-            System.Diagnostics.Debug.WriteLine("🎯 Configuration AdMob en mode TEST activée");
-            System.Diagnostics.Debug.WriteLine("📱 Appareils de test configurés pour voir les annonces de test");
+            // Initialiser le SDK avec callback pour savoir quand c'est prêt
+            MobileAds.Initialize(this, new AdMobInitCallback());
         }
         catch (System.Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"❌ Erreur lors de l'initialisation AdMob: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            System.Diagnostics.Debug.WriteLine($"[AdMob] Erreur init: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Callback d'initialisation AdMob - log le statut de chaque adaptateur de médiation
+    /// </summary>
+    private class AdMobInitCallback : Java.Lang.Object, Google.Android.Gms.Ads.Initialization.IOnInitializationCompleteListener
+    {
+        public void OnInitializationComplete(Google.Android.Gms.Ads.Initialization.IInitializationStatus status)
+        {
+            System.Diagnostics.Debug.WriteLine("✅ SDK AdMob initialisé dans MainActivity");
+            
+            // Afficher le statut de chaque adaptateur de médiation
+            var adapterStatuses = status.AdapterStatusMap;
+            if (adapterStatuses != null)
+            {
+                foreach (var entry in adapterStatuses)
+                {
+                    var adapterClass = entry.Key;
+                    var adapterStatus = entry.Value;
+                    var state = adapterStatus.InitializationState == 
+                        Google.Android.Gms.Ads.Initialization.AdapterStatusState.Ready 
+                        ? "✅ PRÊT" : "⏳ PAS PRÊT";
+                    var latency = adapterStatus.Latency;
+                    var desc = adapterStatus.Description;
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[AdMob Mediation] {adapterClass}: {state} (latence={latency}ms) {desc}");
+                }
+            }
         }
     }
 }

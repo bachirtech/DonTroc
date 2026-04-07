@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- ============================================================ -->
+  <!-- Résolution des conflits R8/D8 de classes dupliquées AndroidX  -->
+  <!--                                                               -->
+  <!-- 1. androidx.compose.runtime.Immutable dupliqué entre          -->
+  <!--    runtime-annotation-android.aar et runtime-annotation-jvm   -->
+  <!-- 2. androidx.savedstate.ViewKt dupliqué entre                  -->
+  <!--    savedstate-android.aar et savedstate-ktx.aar               -->
+  <!-- ============================================================ -->
+
+  <Target Name="_RemoveDuplicateAndroidXJars"
+          BeforeTargets="_ResolveLibraryProjectImports;_ResolveDuplicateJavaLibraries"
+          AfterTargets="_ResolveAssemblies">
+    <ItemGroup>
+      <!-- Supprimer le JAR runtime-annotation-jvm dupliqué -->
+      <AndroidLibrary Remove="@(AndroidLibrary)"
+                      Condition="$([System.String]::new('%(Filename)').Contains('runtime-annotation-jvm'))" />
+      <AndroidJavaLibrary Remove="@(AndroidJavaLibrary)"
+                          Condition="$([System.String]::new('%(Filename)').Contains('runtime-annotation-jvm'))" />
+      
+      <!-- Supprimer le AAR savedstate-ktx dupliqué (garder savedstate-android) -->
+      <AndroidLibrary Remove="@(AndroidLibrary)"
+                      Condition="$([System.String]::new('%(Filename)').Contains('savedstate-ktx'))" />
+      <AndroidJavaLibrary Remove="@(AndroidJavaLibrary)"
+                          Condition="$([System.String]::new('%(Filename)').Contains('savedstate-ktx'))" />
+    </ItemGroup>
+    <Message Text="✅ JARs dupliquées AndroidX (runtime-annotation-jvm, savedstate-ktx) supprimées" Importance="high" />
+  </Target>
+</Project>
+

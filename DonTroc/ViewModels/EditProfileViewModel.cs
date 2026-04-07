@@ -197,15 +197,19 @@ namespace DonTroc.ViewModels
                 }
             }
 
-            var userProfile = new UserProfile
-            {
-                Id = userId,
-                Name = Name,
-                ProfilePictureUrl = uploadedImageUrl
-            };
-
             try
             {
+                // Charger le profil existant pour ne pas écraser les autres champs (Role, Points, Email, etc.)
+                var userProfile = await _firebaseService.GetUserProfileAsync(userId);
+                if (userProfile == null)
+                {
+                    userProfile = new UserProfile { Id = userId, Name = Name };
+                }
+
+                // Mettre à jour uniquement les champs modifiés
+                userProfile.Name = Name;
+                userProfile.ProfilePictureUrl = uploadedImageUrl;
+
                 await _firebaseService.SaveUserProfileAsync(userProfile);
                 await App.Current.MainPage.DisplayAlert("Succès", "Profil mis à jour.", "OK");
                 await Shell.Current.GoToAsync(".."); 

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:Class="DonTroc.Views.AdminLogsPage"
+             x:DataType="viewModels:AdminLogsViewModel"
+             Title="Historique des actions"
+             BackgroundColor="{StaticResource GrisClair}">
+    
+    <Grid RowDefinitions="Auto,Auto,*">
+        
+        <!-- Filtres -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="White" 
+               Padding="15" 
+               CornerRadius="0"
+               HasShadow="True">
+            <VerticalStackLayout Spacing="10">
+                <!-- Filtre par type -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <Picker Grid.Column="0"
+                            Title="Type d'action"
+                            ItemsSource="{Binding ActionFilters}"
+                            SelectedItem="{Binding SelectedActionFilter}"
+                            BackgroundColor="{StaticResource GrisClair}"/>
+                    
+                    <Button Grid.Column="1"
+                            Text="🔄"
+                            Command="{Binding LoadLogsCommand}"
+                            BackgroundColor="{StaticResource Primaire}"
+                            TextColor="White"
+                            CornerRadius="20"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            Padding="0"
+                            Margin="10,0,0,0"/>
+                </Grid>
+                
+                <!-- Filtres de date -->
+                <Grid ColumnDefinitions="*,Auto,*">
+                    <DatePicker Grid.Column="0"
+                                Date="{Binding DateFrom}"
+                                MinimumDate="2024-01-01"
+                                MaximumDate="{Binding DateTo}"
+                                BackgroundColor="{StaticResource GrisClair}"/>
+                    
+                    <Label Grid.Column="1"
+                           Text="→"
+                           FontSize="20"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"
+                           Margin="10,0"/>
+                    
+                    <DatePicker Grid.Column="2"
+                                Date="{Binding DateTo}"
+                                MinimumDate="{Binding DateFrom}"
+                                BackgroundColor="{StaticResource GrisClair}"/>
+                </Grid>
+                
+                <!-- Compteur -->
+                <Label HorizontalOptions="End" FontSize="12" TextColor="{StaticResource Ardoise}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding FilteredLogs.Count}"/>
+                            <Span Text=" actions affichées sur "/>
+                            <Span Text="{Binding TotalLogs}"/>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </VerticalStackLayout>
+        </Frame>
+        
+        <!-- Indicateur de chargement -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           Color="{StaticResource Primaire}"
+                           HeightRequest="30"/>
+        
+        <!-- Liste des logs -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding FilteredLogs}"
+                        SelectionMode="None"
+                        EmptyView="Aucune action trouvée pour cette période">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:AdminLog">
+                    <Frame Margin="10,5" 
+                           Padding="15" 
+                           CornerRadius="10"
+                           BackgroundColor="White"
+                           HasShadow="True">
+                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
+                            <!-- En-tête -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                <HorizontalStackLayout Grid.Column="0" Spacing="8">
+                                    <Label Text="{Binding DisplayDescription}"
+                                           FontSize="15"
+                                           FontAttributes="Bold"/>
+                                </HorizontalStackLayout>
+                                
+                                <Label Grid.Column="1"
+                                       Text="{Binding Timestamp, StringFormat='{0:dd/MM HH:mm}'}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource GrisClair}"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                            
+                            <!-- Admin -->
+                            <HorizontalStackLayout Grid.Row="1" Spacing="5">
+                                <Label Text="👤"
+                                       FontSize="12"/>
+                                <Label Text="{Binding AdminName}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Primaire}"/>
+                            </HorizontalStackLayout>
+                            
+                            <!-- Détails -->
+                            <Label Grid.Row="2"
+                                   Text="{Binding Details}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Ardoise}"
+                                   IsVisible="{Binding Details, Converter={StaticResource StringNotEmptyConverter}}"
+                                   LineBreakMode="WordWrap"/>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+    
+</ContentPage>
+

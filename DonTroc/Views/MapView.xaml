@@ -92,11 +92,10 @@
         <!-- Google Maps -->
         <maps:Map Grid.Row="1" 
                   x:Name="GoogleMap"
-                  Margin="10,0,10,10"
                   IsShowingUser="True"
                   MapType="Street"
-                  VerticalOptions="FillAndExpand"
-                  HorizontalOptions="FillAndExpand" />
+                  VerticalOptions="Fill"
+                  HorizontalOptions="Fill" />
 
         <!-- Panneau d'informations en bas -->
         <Frame Grid.Row="2" 

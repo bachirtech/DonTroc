@@ -22,6 +22,16 @@
                             SelectedItem="{Binding SelectedConversation, Mode=TwoWay}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Conversation">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Execute">
+                                    <SwipeItem Text="🗑️ Supprimer"
+                                               BackgroundColor="#E74C3C"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ConversationsViewModel}}, Path=DeleteConversationCommand}"
+                                               CommandParameter="{Binding .}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            
                         <!-- Chaque conversation est un élément cliquable via la sélection -->
                         <Border Padding="10, 15" 
                                 Margin="5,3"
@@ -29,6 +39,7 @@
                                 BackgroundColor="White"
                                 Stroke="Transparent"
                                 StrokeThickness="0">
+                            
                             
                             <Grid ColumnDefinitions="Auto, *, Auto">
                                 <!-- Container pour l'image avec badge superposé -->
@@ -79,6 +90,7 @@
                                          Margin="10,0,0,0" />
                             </Grid>
                         </Border>
+                        </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
 

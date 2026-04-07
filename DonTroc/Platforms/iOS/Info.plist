@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Identifiant et version de l'application -->
+	<key>CFBundleDisplayName</key>
+	<string>DonTroc</string>
+	<key>CFBundleName</key>
+	<string>DonTroc</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.bachirdev.dontroc</string>
+	<key>CFBundleVersion</key>
+	<string>19</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.1</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>fr</string>
+	
+	<!-- Configuration minimum iOS -->
+	<key>MinimumOSVersion</key>
+	<string>15.0</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	
+	<!-- Support des différentes tailles d'écran -->
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiresFullScreen</key>
+	<false/>
+	<key>UIStatusBarHidden</key>
+	<false/>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	
+	<!-- Orientations supportées iPhone -->
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<!-- Orientations supportées iPad -->
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<!-- Appareils supportés -->
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
+	
+	<!-- === PERMISSIONS D'ACCÈS === -->
+	
+	<!-- Caméra - Pour prendre des photos des objets à donner/échanger -->
+	<key>NSCameraUsageDescription</key>
+	<string>DonTroc utilise la caméra pour vous permettre de prendre des photos de vos objets à donner ou échanger.</string>
+	
+	<!-- Bibliothèque photos - Pour sélectionner des photos existantes -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DonTroc accède à votre photothèque pour vous permettre de sélectionner des photos de vos objets.</string>
+	
+	<!-- Ajout de photos - Pour enregistrer des images -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>DonTroc peut enregistrer des images dans votre photothèque.</string>
+	
+	<!-- Localisation (en cours d'utilisation) - Pour afficher les annonces à proximité -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>DonTroc utilise votre position pour afficher les annonces à proximité et faciliter les échanges locaux.</string>
+	
+	<!-- Localisation (toujours) - Pour les notifications d'annonces à proximité -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>DonTroc utilise votre position pour vous notifier des nouvelles annonces à proximité.</string>
+	
+	<!-- Localisation (description par défaut pour iOS < 11) -->
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>DonTroc utilise votre position pour afficher les annonces à proximité.</string>
+	
+	<!-- Microphone - Pour les messages vocaux -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>DonTroc utilise le microphone pour enregistrer des messages vocaux dans la messagerie.</string>
+	
+	<!-- Calendrier - Pour les rappels de rendez-vous d'échange (optionnel) -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>DonTroc peut créer des rappels pour vos rendez-vous d'échange.</string>
+	
+	<!-- Notifications -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>DonTroc utilise le suivi pour vous montrer des publicités pertinentes et améliorer votre expérience.</string>
+	
+	<!-- Face ID -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>DonTroc peut utiliser Face ID pour sécuriser votre compte.</string>
+	
+	<!-- === CONFIGURATION ADMOB === -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-5085236088670848~2688254033</string>
+	
+	<!-- Indicateur SKAdNetwork pour AdMob -->
+	<key>SKAdNetworkItems</key>
+	<array>
+		<!-- Google -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+		<!-- Facebook -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>v9wttpbfk9.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>n38lu8286q.skadnetwork</string>
+		</dict>
+		<!-- Unity Ads -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>4dzt52r2t5.skadnetwork</string>
+		</dict>
+		<!-- IronSource -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>su67r6k2v3.skadnetwork</string>
+		</dict>
+		<!-- AppLovin -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>ludvb6z3bs.skadnetwork</string>
+		</dict>
+		<!-- Vungle -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>gta9lk7p23.skadnetwork</string>
+		</dict>
+		<!-- AdColony -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>4pfyvq9l8r.skadnetwork</string>
+		</dict>
+		<!-- Mintegral -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>kbd757ywx3.skadnetwork</string>
+		</dict>
+		<!-- Pangle (ByteDance) -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>22mmun2rn5.skadnetwork</string>
+		</dict>
+		<!-- Tapjoy -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>ecpz2srf59.skadnetwork</string>
+		</dict>
+		<!-- Chartboost -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>f38h382jlk.skadnetwork</string>
+		</dict>
+		<!-- InMobi -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>wzmmz9fp6w.skadnetwork</string>
+		</dict>
+		<!-- Liftoff/Vungle -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>7ug5zh24hu.skadnetwork</string>
+		</dict>
+		<!-- Fyber -->
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>v79kvwwj4g.skadnetwork</string>
+		</dict>
+	</array>
+	
+	<!-- === CONFIGURATION FIREBASE === -->
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	
+	<!-- === CONFIGURATION GOOGLE SIGN-IN === -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.bachirdev.dontroc</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- URL Scheme pour Google Sign-In (inversé du CLIENT_ID) -->
+				<string>com.googleusercontent.apps.1007610958078-2m5iqebmn0s5e49pbc5gmqcojqs59qrn</string>
+				<string>dontroc</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- === CONFIGURATION DE SÉCURITÉ RÉSEAU === -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsArbitraryLoadsForMedia</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<!-- Firebase Realtime Database -->
+			<key>firebaseio.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<!-- Cloudinary -->
+			<key>cloudinary.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+			<!-- Google APIs -->
+			<key>googleapis.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	
+	<!-- === APPARENCE ET INTERFACE === -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+	
+	<!-- Style de la barre de statut -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	
+	<!-- Support du mode sombre iOS 13+ -->
+	<key>UIUserInterfaceStyle</key>
+	<string>Automatic</string>
+	
+	<!-- Support du clavier externe -->
+	<key>UISupportsDocumentBrowser</key>
+	<false/>
+	
+	<!-- Capacités requises -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	
+	<!-- === CONFIDENTIALITÉ APP STORE === -->
+	<!-- APIs accédées qui nécessitent une déclaration de raison -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>E174.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>35F9.1</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- L'app ne suit pas les utilisateurs -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	
+	<!-- Domaines de tracking (vide car pas de tracking) -->
+	<key>NSPrivacyTrackingDomains</key>
+	<array>
+	</array>
+</dict>
+</plist>

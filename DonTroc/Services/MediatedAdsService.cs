@@ -27,8 +27,7 @@ namespace DonTroc.Services
     /// <summary>
     /// Service de médiation qui gère plusieurs providers de publicité
     /// avec fallback automatique si un provider échoue.
-    /// 
-    /// Prépare l'intégration future d'IronSource/LevelPlay ou d'autres réseaux.
+    
     /// </summary>
     public class MediatedAdsService : IAdsService
     {
@@ -56,30 +55,19 @@ namespace DonTroc.Services
             _providers.Add(provider);
             // Trier par priorité (plus bas = plus prioritaire)
             _providers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
-            Debug.WriteLine($"📦 Provider enregistré: {provider.Name} (priorité: {provider.Priority})");
         }
 
         public void Initialize()
         {
             if (_isInitialized) return;
 
-            Debug.WriteLine("🔄 Initialisation du service de médiation publicitaire...");
-
             foreach (var provider in _providers)
             {
-                try
-                {
-                    provider.Initialize();
-                    Debug.WriteLine($"✅ Provider initialisé: {provider.Name}");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"❌ Erreur initialisation {provider.Name}: {ex.Message}");
-                }
+                try { provider.Initialize(); }
+                catch (Exception ex) { Debug.WriteLine($"[Mediation] Erreur init {provider.Name}: {ex.Message}"); }
             }
 
             _isInitialized = true;
-            Debug.WriteLine($"✅ Service de médiation initialisé avec {_providers.Count} provider(s)");
         }
 
         public async Task<bool> ShowBannerAsync(string placement = "default")
@@ -87,7 +75,6 @@ namespace DonTroc.Services
             // Les bannières sont gérées différemment (via handlers MAUI)
             // Cette méthode est un placeholder pour une future implémentation
             _isBannerVisible = true;
-            Debug.WriteLine($"📢 Bannière affichée (placement: {placement})");
             await Task.CompletedTask;
             return true;
         }
@@ -95,7 +82,6 @@ namespace DonTroc.Services
         public void HideBanner()
         {
             _isBannerVisible = false;
-            Debug.WriteLine("🚫 Bannière cachée");
         }
 
         public async Task ShowInterstitialAsync()
@@ -104,39 +90,20 @@ namespace DonTroc.Services
 
             if (provider == null)
             {
-                Debug.WriteLine("⚠️ Aucun interstitiel disponible");
-                OnAdFailed?.Invoke(this, new AdEventArgs
-                {
-                    Provider = "None",
-                    IsSuccess = false,
-                    ErrorMessage = "Aucun provider disponible"
-                });
+                OnAdFailed?.Invoke(this, new AdEventArgs { Provider = "None", IsSuccess = false, ErrorMessage = "Aucun provider disponible" });
                 return;
             }
 
             try
             {
-                Debug.WriteLine($"🎬 Affichage interstitiel via {provider.Name}");
                 await provider.ShowInterstitialAsync();
-                
-                OnAdClosed?.Invoke(this, new AdEventArgs
-                {
-                    Provider = provider.Name,
-                    IsSuccess = true
-                });
-
-                // Précharger la prochaine pub
+                OnAdClosed?.Invoke(this, new AdEventArgs { Provider = provider.Name, IsSuccess = true });
                 PreloadInterstitial();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Erreur interstitiel {provider.Name}: {ex.Message}");
-                OnAdFailed?.Invoke(this, new AdEventArgs
-                {
-                    Provider = provider.Name,
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                });
+                Debug.WriteLine($"[Mediation] Erreur interstitiel {provider.Name}: {ex.Message}");
+                OnAdFailed?.Invoke(this, new AdEventArgs { Provider = provider.Name, IsSuccess = false, ErrorMessage = ex.Message });
             }
         }
 
@@ -146,44 +113,26 @@ namespace DonTroc.Services
 
             if (provider == null)
             {
-                Debug.WriteLine("⚠️ Aucune vidéo récompensée disponible");
-                OnAdFailed?.Invoke(this, new AdEventArgs
-                {
-                    Provider = "None",
-                    IsSuccess = false,
-                    ErrorMessage = "Aucun provider disponible"
-                });
+                OnAdFailed?.Invoke(this, new AdEventArgs { Provider = "None", IsSuccess = false, ErrorMessage = "Aucun provider disponible" });
                 return false;
             }
 
             try
             {
-                Debug.WriteLine($"🎬 Affichage vidéo récompensée via {provider.Name}");
                 var result = await provider.ShowRewardedAsync();
 
                 if (result)
                 {
-                    OnRewardEarned?.Invoke(this, new RewardEventArgs
-                    {
-                        Provider = provider.Name,
-                        RewardType = "default",
-                        RewardAmount = 1
-                    });
+                    OnRewardEarned?.Invoke(this, new RewardEventArgs { Provider = provider.Name, RewardType = "default", RewardAmount = 1 });
                 }
 
-                // Précharger la prochaine pub
                 PreloadRewarded();
                 return result;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Erreur vidéo récompensée {provider.Name}: {ex.Message}");
-                OnAdFailed?.Invoke(this, new AdEventArgs
-                {
-                    Provider = provider.Name,
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                });
+                Debug.WriteLine($"[Mediation] Erreur rewarded {provider.Name}: {ex.Message}");
+                OnAdFailed?.Invoke(this, new AdEventArgs { Provider = provider.Name, IsSuccess = false, ErrorMessage = ex.Message });
                 return false;
             }
         }
@@ -194,15 +143,8 @@ namespace DonTroc.Services
             {
                 if (provider.IsInitialized && !provider.IsInterstitialReady)
                 {
-                    try
-                    {
-                        provider.PreloadInterstitial();
-                        Debug.WriteLine($"🔄 Préchargement interstitiel: {provider.Name}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"⚠️ Erreur préchargement {provider.Name}: {ex.Message}");
-                    }
+                    try { provider.PreloadInterstitial(); }
+                    catch { }
                 }
             }
         }
@@ -213,15 +155,8 @@ namespace DonTroc.Services
             {
                 if (provider.IsInitialized && !provider.IsRewardedReady)
                 {
-                    try
-                    {
-                        provider.PreloadRewarded();
-                        Debug.WriteLine($"🔄 Préchargement vidéo récompensée: {provider.Name}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"⚠️ Erreur préchargement {provider.Name}: {ex.Message}");
-                    }
+                    try { provider.PreloadRewarded(); }
+                    catch { }
                 }
             }
         }

@@ -15,6 +15,8 @@ public class RatingViewModel : BaseViewModel
 {
     private readonly RatingService _ratingService;
     private readonly AuthService _authService;
+    private readonly TransactionService _transactionService;
+    private readonly FirebaseService _firebaseService;
     
     private Transaction? _transaction;
     private UserProfile? _utilisateurAEvaluer;
@@ -25,10 +27,13 @@ public class RatingViewModel : BaseViewModel
     private bool _evaluationDejaFaite = false;
     private string _nomEvaluateur = string.Empty;
 
-    public RatingViewModel(RatingService ratingService, AuthService authService)
+    public RatingViewModel(RatingService ratingService, AuthService authService, 
+        TransactionService transactionService, FirebaseService firebaseService)
     {
         _ratingService = ratingService;
         _authService = authService;
+        _transactionService = transactionService;
+        _firebaseService = firebaseService;
         
         // Commandes
         SoumettreEvaluationCommand = new Command(async () => await SoumettreEvaluationAsync(), () => PeutEvaluer);
@@ -155,9 +160,8 @@ public class RatingViewModel : BaseViewModel
         {
             IsBusy = true;
             
-            // Récupérer la transaction
-            // Cette méthode devrait être ajoutée au TransactionService
-            // Transaction = await _transactionService.GetTransactionAsync(transactionId);
+            // Récupérer la transaction depuis Firebase
+            Transaction = await _transactionService.GetTransactionAsync(transactionId);
             
             var currentUserId = _authService.GetUserId();
             if (Transaction == null || currentUserId == null) return;
@@ -168,7 +172,7 @@ public class RatingViewModel : BaseViewModel
                 : Transaction.ProprietaireId;
 
             // Récupérer le profil de l'utilisateur à évaluer
-            // UtilisateurAEvaluer = await _userProfileService.GetUserProfileAsync(utilisateurAEvaluerId);
+            UtilisateurAEvaluer = await _firebaseService.GetUserProfileAsync(utilisateurAEvaluerId);
 
             // Vérifier si l'utilisateur peut évaluer
             PeutEvaluer = await _ratingService.PeutEvaluerTransactionAsync(transactionId, currentUserId);

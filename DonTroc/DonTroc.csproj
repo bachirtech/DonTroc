@@ -1,15 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+	<!-- Import SDK explicite pour pouvoir surcharger les targets Android en fin de fichier -->
+	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
 	<!-- Import des propriétés locales de build -->
 	<Import Project="Local.Build.props" Condition="Exists('Local.Build.props')" />
 	
 	<!-- Import du fichier pour exclure UserMessagingPlatform -->
 	<Import Project="ExcludeUMP.targets" Condition="Exists('ExcludeUMP.targets')" />
+	
+	<!-- Import du fichier pour résoudre la duplication AndroidX Compose Runtime Annotation -->
+	<Import Project="ExcludeDuplicateComposeAnnotation.targets" Condition="Exists('ExcludeDuplicateComposeAnnotation.targets')" />
 
 	<PropertyGroup>
 		<!-- Cible Android uniquement pour éviter les erreurs de signature iOS sans certificats -->
 		<!-- Pour activer iOS/MacCatalyst : remplacer par net9.0-android;net9.0-ios;net9.0-maccatalyst -->
-		<TargetFrameworks>net9.0-android</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Désactiver les warnings de conflit de packages NuGet -->
 		<NoWarn>$(NoWarn);NU1603;NU1605;NU1608</NoWarn>
@@ -29,26 +34,34 @@
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
 		<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
-		<ApplicationVersion>15</ApplicationVersion>
+		<ApplicationVersion>23</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
 		<PackageTags>dons, échanges, troc, particuliers, communauté, gratuit, environnement, partage</PackageTags>
 
+		<!-- Augmenter la mémoire Java pour R8/D8 (éviter OutOfMemoryError) -->
+		<JavaMaximumHeapSize>8G</JavaMaximumHeapSize>
+		<_R8JavaOptions>-Xmx8G -XX:+UseParallelGC</_R8JavaOptions>
+		<_D8JavaOptions>-Xmx8G -XX:+UseParallelGC</_D8JavaOptions>
+		<!-- Utiliser des fichiers args pour éviter les lignes de commande trop longues -->
+		<AndroidUseArgFile>true</AndroidUseArgFile>
+
 		<!-- Versions minimales des plateformes - Mise à jour pour compatibilité AdMob -->
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
 		<!-- API cible 35 requis par Google Play depuis août 2024 -->
 		<AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 
 	<!-- Configuration du trimming (par défaut pour Android et iOS) -->
-		<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">false</PublishTrimmed>
+		<!-- NOTE: PublishTrimmed est redéfini dans les blocs Release/Debug spécifiques -->
+		<!-- Ne PAS définir TrimMode=full ici - le bloc Release utilise partial -->
 	<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">true</PublishTrimmed>
 	<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">true</PublishTrimmed>
-	<TrimMode>full</TrimMode>
+	<TrimMode>partial</TrimMode>
 	<EnableCompressionInSingleFile Condition="'$(Configuration)' == 'Release'">false</EnableCompressionInSingleFile>
 	<!-- Désactiver le trimming des ressources satellites pour éviter les erreurs XA8000 et XABBA7023 -->
 	<TrimmerSingleWarn>false</TrimmerSingleWarn>
@@ -121,9 +134,10 @@
 		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
 		
 		<!-- Trimming ACTIVÉ (requis pour AOT) avec mode conservateur -->
+		<!-- TrimMode=partial : seules les assemblies marquées IsTrimmable sont trimmées -->
+		<!-- IMPORTANT: NE PAS utiliser TrimmerDefaultAction=link (supprime du code reflection) -->
 		<PublishTrimmed>true</PublishTrimmed>
 		<TrimMode>partial</TrimMode>
-		<TrimmerDefaultAction>link</TrimmerDefaultAction>
 		
 		<!-- AOT ACTIVÉ : Améliore les performances de démarrage et d'exécution -->
 		<!-- Utilise le profil AOT par défaut pour un bon équilibre taille/performance -->
@@ -183,12 +197,17 @@
 		<MauiImage Remove="**/Thumbs.db" />
 		<MauiIcon Remove="**/.DS_Store" />
 		<MauiSplashScreen Remove="**/.DS_Store" />
+		<!-- Exclure l'ancien splash obsolète pour éviter la superposition de deux images -->
+		<MauiSplashScreen Remove="Resources/Splash/splash.svg" />
 	</ItemGroup>
 
 	<!-- Ressources de l'application -->
 	<ItemGroup>
 		<MauiIcon Include="Resources/AppIcon/appicon.svg" />
-		<MauiSplashScreen Include="Resources/Splash/New/splash.svg" Color="#512BD4" />
+		
+		<!-- Color="#FFF8EE" = couleur exacte du fond du PNG embarqué dans le SVG.
+		     Empêche le flash de couleur différente sur les bords de l'écran. -->
+		<MauiSplashScreen Include="Resources/Splash/New/splash.svg" Color="#FFF8EE" BaseSize="512,512" />
 
 		<!-- Images optimisées -->
 		<MauiImage Include="Resources/Images/heart_icon.png" />
@@ -217,9 +236,11 @@
 		<PackageReference Include="FirebaseAuthentication.net" Version="4.1.0" />
 		<PackageReference Include="FirebaseDatabase.net" Version="4.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Maui.Controls.Core" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Maui.Graphics" Version="9.0.40" />
-		<PackageReference Include="Plugin.Firebase" Version="3.1.4" />
+		<!-- Plugin.Firebase 4.x : supporte Android + iOS via AdamE.Firebase.iOS bindings -->
+		<PackageReference Include="Plugin.Firebase" Version="4.2.1" />
+		<!-- DÉSACTIVÉ: Achats in-app indisponibles (profil marchand non configuré au Maroc)
+		<PackageReference Include="Plugin.InAppBilling" Version="8.0.3" /> -->
 		<PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
 		<PackageReference Include="Syncfusion.Maui.Core" Version="31.1.21" />
@@ -233,15 +254,12 @@
 
 	<!-- Packages spécifiques à Android -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
-		<!-- IronSource/LevelPlay Binding pour la médiation publicitaire -->
-		<!-- DÉSACTIVÉ: En attente de validation du compte IronSource -->
-		<!-- Envoyez un email à ironsource-account-review@unity3d.com avec:
-		     - Sujet: "ironSource account review details"
-		     - Lien Play Store de votre app
-		     - Email du compte IronSource
-		     - Ticket #00880519
-		     Une fois approuvé, décommentez cette ligne -->
-		<!-- <ProjectReference Include="..\IronSource.Binding\IronSource.Binding.csproj" /> -->
+		<!-- Packages AndroidX -->
+		<PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.1.2" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.10.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.4.0.4" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Identifier" Version="118.3.0.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.AppSet" Version="116.1.0.9" />
 		
 		<!-- SkiaSharp pour le rendu graphique -->
 		<PackageReference Include="SkiaSharp" Version="3.119.1" />
@@ -250,76 +268,171 @@
 		<!-- Google Sign-In pour l'authentification SSO -->
 		<PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.4.0.2" />
 
-		<!-- AdMob - MAUI gère automatiquement les dépendances AndroidX transitives -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="124.0.0.4" />
+		<!-- AdMob - SDK COMPLET avec classes de médiation                                  -->
+		<!-- Le SDK complet contient com.google.ads.mediation.Adapter (avec initialize())  -->
+		<!-- nécessaire pour que TOUS les adaptateurs de médiation fonctionnent :            -->
+		<!--   - Vungle, Unity, IronSource, Pangle, Facebook                                -->
+		<!-- Le SDK Lite (124.0.0.5) ne contenait PAS ces classes, causant :                -->
+		<!--   "does not implement the initialize() method" / "Failed to create Adapter"   -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads" Version="125.0.0.1" />
 		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.6.0.1" />
+		
+		<!-- ============================================================ -->
+		<!-- ADAPTATEURS DE MÉDIATION ADMOB (bidding)                     -->
+		<!-- Sans ces adaptateurs, les réseaux partenaires ne peuvent     -->
+		<!-- pas participer aux enchères ni afficher leurs publicités.     -->
+		<!-- ============================================================ -->
+		
+		<!-- Meta (Facebook) Audience Network - Adaptateur médiation AdMob -->
+		<AndroidMavenLibrary Include="com.google.ads.mediation:facebook" Version="6.21.0.2" Repository="Google" Bind="false" />
+		
+		<!-- Unity Ads - Adaptateur médiation AdMob -->
+		<!-- NOTE: Adapter 4.12.5.0 + SDK 4.12.5 = combinaison stable.    -->
+		<!-- La version 4.17.0.0/4.17.0 causait un crash interne :         -->
+		<!-- "com.unity3d.services.core.di.ServiceProvider" introuvable     -->
+		<!-- dû à un refactoring DI dans le SDK 4.17.x incompatible .NET  -->
+		<AndroidMavenLibrary Include="com.google.ads.mediation:unity" Version="4.12.5.0" Repository="Google" Bind="false" />
+		
+		<!-- Pangle (ByteDance/TikTok) - Adaptateur médiation AdMob -->
+		<AndroidMavenLibrary Include="com.google.ads.mediation:pangle" Version="7.9.1.2.0" Repository="Google" Bind="false" />
+		
+		<!-- Liftoff (Vungle) - Adaptateur médiation AdMob -->
+		<AndroidMavenLibrary Include="com.google.ads.mediation:vungle" Version="7.7.2.0" Repository="Google" Bind="false" />
+		
+		<!-- IronSource (LevelPlay) - Adaptateur médiation AdMob -->
+		<AndroidMavenLibrary Include="com.google.ads.mediation:ironsource" Version="9.3.0.2" Repository="Google" Bind="false" />
+		
+		<!-- NOTE: InMobi - L'adaptateur InMobi apparaît dans les logs     -->
+		<!-- d'init AdMob mais n'est PAS configuré dans le projet.         -->
+		<!-- Il est détecté automatiquement par le SDK mais ne peut pas    -->
+		<!-- fonctionner sans SDK InMobi. On l'ignore — pas de placement  -->
+		<!-- configuré dans le dashboard AdMob pour InMobi.                -->
+		
+		<!-- ============================================================ -->
+		<!-- SDK RÉSEAU PARTENAIRES (dépendances des adaptateurs ci-dessus) -->
+		<!-- Bind="false" : pas de bindings C# car appelés en interne      -->
+		<!-- par les adaptateurs via réflexion Java                         -->
+		<!-- ============================================================ -->
+		
+		<!-- Meta Audience Network SDK -->
+		<AndroidMavenLibrary Include="com.facebook.android:audience-network-sdk" Version="6.21.0" Bind="false" />
+		
+		<!-- ============================================================ -->
+		<!-- Unity Ads SDK 4.12.5 (stable, compatible avec adaptateur     -->
+		<!-- unity:4.12.5.0). Version 4.17.0 abandonnée car ServiceProvider -->
+		<!-- introuvable au runtime dans l'environnement .NET for Android. -->
+		<!-- ============================================================ -->
+		<AndroidMavenLibrary Include="com.unity3d.ads:unity-ads" Version="4.12.5" Bind="false" />
+		
+		<!-- ============================================================ -->
+		<!-- FIX Pangle: Le SDK Pangle + ses dépendances transitives.    -->
+		<!-- ERREUR PRÉCÉDENTE: "Failed to create Adapter" car les deps  -->
+		<!-- transitives (tiktok-business-sdk) étaient ignorées.         -->
+		<!-- ============================================================ -->
+		<AndroidMavenLibrary Include="com.pangle.global:pag-sdk" Version="7.9.1.2" Repository="https://artifact.bytedance.com/repository/pangle" Bind="false" />
+		<!-- Dépendance transitive requise par Pangle SDK -->
+		<AndroidMavenLibrary Include="com.pangle.global:tiktok-business-android-sdk-comp" Version="1.6.0" Repository="https://artifact.bytedance.com/repository/pangle" Bind="false" />
+		<!-- Sous-module ad interne (contient le code réel des pubs Pangle) -->
+		<!-- Version non-standard "unfat-..." : c'est la convention ByteDance interne -->
+		<AndroidMavenLibrary Include="com.pangle.global:pag-sdk-ad" Version="unfat-7912-20260319202148-release" Repository="https://artifact.bytedance.com/repository/pangle" Bind="false" />
+		
+		<!-- ============================================================ -->
+		<!-- Vungle SDK. OkHttp/OkIo sont déjà fournis par les NuGet     -->
+		<!-- transitifs (Square.OkIO.JVM, etc.)                          -->
+		<!-- Avec le SDK Ads complet (125.0.0.1), l'adaptateur dispose   -->
+		<!-- de la classe de base MediationAdapter et initialize()       -->
+		<!-- fonctionne correctement.                                     -->
+		<!-- ============================================================ -->
+		<AndroidMavenLibrary Include="com.vungle:vungle-ads" Version="7.7.2" Bind="false" />
+		
+		<!-- ============================================================ -->
+		<!-- IronSource (LevelPlay) SDK                                   -->
+		<!-- L'adaptateur ironsource:9.3.0.2 dépend de mediation-sdk:9.3.0 -->
+		<!-- publié sous groupId com.unity3d.ads-mediation sur Maven Central -->
+		<!-- Sans ce SDK, l'adaptateur ne peut pas s'initialiser.          -->
+		<!-- ============================================================ -->
+		<AndroidMavenLibrary Include="com.unity3d.ads-mediation:mediation-sdk" Version="9.3.0" Bind="false" />
+		
+		<!-- Dépendances communes requises par les adaptateurs -->
+		<PackageReference Include="Xamarin.AndroidX.Annotation" Version="1.9.1.1" />
+		<PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.3.10.1" />
 		
 		<!-- Material Design mis à jour pour Android 15 Edge-to-Edge -->
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.1" />
 		
-		<!-- 
-		Unity Ads - DÉSACTIVÉ (pas de binding Xamarin/MAUI officiel disponible)
-		Le package Xamarin.Android.UnityAdsSdk n'existe pas sur NuGet public.
-		Options alternatives:
-		1. Créer un binding Java manuellement avec le SDK Unity Ads AAR
-		2. Utiliser Meta Audience Network (Facebook Ads) qui a un binding officiel
-		3. Attendre la réactivation AdMob (29 jours)
-		<PackageReference Include="Xamarin.Android.UnityAdsSdk" Version="x.x.x" />
-		-->
+		<!-- CoordinatorLayout explicite pour éviter le trimming du binding Shell -->
+		<PackageReference Include="Xamarin.AndroidX.CoordinatorLayout" Version="1.3.0.3" />
 		
-		<!-- ============================================================ -->
-		<!-- RÉSOLUTION DES CONFLITS DE VERSIONS - CLASSES DUPLIQUÉES      -->
-		<!-- ============================================================ -->
-		
-		<!-- Conflit 1: androidx.compose.runtime.Immutable -->
+		<!-- Résolution des conflits de versions AndroidX -->
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.0.1">
 			<ExcludeAssets>all</ExcludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		
-		<!-- Conflit 2: androidx.savedstate.ViewKt dupliqué -->
 		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.2.1.15">
 			<ExcludeAssets>all</ExcludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		
+		<!-- Packages Google Play Services Measurement (transitifs via Ads SDK complet, -->
+		<!-- mais épinglés pour éviter les conflits de versions) -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement" Version="122.1.2.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="122.1.2.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Api" Version="122.1.2.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk" Version="122.1.2.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Impl" Version="122.1.2.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="122.1.2.1" />
+		
 		<!-- ============================================================ -->
-		<!-- EXCLUSION des anciens packages Google Play Services 27.0.0    -->
-		<!-- Ces packages dépendent de Xamarin.Android.Support.v4 qui      -->
-		<!-- cause l'erreur XA1039 en .NET 9                               -->
+		<!-- Dépendances Java ignorées pour la vérification de build      -->
+		<!-- Les SDK réseau de médiation ont des arbres de dépendances    -->
+		<!-- très profonds qui n'ont pas de bindings NuGet .NET.          -->
+		<!-- Ces libs sont incluses dans les AARs et fonctionnent au      -->
+		<!-- runtime via la JVM Android.                                  -->
 		<!-- ============================================================ -->
+		<!-- Google Analytics (transitif, déjà fourni par le SDK Ads) -->
+		<AndroidIgnoredJavaDependency Include="com.google.android.gms:play-services-analytics:18.0.4" />
+		<!-- Play Services Basement (transitif via Ads SDK) -->
+		<AndroidIgnoredJavaDependency Include="com.google.android.gms:play-services-basement:11.0.4" />
+		<!-- Unity Ad Quality SDK (optionnel, non requis pour le SDK unity-ads core) -->
+		<AndroidIgnoredJavaDependency Include="com.unity3d.ads-mediation:adquality-sdk:9.2.1" />
+		<!-- Pangle pag-sdk-ad : maintenant inclus explicitement (plus ignoré) -->
+		<!-- AndroidX Core Ktx (satisfait par Xamarin.AndroidX.Core) -->
+		<AndroidIgnoredJavaDependency Include="androidx.core:core-ktx:1.9.0" />
+		<!-- OkHttp / OkIo (fournis par les NuGet transitifs Square.OkIO.JVM, Square.OkHttp3, etc.) -->
+		<AndroidIgnoredJavaDependency Include="com.squareup.okhttp3:okhttp:4.10.0" />
+		<AndroidIgnoredJavaDependency Include="com.squareup.okio:okio-jvm:3.0.0" />
+		<!-- OkIo base module -->
+		<AndroidIgnoredJavaDependency Include="com.squareup.okio:okio:3.6.0" />
+		<!-- Kotlin Serialization (bundled dans les AARs réseau) -->
+		<AndroidIgnoredJavaDependency Include="org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.4.1" />
+		<AndroidIgnoredJavaDependency Include="org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.4.1" />
+		<!-- Protobuf (bundled via Google Play Services) -->
+		<AndroidIgnoredJavaDependency Include="com.google.protobuf:protobuf-javalite:3.25.6" />
 		
-		<!-- Exclure les anciens packages Measurement/Analytics/Ads 27.0.0 -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement" Version="122.0.0.6" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="122.0.0.6" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Api" Version="122.0.0.6" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk" Version="122.0.0.6" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Impl" Version="122.0.0.6" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="122.0.0.6" />
-		
-		<!-- Forcer les versions modernes (AndroidX) des packages Analytics pour éviter 27.0.0 -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Analytics" Version="118.0.4.6">
-			<ExcludeAssets>all</ExcludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		
-		<!-- Exclure explicitement Xamarin.Android.Support.v4 - cause de l'erreur XA1039 -->
 		<PackageReference Include="Xamarin.Android.Support.v4" Version="28.0.0.3">
 			<ExcludeAssets>all</ExcludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		
-		<!-- Références directes pour résoudre les conflits de version -->
+		<!-- Références directes AndroidX -->
 		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0.1" />
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.10.0.1" />
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.10.0.1" />
 		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.12.2.1" />
 		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9.1" />
 		
-		<!-- EXCLUSION: Xamarin.AndroidX.Legacy.Support.Core.Utils cause l'erreur XA1039 -->
-		<!-- Ce package a "Support" dans son nom mais est en fait AndroidX -->
-		<!-- IMPORTANT: Ne PAS exclure ce package car il est requis par d'autres assemblies -->
-		<PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.Utils" Version="1.0.0.23" />
+	</ItemGroup>
+
+	<!-- Packages spécifiques à iOS -->
+	<!-- Plugin.Firebase 4.x apporte AdamE.Firebase.iOS.Core 12.5.0 (Firebase iOS SDK 12.x) -->
+	<!-- Les anciens Xamarin.Firebase.iOS.* / Xamarin.Google.iOS.* sont INCOMPATIBLES avec AdamE -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-ios'))">
+		<!-- Google Mobile Ads SDK pour iOS (binding standalone, pas de dépendance Firebase) -->
+		<PackageReference Include="Jc.GMA.iOS" Version="12.7.1" />
+
+		<!-- Google Sign-In pour iOS (écosystème AdamE, compatible Plugin.Firebase 4.x) -->
+		<PackageReference Include="AdamE.Google.iOS.SignIn" Version="9.0.0" />
 	</ItemGroup>
 
 	<!-- Désactiver les warnings de downgrade/conflit de packages pour éviter les conflits transitifs -->
@@ -370,60 +483,52 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
-		<!-- Arguments Mtouch pour supporter les bibliothèques Swift -->
-		<MtouchExtraArgs>-v -gcc_flags "-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos -L/usr/lib/swift -Xlinker -rpath -Xlinker /usr/lib/swift" -ObjC -lc++ -lsqlite3 -lz -framework CFNetwork -framework CoreFoundation -framework CoreGraphics -framework CoreText -framework Foundation -framework Security -framework SystemConfiguration -framework UIKit -framework UserNotifications -framework StoreKit -lswiftCore -lswiftFoundation -lswiftUIKit -lswiftCompatibility50 -lswiftCompatibility51 -lswiftCompatibility56 -lswiftCompatibilityConcurrency -lswiftCompatibilityDynamicReplacements -rpath @executable_path/Frameworks -rpath @loader_path/Frameworks</MtouchExtraArgs>
-		<!-- Désactiver complètement la signature de code -->
-		<CodesignKey> </CodesignKey>
-		<CodesignProvision> </CodesignProvision>
-		<CodesignEntitlements> </CodesignEntitlements>
-		<CodesignResourceRules> </CodesignResourceRules>
-		<CodesignExtraArgs> </CodesignExtraArgs>
-		<CodesignDisableTimestamp>true</CodesignDisableTimestamp>
-		<!-- Configuration Mtouch -->
-		<MtouchUseLlvm>true</MtouchUseLlvm>
-		<MtouchLink>SdkOnly</MtouchLink>
-		<MtouchDebug>false</MtouchDebug>
-		<MtouchFastDev>false</MtouchFastDev>
-		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
-		<MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-		<MtouchSdkVersion> </MtouchSdkVersion>
-		<!-- Désactiver la génération d'IPA -->
-		<BuildIpa>false</BuildIpa>
-		<IpaPackageName> </IpaPackageName>
-		<!-- Désactiver les validations de signature -->
+		<!-- Contourner la vérification de version Xcode si nécessaire -->
+		<_XcodeVersionCheckEnabled>false</_XcodeVersionCheckEnabled>
+		
+		<!-- Désactiver Firebase Analytics/AdId pour éviter les conflits de version GoogleAppMeasurement -->
+		<FirebaseWithoutAdIdSupport>True</FirebaseWithoutAdIdSupport>
+		
+		<!-- Désactiver le bitcode car il est obsolète depuis iOS 16/Xcode 14 -->
 		<MtouchEnableBitcode>false</MtouchEnableBitcode>
+		<_ExportSymbolsFromBitcode>false</_ExportSymbolsFromBitcode>
+		<_StripBitcodeFromFrameworks>false</_StripBitcodeFromFrameworks>
+		
+		<!-- Arguments Mtouch simplifiés pour supporter les bibliothèques Swift -->
+		<MtouchExtraArgs>-v --gcc_flags "-ObjC -lc++ -lsqlite3 -lz -framework CFNetwork -framework Security -framework SystemConfiguration -framework UIKit -framework UserNotifications -framework StoreKit" -rpath @executable_path/Frameworks</MtouchExtraArgs>
+		
 		<!-- Forcer l'inclusion des bibliothèques Swift -->
 		<MtouchI18n>west</MtouchI18n>
+		
+		<!-- NE PAS hardcoder RuntimeIdentifier ici - laisser l'IDE le définir -->
+		<!-- ios-arm64 = device physique, iossimulator-arm64 = simulateur Apple Silicon -->
 	</PropertyGroup>
 
-	<!-- Configuration spécifique pour Debug iOS -->
+	<!-- Configuration spécifique pour Debug iOS (simulateur + device) -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios'))">
-		<!-- iOS exige PublishTrimmed=true - MtouchLink=None désactive le trimming pour tous les assemblies -->
+		<!-- PublishTrimmed requis par iOS -->
 		<PublishTrimmed>true</PublishTrimmed>
 		<MtouchLink>None</MtouchLink>
 		<MtouchDebug>true</MtouchDebug>
 		<MtouchUseLlvm>false</MtouchUseLlvm>
 		<MtouchExtraArgs>$(MtouchExtraArgs) -v</MtouchExtraArgs>
-		<!-- Signature complètement désactivée en Debug -->
-		<CodesignKey> </CodesignKey>
-		<CodesignProvision> </CodesignProvision>
-		<CodesignEntitlements> </CodesignEntitlements>
 		<BuildIpa>false</BuildIpa>
-		<!-- Désactiver toutes les validations -->
 		<MtouchEnableBitcode>false</MtouchEnableBitcode>
+		<!-- Désactiver la signature en Debug (pas besoin pour simulateur) -->
 		<EnableCodeSigning>false</EnableCodeSigning>
+		<!-- Pas de Entitlements en Debug pour éviter les erreurs de provisioning -->
 	</PropertyGroup>
 
 	<!-- Configuration spécifique pour Release iOS -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-ios'))">
-		<!-- iOS exige PublishTrimmed=true - MtouchLink=None désactive le trimming pour tous les assemblies -->
 		<PublishTrimmed>true</PublishTrimmed>
-		<MtouchLink>None</MtouchLink>
+		<MtouchLink>SdkOnly</MtouchLink>
 		<MtouchDebug>false</MtouchDebug>
 		<MtouchUseLlvm>true</MtouchUseLlvm>
 		<MtouchFloat32>true</MtouchFloat32>
 		<OptimizePNGs>true</OptimizePNGs>
-		<!-- Pour Release, vous devrez configurer les certificats -->
+		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
+		<!-- Pour Release, configurer les certificats Apple Developer -->
 		<CodesignKey>iPhone Developer</CodesignKey>
 		<BuildIpa>false</BuildIpa>
 	</PropertyGroup>
@@ -437,5 +542,28 @@
 		<EnableLLVMCompiler>false</EnableLLVMCompiler>
 		<UseInterpreter>false</UseInterpreter>
 	</PropertyGroup>
+
+	<!-- Import du fichier pour désactiver le bitcode stripping (iOS) - à la fin pour override les targets des packages NuGet -->
+	<Import Project="DisableBitcodeStrip.targets" Condition="Exists('DisableBitcodeStrip.targets')" />
+
+	<!-- ============================================================ -->
+	<!-- Import SDK explicite : DOIT être ici pour que les overrides  -->
+	<!-- de targets ci-dessous fonctionnent (après les targets Android) -->
+	<!-- ============================================================ -->
+	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+	<!-- ============================================================ -->
+	<!-- DÉSACTIVATION DE LA VÉRIFICATION DES DÉPENDANCES JAVA        -->
+	<!-- ============================================================ -->
+	<!-- Le NuGet Xamarin.GooglePlayServices.Ads 125.0.0.1 fournit la   -->
+	<!-- version native play-services-ads 25.0.0, mais les adaptateurs  -->
+	<!-- de médiation (Facebook, Unity, Pangle, Vungle, IronSource)     -->
+	<!-- exigent 25.1.0. Ce décalage mineur (25.0.0 vs 25.1.0) est     -->
+	<!-- compatible au runtime car les APIs utilisées n'ont pas changé.  -->
+	<!--                                                                 -->
+	<!-- On ne peut pas utiliser AndroidIgnoredJavaDependency car la clé -->
+	<!-- 'play-services-ads' est déjà enregistrée par le NuGet.         -->
+	<!-- Cette cible vide remplace celle du SDK Android.                 -->
+	<Target Name="_VerifyJavaDependencies" />
 
 </Project>
