@@ -99,7 +99,7 @@
         <a href="index.html" style="display:inline-block;margin-bottom:20px;color:#512BD4;text-decoration:none;">← Retour à l'accueil</a>
 
         <h1>🔒 Politique de Confidentialité</h1>
-        <p class="date">Dernière mise à jour : 7 avril 2026</p>
+        <p class="date">Dernière mise à jour : 19 avril 2026 — Version 3.0</p>
         
         <p>Bienvenue sur <strong>DonTroc</strong>, l'application de dons et d'échanges entre particuliers. Nous nous engageons à protéger votre vie privée et vos données personnelles. Cette politique explique comment nous collectons, utilisons et protégeons vos informations.</p>
 
@@ -223,7 +223,31 @@
                 <td>Unity Technologies (ironSource Ltd.)</td>
                 <td><a href="https://developers.is.com/ironsource-mobile/air/ironsource-mobile-privacy-policy/" target="_blank">Politique IronSource</a></td>
             </tr>
+            <tr>
+                <td><strong>InMobi</strong></td>
+                <td>InMobi Pte Ltd.</td>
+                <td><a href="https://www.inmobi.com/privacy-policy/" target="_blank">Politique InMobi</a></td>
+            </tr>
         </table>
+
+        <h3>🛡️ Consentement RGPD (CMP / UMP — IAB TCF v2.2)</h3>
+        <div class="highlight" style="background-color:#e3f2fd;border-left:4px solid #2196F3;">
+            <p><strong>Si vous résidez dans l'EEE, au Royaume-Uni, en Suisse ou au Brésil :</strong></p>
+            <ul>
+                <li>Au premier lancement, un formulaire de consentement officiel <strong>Google UMP (User Messaging Platform)</strong>, certifié IAB TCF v2.2, vous est présenté</li>
+                <li>Vous pouvez <strong>accepter</strong>, <strong>refuser</strong> ou <strong>personnaliser</strong> votre consentement par finalité (Purposes 1 à 10) et par fournisseur</li>
+                <li>Refuser n'affecte pas votre utilisation : vous verrez simplement des publicités <strong>non personnalisées</strong></li>
+                <li>Vous pouvez <strong>modifier ou retirer votre consentement à tout moment</strong> via : <em>Profil → 🛡️ Confidentialité publicitaire</em> (Article 7.3 RGPD)</li>
+                <li>Vos préférences sont stockées localement et transmises aux partenaires sous forme de chaîne TCF (TC String)</li>
+                <li>DonTroc <strong>ne sollicite pas</strong> votre consentement pour les "fonctionnalités spéciales" 1 et 2 du TCF (géolocalisation précise et fingerprinting actif d'appareil) — volontairement désactivées pour respecter votre vie privée</li>
+            </ul>
+        </div>
+
+        <h3>📊 Google Analytics & Consent Mode v2</h3>
+        <div class="highlight">
+            <p>DonTroc utilise <strong>Google Analytics for Firebase</strong> et <strong>Firebase Crashlytics</strong> pour mesurer l'audience et corriger les bugs (pages visitées, durée des sessions, événements clés, crash reports, performances techniques).</p>
+            <p><strong>Consent Mode v2 :</strong> en EEE/UK/CH, lorsque vous refusez les cookies analytiques via le formulaire UMP, Google Analytics fonctionne en mode <em>cookieless modeling</em> — il estime statistiquement certaines métriques agrégées <strong>sans vous identifier</strong>. Vos signaux TCF (Purpose 1) sont automatiquement transmis à Google Analytics conformément aux exigences européennes.</p>
+        </div>
 
         <h3>📋 Types de publicités affichées</h3>
         <ul>
@@ -263,6 +287,48 @@
                 <li>La désactivation de la personnalisation n'empêche pas l'affichage de publicités, mais celles-ci seront moins ciblées</li>
             </ul>
         </div>
+
+        <h2>3 bis. Donations volontaires (PayPal &amp; Ko-fi)</h2>
+        <p>DonTroc propose une fonctionnalité de <strong>donation volontaire</strong> pour soutenir le développement :</p>
+        <ul>
+            <li>Les donations sont <strong>100 % facultatives</strong> et n'apportent aucun avantage exclusif</li>
+            <li>Les paiements sont traités exclusivement par des plateformes externes : <strong><a href="https://www.paypal.com" target="_blank">PayPal</a></strong> et <strong><a href="https://ko-fi.com" target="_blank">Ko-fi</a></strong></li>
+            <li>Lorsque vous appuyez sur "Faire un don", vous êtes redirigé hors de l'application vers le site officiel de la plateforme dans votre navigateur</li>
+            <li>DonTroc <strong>n'a jamais accès</strong> à vos coordonnées bancaires ni à vos informations de paiement</li>
+            <li>Aucune information de paiement n'est stockée par DonTroc</li>
+            <li>Les données de transaction sont gérées exclusivement par PayPal (<a href="https://www.paypal.com/fr/legalhub/privacy-full" target="_blank">politique</a>) et Ko-fi (<a href="https://more.ko-fi.com/privacy" target="_blank">politique</a>) selon leurs propres règles</li>
+            <li>Les donations sont <strong>non-remboursables</strong> sauf demande légitime via le support de la plateforme utilisée</li>
+        </ul>
+
+        <h2>3 ter. Notifications push (Firebase Cloud Messaging)</h2>
+        <p>DonTroc envoie plusieurs catégories de notifications via <strong>Firebase Cloud Messaging (FCM)</strong> :</p>
+        <ul>
+            <li><strong>Transactionnelles</strong> : nouveau message, proposition de troc, évaluation reçue</li>
+            <li><strong>De proximité</strong> : nouvelle annonce dans votre zone (rayon configurable 1-50 km)</li>
+            <li><strong>De rétention</strong> : rappels périodiques pour ré-engager les utilisateurs inactifs</li>
+            <li><strong>Intelligentes</strong> : suggestions personnalisées basées sur vos centres d'intérêt et votre historique</li>
+            <li><strong>De gamification</strong> : nouveau badge, défi, montée de niveau, position au classement</li>
+            <li><strong>Conseils & astuces</strong> : pour profiter pleinement de l'application</li>
+        </ul>
+        <p>Vous pouvez désactiver chaque type de notification depuis votre profil ou les paramètres de votre appareil. Le jeton FCM est révocable et supprimé à la désinstallation.</p>
+
+        <h2>3 quater. Mises à jour in-app (Google Play In-App Update)</h2>
+        <p>DonTroc utilise l'API <strong>Google Play In-App Update</strong> pour proposer les nouvelles versions sans quitter l'application :</p>
+        <ul>
+            <li>Aucune donnée personnelle n'est collectée par cette fonctionnalité</li>
+            <li>Seul le numéro de version installée est comparé à celui disponible sur Google Play</li>
+            <li>Les téléchargements sont effectués directement par Google Play, pas par DonTroc</li>
+            <li>Deux modes : <em>flexible</em> (téléchargement en arrière-plan) et <em>immédiat</em> (mise à jour critique bloquante)</li>
+        </ul>
+
+        <h2>3 quinquies. Gamification étendue (Quiz, Leaderboard, Évaluations)</h2>
+        <ul>
+            <li><strong>Quiz écologiques</strong> : réponses anonymisées, utilisées uniquement pour calculer vos récompenses et améliorer le contenu pédagogique</li>
+            <li><strong>Classement (Leaderboard)</strong> : votre pseudo et votre score sont visibles publiquement par défaut — vous pouvez désactiver cette visibilité dans votre profil</li>
+            <li><strong>Système d'évaluation</strong> : notes (1-5 étoiles) et commentaires donnés/reçus visibles sur les profils publics</li>
+            <li><strong>Badges de confiance</strong> : calculés automatiquement (ancienneté, transactions réussies, note moyenne)</li>
+            <li><strong>Recommandations personnalisées</strong> : algorithme local basé sur votre historique de consultation et favoris</li>
+        </ul>
 
         <h2>4. Partage des données avec des tiers</h2>
         <p>Vos données sont partagées avec les services tiers suivants, uniquement dans la mesure nécessaire au fonctionnement de l'application :</p>
@@ -307,7 +373,10 @@
             <li>À la suppression de votre compte, toutes vos données sont supprimées sous 30 jours</li>
             <li>Les annonces expirées sont automatiquement supprimées après 90 jours</li>
             <li>Les données de gamification sont supprimées avec votre compte</li>
-            <li>Les données publicitaires anonymisées peuvent être conservées par les réseaux publicitaires partenaires (Google AdMob, Meta, Unity, Pangle, Liftoff, IronSource) selon leurs propres politiques de conservation respectives</li>
+            <li>Les données publicitaires anonymisées peuvent être conservées par les réseaux publicitaires partenaires (Google AdMob, Meta, Unity, Pangle, Liftoff, IronSource, InMobi) selon leurs propres politiques de conservation</li>
+            <li>Les transactions de donation sont gérées par les plateformes externes <strong>PayPal</strong> et <strong>Ko-fi</strong> — DonTroc ne stocke aucune donnée de paiement (la durée de conservation dépend des politiques propres de PayPal et Ko-fi)</li>
+            <li>Les logs techniques (crashs Firebase Crashlytics) sont conservés <strong>90 jours</strong> puis supprimés automatiquement</li>
+            <li>Le jeton FCM (notifications push) est supprimé immédiatement à la désinstallation de l'application</li>
         </ul>
 
         <h2>8. Cookies et technologies similaires</h2>
@@ -320,6 +389,8 @@
             <li><strong>Union Européenne</strong> : Firebase Realtime Database (serveurs européens)</li>
             <li><strong>Chine / Singapour</strong> : ByteDance (Pangle)</li>
             <li><strong>Israël</strong> : ironSource (LevelPlay)</li>
+            <li><strong>Inde / Singapour</strong> : InMobi</li>
+            <li><strong>États-Unis / International</strong> : PayPal Holdings, Ko-fi Labs (donations)</li>
         </ul>
         <p>Ces transferts sont encadrés par des clauses contractuelles types ou d'autres mécanismes de protection conformes aux réglementations applicables (RGPD, clauses contractuelles standard de la Commission européenne).</p>
 
