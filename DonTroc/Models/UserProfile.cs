@@ -135,6 +135,12 @@ namespace DonTroc.Models
         public DateTime? LastLocationUpdate { get; set; }
 
         /// <summary>
+        /// GeoHash encodé de la dernière position (précision 4 = ~39km × 20km).
+        /// Utilisé pour les requêtes géospatiales efficaces sur Firebase.
+        /// </summary>
+        public string? GeoHash { get; set; }
+
+        /// <summary>
         /// Rayon de notification préféré (en km) - par défaut 50 km
         /// </summary>
         public double NotificationRadius { get; set; } = 50.0;
@@ -143,6 +149,22 @@ namespace DonTroc.Models
         /// Activer/désactiver les notifications de proximité
         /// </summary>
         public bool ProximityNotificationsEnabled { get; set; } = true;
+
+        // === TRACKING ACTIVITÉ (pour rappels push serveur) ===
+
+        /// <summary>
+        /// Timestamp (epoch ms) de la dernière activité de l'utilisateur.
+        /// Mis à jour à chaque ouverture/reprise de l'app.
+        /// Utilisé par les Cloud Functions de rétention.
+        /// </summary>
+        public long? LastActiveAt { get; set; }
+
+        /// <summary>
+        /// Préférences de notification push par type.
+        /// Clés : "reminder_j1", "reminder_j3", "reminder_j7", "reminder_j14"
+        /// Valeur : true (opt-in, défaut) ou false (opt-out)
+        /// </summary>
+        public Dictionary<string, bool> NotificationPreferences { get; set; } = new();
 
         // === MÉTHODES CALCULÉES ===
 

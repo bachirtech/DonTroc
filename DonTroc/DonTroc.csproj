@@ -6,7 +6,9 @@
 	<Import Project="Local.Build.props" Condition="Exists('Local.Build.props')" />
 	
 	<!-- Import du fichier pour exclure UserMessagingPlatform -->
+	<!-- ❌ DÉSACTIVÉ depuis l'intégration de UMP 4.x pour le consentement RGPD/CMP
 	<Import Project="ExcludeUMP.targets" Condition="Exists('ExcludeUMP.targets')" />
+	-->
 	
 	<!-- Import du fichier pour résoudre la duplication AndroidX Compose Runtime Annotation -->
 	<Import Project="ExcludeDuplicateComposeAnnotation.targets" Condition="Exists('ExcludeDuplicateComposeAnnotation.targets')" />
@@ -33,8 +35,8 @@
 		<!-- Métadonnées de l'application -->
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
-		<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
-		<ApplicationVersion>23</ApplicationVersion>
+		<ApplicationDisplayVersion>2.0</ApplicationDisplayVersion>
+		<ApplicationVersion>28</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -130,20 +132,39 @@
 		
 		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
 		
-		<!-- Linking SdkOnly : supprime le code non utilisé du SDK mais garde tout le code app -->
+		<!-- ============================================================ -->
+		<!-- FIX CRASH RELEASE v4: SdkOnly + trimming partiel protégé     -->
+		<!-- PublishTrimmed=true + TrimMode=partial est REQUIS par le SDK  -->
+		<!-- Android pour GenerateJavaStubs. Les types sont protégés via   -->
+		<!-- ILLink.Descriptors.xml (preserve="all" sur toutes les        -->
+		<!-- assemblies critiques). Le trimmer ne supprime que le code     -->
+		<!-- des assemblies explicitement marquées [IsTrimmable].          -->
+		<!-- ============================================================ -->
+		
+		<!-- Linking Android SDK uniquement -->
 		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
 		
-		<!-- Trimming ACTIVÉ (requis pour AOT) avec mode conservateur -->
-		<!-- TrimMode=partial : seules les assemblies marquées IsTrimmable sont trimmées -->
-		<!-- IMPORTANT: NE PAS utiliser TrimmerDefaultAction=link (supprime du code reflection) -->
+		<!-- Trimming partiel obligatoire pour le build Android -->
 		<PublishTrimmed>true</PublishTrimmed>
 		<TrimMode>partial</TrimMode>
+		<TrimmerRemoveSymbols>false</TrimmerRemoveSymbols>
 		
-		<!-- AOT ACTIVÉ : Améliore les performances de démarrage et d'exécution -->
-		<!-- Utilise le profil AOT par défaut pour un bon équilibre taille/performance -->
-		<RunAOTCompilation>true</RunAOTCompilation>
-		<AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
-		<!-- LLVM désactivé : plus stable, AOT standard suffit -->
+		<!-- ============================================================ -->
+		<!-- FIX CRASH RELEASE: AOT DÉSACTIVÉ                             -->
+		<!-- PROBLÈME: AndroidEnableProfiledAot=true causait des crashs   -->
+		<!-- sur les pages naviguées par route (Map, Transactions,        -->
+		<!-- Rewards) car le profil AOT ne couvrait pas ces chemins de    -->
+		<!-- code (seules les pages Tab étaient profilées).               -->
+		<!-- Le Profiled AOT compile uniquement les méthodes "chaudes"    -->
+		<!-- et l'interpréteur gérait mal certains patterns (generics,    -->
+		<!-- RelativeSource bindings, XAML compiled bindings).            -->
+		<!--                                                               -->
+		<!-- SOLUTION: Désactiver AOT. L'interpréteur mono est suffisant  -->
+		<!-- pour les performances. Réactiver quand les crashs sont fixés.-->
+		<!-- ============================================================ -->
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<!-- LLVM désactivé -->
 		<EnableLLVM>false</EnableLLVM>
 		
 		<!-- ProGuard DÉSACTIVÉ : évite les crashs avec Firebase/MAUI/Reflection -->
@@ -276,6 +297,23 @@
 		<!--   "does not implement the initialize() method" / "Failed to create Adapter"   -->
 		<PackageReference Include="Xamarin.GooglePlayServices.Ads" Version="125.0.0.1" />
 		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.6.0.1" />
+
+		<!-- ============================================================ -->
+		<!-- USER MESSAGING PLATFORM (UMP) — Consentement RGPD/CMP        -->
+		<!-- Obligatoire depuis 2024 pour servir des pubs personnalisées  -->
+		<!-- en EEE/UK et FORTEMENT recommandé partout (boost eCPM ~+15%) -->
+		<!-- Sans CMP active : Meta/Unity/IronSource refusent de bidder    -->
+		<!-- ============================================================ -->
+		<PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="4.0.0.2" />
+
+		<!-- ============================================================ -->
+		<!-- GOOGLE PLAY IN-APP UPDATE                                    -->
+		<!-- Permet de proposer la MAJ directement dans l'app sans       -->
+		<!-- rediriger vers le Play Store (UX premium, recommandé Google) -->
+		<!-- - Flexible : téléchargement en arrière-plan + bouton install -->
+		<!-- - Immediate : overlay plein écran bloquant (force update)   -->
+		<!-- ============================================================ -->
+		<PackageReference Include="Xamarin.Google.Android.Play.App.Update" Version="2.1.0.18" />
 		
 		<!-- ============================================================ -->
 		<!-- ADAPTATEURS DE MÉDIATION ADMOB (bidding)                     -->
@@ -302,11 +340,10 @@
 		<!-- IronSource (LevelPlay) - Adaptateur médiation AdMob -->
 		<AndroidMavenLibrary Include="com.google.ads.mediation:ironsource" Version="9.3.0.2" Repository="Google" Bind="false" />
 		
-		<!-- NOTE: InMobi - L'adaptateur InMobi apparaît dans les logs     -->
-		<!-- d'init AdMob mais n'est PAS configuré dans le projet.         -->
-		<!-- Il est détecté automatiquement par le SDK mais ne peut pas    -->
-		<!-- fonctionner sans SDK InMobi. On l'ignore — pas de placement  -->
-		<!-- configuré dans le dashboard AdMob pour InMobi.                -->
+		<!-- InMobi - Adaptateur médiation AdMob -->
+		<!-- Adapter 10.8.8.1 + SDK inmobi-ads-kotlin 10.8.8              -->
+		<!-- Requiert aussi : inmobi-omsdk + Picasso + AndroidX Browser    -->
+		<AndroidMavenLibrary Include="com.google.ads.mediation:inmobi" Version="10.8.8.1" Repository="Google" Bind="false" />
 		
 		<!-- ============================================================ -->
 		<!-- SDK RÉSEAU PARTENAIRES (dépendances des adaptateurs ci-dessus) -->
@@ -353,12 +390,29 @@
 		<!-- ============================================================ -->
 		<AndroidMavenLibrary Include="com.unity3d.ads-mediation:mediation-sdk" Version="9.3.0" Bind="false" />
 		
+		<!-- ============================================================ -->
+		<!-- InMobi SDK (Kotlin) + dépendances directes                   -->
+		<!-- Le SDK InMobi nécessite Picasso (rendu images), l'OMSDK      -->
+		<!-- (Open Measurement) et AndroidX Browser (Chrome Custom Tabs). -->
+		<!-- ============================================================ -->
+		<AndroidMavenLibrary Include="com.inmobi.monetization:inmobi-ads-kotlin" Version="10.8.8" Bind="false" />
+		<!-- InMobi Open Measurement SDK (viewability tracking) -->
+		<AndroidMavenLibrary Include="com.inmobi.omsdk:inmobi-omsdk" Version="1.5.5.0" Bind="false" />
+		<!-- Picasso (rendu d'images publicitaires, requis par InMobi) -->
+		<AndroidMavenLibrary Include="com.squareup.picasso:picasso" Version="2.8" Bind="false" />
+		
 		<!-- Dépendances communes requises par les adaptateurs -->
 		<PackageReference Include="Xamarin.AndroidX.Annotation" Version="1.9.1.1" />
 		<PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.3.10.1" />
 		
+		<!-- Google Maps SDK pour Android (explicite pour éviter le trimming transitif) -->
+		<PackageReference Include="Xamarin.GooglePlayServices.Maps" Version="119.2.1.2" />
+		
 		<!-- Material Design mis à jour pour Android 15 Edge-to-Edge -->
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.1" />
+		
+		<!-- AndroidX Browser (Chrome Custom Tabs, requis par InMobi SDK) -->
+		<PackageReference Include="Xamarin.AndroidX.Browser" Version="1.9.0.2" />
 		
 		<!-- CoordinatorLayout explicite pour éviter le trimming du binding Shell -->
 		<PackageReference Include="Xamarin.AndroidX.CoordinatorLayout" Version="1.3.0.3" />
@@ -409,6 +463,10 @@
 		<AndroidIgnoredJavaDependency Include="org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.4.1" />
 		<!-- Protobuf (bundled via Google Play Services) -->
 		<AndroidIgnoredJavaDependency Include="com.google.protobuf:protobuf-javalite:3.25.6" />
+		<!-- InMobi adapter transitive deps (jacoco = test coverage, pas requis au runtime) -->
+		<AndroidIgnoredJavaDependency Include="org.jacoco:org.jacoco.core:0.8.8" />
+		<!-- Google Play Services Tasks (transitif via Ads SDK) -->
+		<AndroidIgnoredJavaDependency Include="com.google.android.gms:play-services-tasks:18.0.2" />
 		
 		<PackageReference Include="Xamarin.Android.Support.v4" Version="28.0.0.3">
 			<ExcludeAssets>all</ExcludeAssets>
@@ -444,6 +502,8 @@
 		<TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
 		<!-- Préserver les assemblies qui causent des erreurs de ressources manquantes -->
 		<TrimmerRootAssembly Include="Microsoft.Maui.Controls" />
+		<TrimmerRootAssembly Include="Microsoft.Maui.Controls.Maps" />
+		<TrimmerRootAssembly Include="Microsoft.Maui.Maps" />
 		<TrimmerRootAssembly Include="SkiaSharp.Views.Maui.Controls" />
 		<TrimmerRootAssembly Include="DonTroc" />
 	</ItemGroup>

@@ -9,7 +9,7 @@ namespace DonTroc.Platforms.Android;
 /// <summary>
 /// BroadcastReceiver pour recevoir les alarmes de rappel du quiz quotidien.
 /// </summary>
-[BroadcastReceiver(Enabled = true, Exported = true)]
+[BroadcastReceiver(Enabled = true, Exported = false)]
 [IntentFilter(new[] { "com.dontroc.QUIZ_REMINDER" })]
 public class QuizReminderReceiver : BroadcastReceiver
 {

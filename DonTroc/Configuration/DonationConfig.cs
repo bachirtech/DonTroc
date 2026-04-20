@@ -41,14 +41,24 @@ public static class DonationConfig
     public const string PlayStoreUrl = $"https://play.google.com/store/apps/details?id={AndroidPackageId}";
     
     /// <summary>
-    /// ID de l'application sur l'App Store (à remplir après publication)
+    /// ID numérique de l'application sur l'App Store.
+    /// ⚠️ TODO iOS: remplacer par l'Apple ID (10 chiffres) une fois l'app publiée sur App Store Connect.
+    /// Tant que la valeur reste vide, <see cref="IsAppStorePublished"/> renvoie false et l'UI doit
+    /// masquer/désactiver les liens iOS.
     /// </summary>
-    public const string AppStoreId = "XXXXXXXXXX";
-    
+    public const string AppStoreId = "";
+
     /// <summary>
-    /// Lien direct vers l'App Store
+    /// Indique si l'application est publiée sur l'App Store iOS (AppStoreId renseigné).
     /// </summary>
-    public const string AppStoreUrl = $"https://apps.apple.com/app/dontroc/id{AppStoreId}";
+    public static bool IsAppStorePublished => !string.IsNullOrWhiteSpace(AppStoreId);
+
+    /// <summary>
+    /// Lien direct vers l'App Store (vide tant que <see cref="IsAppStorePublished"/> est false).
+    /// </summary>
+    public static string AppStoreUrl => IsAppStorePublished
+        ? $"https://apps.apple.com/app/dontroc/id{AppStoreId}"
+        : string.Empty;
     
     // ============================================================================
     // INFORMATIONS DÉVELOPPEUR

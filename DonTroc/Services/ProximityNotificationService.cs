@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using DonTroc.Models;
+using DonTroc.Helpers;
 using Microsoft.Maui.Devices.Sensors;
 
 namespace DonTroc.Services
@@ -141,9 +142,98 @@ namespace DonTroc.Services
         }
 
         /// <summary>
-        /// Récupère les utilisateurs dans un rayon donné d'une position
+        /// Récupère les utilisateurs dans un rayon donné d'une position.
+        /// Utilise le GeoHash pour interroger Firebase efficacement (requête par préfixe)
+        /// au lieu de charger TOUS les profils utilisateurs.
+        /// 
+        /// Algorithme :
+        /// 1. Calcule le GeoHash du point cible à la précision adaptée au rayon
+        /// 2. Détermine les 9 cellules voisines (centre + 8 directions)
+        /// 3. Fait 9 requêtes Firebase filtrées par préfixe GeoHash
+        /// 4. Filtre par distance exacte (Haversine) pour éliminer les faux positifs
         /// </summary>
         private async Task<List<UserProfile>> GetUsersNearLocationAsync(double latitude, double longitude, double radiusKm)
+        {
+            try
+            {
+                // Déterminer la précision GeoHash adaptée au rayon
+                var precision = GeoHashHelper.GetPrecisionForRadius(radiusKm);
+                
+                // Obtenir les 9 préfixes GeoHash couvrant la zone
+                var geoHashPrefixes = GeoHashHelper.GetNeighborsAndSelf(latitude, longitude, precision);
+                
+                _logger.LogInformation(
+                    "Requête GeoHash: {Count} cellules (précision {Precision}) pour rayon {Radius}km autour de ({Lat}, {Lon})",
+                    geoHashPrefixes.Count, precision, radiusKm, latitude, longitude);
+
+                // Requêtes parallèles sur chaque préfixe GeoHash
+                var tasks = new List<Task<List<UserProfile>>>();
+                foreach (var prefix in geoHashPrefixes)
+                {
+                    tasks.Add(_firebaseService.GetUsersByGeoHashPrefixAsync(prefix));
+                }
+
+                var results = await Task.WhenAll(tasks);
+
+                // Fusionner les résultats et dédupliquer par ID
+                var seenIds = new HashSet<string>();
+                var nearbyUsers = new List<UserProfile>();
+
+                foreach (var userList in results)
+                {
+                    foreach (var user in userList)
+                    {
+                        // Dédupliquer (un utilisateur peut apparaître dans plusieurs cellules voisines)
+                        if (!seenIds.Add(user.Id))
+                            continue;
+
+                        // Vérifier que l'utilisateur a une position valide
+                        if (!user.LastLatitude.HasValue || !user.LastLongitude.HasValue)
+                            continue;
+
+                        // Vérifier que la position n'est pas trop ancienne (max 30 jours)
+                        if (user.LastLocationUpdate.HasValue && 
+                            (DateTime.UtcNow - user.LastLocationUpdate.Value).TotalDays > 30)
+                            continue;
+
+                        // Filtrer par distance exacte (Haversine) — élimine les faux positifs GeoHash
+                        var distance = CalculateDistance(
+                            user.LastLatitude.Value, 
+                            user.LastLongitude.Value,
+                            latitude, 
+                            longitude);
+
+                        // Utiliser le rayon préféré de l'utilisateur ou le rayon par défaut
+                        var userRadius = user.NotificationRadius > 0 ? user.NotificationRadius : radiusKm;
+
+                        if (distance <= userRadius)
+                        {
+                            nearbyUsers.Add(user);
+                        }
+                    }
+                }
+
+                _logger.LogInformation(
+                    "GeoHash: {Total} profils candidats → {Filtered} dans le rayon après filtrage distance",
+                    seenIds.Count, nearbyUsers.Count);
+
+                return nearbyUsers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la récupération des utilisateurs à proximité par GeoHash");
+                
+                // Fallback : méthode classique si GeoHash échoue
+                _logger.LogWarning("Fallback vers GetAllUserProfilesAsync (sans GeoHash)");
+                return await GetUsersNearLocationFallbackAsync(latitude, longitude, radiusKm);
+            }
+        }
+
+        /// <summary>
+        /// Fallback : charge tous les profils si les requêtes GeoHash échouent.
+        /// Utilisé aussi pour les utilisateurs qui n'ont pas encore de GeoHash enregistré.
+        /// </summary>
+        private async Task<List<UserProfile>> GetUsersNearLocationFallbackAsync(double latitude, double longitude, double radiusKm)
         {
             try
             {
@@ -152,23 +242,19 @@ namespace DonTroc.Services
 
                 foreach (var user in allUsers)
                 {
-                    // Vérifier que l'utilisateur a une position valide
                     if (!user.LastLatitude.HasValue || !user.LastLongitude.HasValue)
                         continue;
 
-                    // Vérifier que la position n'est pas trop ancienne (max 30 jours)
                     if (user.LastLocationUpdate.HasValue && 
                         (DateTime.UtcNow - user.LastLocationUpdate.Value).TotalDays > 30)
                         continue;
 
-                    // Calculer la distance
                     var distance = CalculateDistance(
                         user.LastLatitude.Value, 
                         user.LastLongitude.Value,
                         latitude, 
                         longitude);
 
-                    // Utiliser le rayon préféré de l'utilisateur ou le rayon par défaut
                     var userRadius = user.NotificationRadius > 0 ? user.NotificationRadius : radiusKm;
 
                     if (distance <= userRadius)
@@ -181,7 +267,7 @@ namespace DonTroc.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erreur lors de la récupération des utilisateurs à proximité");
+                _logger.LogError(ex, "Erreur fallback lors de la récupération des utilisateurs à proximité");
                 return new List<UserProfile>();
             }
         }

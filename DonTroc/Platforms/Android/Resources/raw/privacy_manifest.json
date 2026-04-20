@@ -1,7 +1,7 @@
 {
   "privacy_policy": {
-    "url": "https://dontroc.com/privacy-policy",
-    "last_updated": "2026-03-02",
+    "url": "https://bachirtech.github.io/DonTroc/privacy-policy.html",
+    "last_updated": "2026-04-20",
     "permissions": {
       "android.permission.CAMERA": {
         "purpose": "Permet aux utilisateurs de prendre des photos des objets qu'ils souhaitent donner ou échanger sur la plateforme DonTroc",
@@ -104,6 +104,16 @@
       "name": "Google AdMob",
       "purpose": "Réseau publicitaire",
       "privacy_policy": "https://policies.google.com/privacy"
+    },
+    {
+      "name": "PayPal",
+      "purpose": "Plateforme externe pour donations volontaires (redirection hors application)",
+      "privacy_policy": "https://www.paypal.com/myaccount/privacy/privacyhub"
+    },
+    {
+      "name": "Ko-fi",
+      "purpose": "Plateforme externe pour donations volontaires (redirection hors application)",
+      "privacy_policy": "https://ko-fi.com/manage/privacy"
     }
   ],
   "contact": "bachirdev.pro@gmail.com"

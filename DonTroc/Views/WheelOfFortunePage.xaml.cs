@@ -18,8 +18,15 @@ public partial class WheelOfFortunePage : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        await _viewModel.InitializeAsync();
+        try
+        {
+            base.OnAppearing();
+            await _viewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WheelOfFortunePage] Erreur OnAppearing: {ex.Message}");
+        }
     }
 
     protected override void OnDisappearing()

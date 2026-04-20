@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using DonTroc.Models;
 using DonTroc.Services;
 using System.Windows.Input;
@@ -55,11 +56,42 @@ namespace DonTroc.ViewModels
 
         public string NotificationRadiusText => $"{NotificationRadius:F1} km";
 
+        // === PRÉFÉRENCES DE RAPPELS PUSH SERVEUR ===
+
+        private bool _reminderJ1Enabled = true;
+        public bool ReminderJ1Enabled
+        {
+            get => _reminderJ1Enabled;
+            set { if (SetProperty(ref _reminderJ1Enabled, value)) _ = SaveNotificationPreferences(); }
+        }
+
+        private bool _reminderJ3Enabled = true;
+        public bool ReminderJ3Enabled
+        {
+            get => _reminderJ3Enabled;
+            set { if (SetProperty(ref _reminderJ3Enabled, value)) _ = SaveNotificationPreferences(); }
+        }
+
+        private bool _reminderJ7Enabled = true;
+        public bool ReminderJ7Enabled
+        {
+            get => _reminderJ7Enabled;
+            set { if (SetProperty(ref _reminderJ7Enabled, value)) _ = SaveNotificationPreferences(); }
+        }
+
+        private bool _reminderJ14Enabled = true;
+        public bool ReminderJ14Enabled
+        {
+            get => _reminderJ14Enabled;
+            set { if (SetProperty(ref _reminderJ14Enabled, value)) _ = SaveNotificationPreferences(); }
+        }
+
         public ICommand SaveProfileCommand { get; }
         public ICommand PickPhotoCommand { get; }
         public ICommand UpdateLocationCommand { get; }
         public ICommand ToggleProximityNotificationsCommand { get; }
 
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(EditProfileViewModel))]
         public EditProfileViewModel(AuthService authService, FirebaseService firebaseService, 
             ProximityNotificationService proximityNotificationService)
         {
@@ -74,6 +106,7 @@ namespace DonTroc.ViewModels
 
             LoadUserProfile();
             _ = LoadProximitySettings();
+            _ = LoadNotificationPreferences();
         }
 
         private async Task LoadProximitySettings()
@@ -123,6 +156,63 @@ namespace DonTroc.ViewModels
             catch (Exception ex)
             {
                 Debug.WriteLine($"Erreur configuration proximité: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Charge les préférences de rappels push depuis le profil Firebase
+        /// </summary>
+        private async Task LoadNotificationPreferences()
+        {
+            try
+            {
+                var userId = _authService.GetUserId();
+                if (string.IsNullOrEmpty(userId)) return;
+
+                var profile = await _firebaseService.GetUserProfileAsync(userId);
+                if (profile?.NotificationPreferences != null)
+                {
+                    var prefs = profile.NotificationPreferences;
+                    _reminderJ1Enabled = !prefs.ContainsKey("reminder_j1") || prefs["reminder_j1"];
+                    _reminderJ3Enabled = !prefs.ContainsKey("reminder_j3") || prefs["reminder_j3"];
+                    _reminderJ7Enabled = !prefs.ContainsKey("reminder_j7") || prefs["reminder_j7"];
+                    _reminderJ14Enabled = !prefs.ContainsKey("reminder_j14") || prefs["reminder_j14"];
+
+                    OnPropertyChanged(nameof(ReminderJ1Enabled));
+                    OnPropertyChanged(nameof(ReminderJ3Enabled));
+                    OnPropertyChanged(nameof(ReminderJ7Enabled));
+                    OnPropertyChanged(nameof(ReminderJ14Enabled));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[EditProfile] Erreur chargement prefs notif: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sauvegarde les préférences de rappels push dans Firebase
+        /// </summary>
+        private async Task SaveNotificationPreferences()
+        {
+            try
+            {
+                var userId = _authService.GetUserId();
+                if (string.IsNullOrEmpty(userId)) return;
+
+                var prefs = new Dictionary<string, bool>
+                {
+                    ["reminder_j1"] = ReminderJ1Enabled,
+                    ["reminder_j3"] = ReminderJ3Enabled,
+                    ["reminder_j7"] = ReminderJ7Enabled,
+                    ["reminder_j14"] = ReminderJ14Enabled,
+                };
+
+                await _firebaseService.UpdateNotificationPreferencesAsync(userId, prefs);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[EditProfile] Erreur sauvegarde prefs notif: {ex.Message}");
             }
         }
 

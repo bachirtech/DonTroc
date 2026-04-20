@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!-- Fichier: DonTroc/Views/MapView.xaml -->
+<!-- Page Carte redesignée — Design DonTroc cohérent -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
@@ -7,145 +9,214 @@
              x:Class="DonTroc.Views.MapView"
              Title="Carte"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="#F5F5F5">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="60" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Barre de recherche et filtres avec bouton retour -->
-        <Frame Grid.Row="0" BackgroundColor="White" Margin="10,5" CornerRadius="25" HasShadow="True">
-            <Grid Margin="15,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- HEADER GRADIENT avec recherche                  -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Border Grid.Row="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,20,20"
+                Padding="16,12,16,14"
+                ZIndex="10">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#8B5A3A}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#6B4A32}" Offset="0.5" />
+                    <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#40000000" Offset="0,4" Radius="12" Opacity="0.3" />
+            </Border.Shadow>
 
-                <!-- Bouton retour -->
-                <Button Grid.Column="0"
-                        x:Name="BackButton"
-                        Text="←"
-                        FontSize="20"
-                        FontAttributes="Bold"
-                        Padding="5,0"
-                        BackgroundColor="Transparent"
-                        TextColor="#007ACC"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        CornerRadius="20"
-                        Command="{Binding BackCommand}"
-                        VerticalOptions="Center" />
+            <VerticalStackLayout Spacing="10">
 
-                <Entry Grid.Column="1" 
-                       x:Name="SearchEntry"
-                       Placeholder="Rechercher une adresse..."
-                       Text="{Binding SearchAddress}"
-                       BackgroundColor="Transparent"
-                       PlaceholderColor="Gray"
-                       TextColor="Black"
-                       VerticalOptions="Center" />
+                <!-- Ligne titre + bouton retour -->
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <!-- Bouton retour -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 14,14,14,14"
+                            StrokeThickness="0"
+                            BackgroundColor="#25FFFFFF"
+                            WidthRequest="38" HeightRequest="38"
+                            Padding="0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding BackCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="←"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
 
-                <Button Grid.Column="2"
-                        x:Name="SearchButton"
-                        Text="🔍"
-                        FontSize="18"
-                        Padding="2"
-                        BackgroundColor="Transparent"
-                        TextColor="#007ACC"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        CornerRadius="20"
-                        Command="{Binding SearchCommand}" />
+                    <!-- Titre -->
+                    <Label Grid.Column="1"
+                           Text="🗺️ Carte"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           VerticalTextAlignment="Center" />
 
-                <Button Grid.Column="3"
-                        x:Name="LocationButton"
-                        Text="📍"
-                        FontSize="18"
-                        Padding="2"
-                        BackgroundColor="#D98C6A"
-                        TextColor="White"
-                        WidthRequest="30"
-                        HeightRequest="30"
-                        CornerRadius="20"
-                        Command="{Binding LocationCommand}" />
+                    <!-- Bouton filtre -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 14,14,14,14"
+                            StrokeThickness="0"
+                            BackgroundColor="#25FFFFFF"
+                            WidthRequest="38" HeightRequest="38"
+                            Padding="0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding FilterCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="🎛️"
+                               FontSize="18"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                </Grid>
 
-                <Button Grid.Column="4"
-                        x:Name="FilterButton"
-                        Text="🎛️"
-                        FontSize="18"
-                        Padding="2"
-                        BackgroundColor="Transparent"
-                        TextColor="#007ACC"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        CornerRadius="20"
-                        Command="{Binding FilterCommand}" />
-            </Grid>
-        </Frame>
+                <!-- Barre de recherche -->
+                <Border StrokeShape="RoundRectangle 16,16,16,16"
+                        StrokeThickness="0"
+                        BackgroundColor="#30FFFFFF"
+                        Padding="4,0"
+                        HeightRequest="44">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="12,0">
+                        <!-- Champ de recherche -->
+                        <Entry Grid.Column="0"
+                               x:Name="SearchEntry"
+                               Placeholder="Rechercher une adresse..."
+                               Text="{Binding SearchAddress}"
+                               BackgroundColor="Transparent"
+                               PlaceholderColor="#C0FFFFFF"
+                               TextColor="White"
+                               FontSize="14"
+                               VerticalOptions="Center" />
 
-        <!-- Google Maps -->
-        <maps:Map Grid.Row="1" 
+                        <!-- Bouton recherche -->
+                        <Border Grid.Column="1"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                BackgroundColor="#20FFFFFF"
+                                WidthRequest="34" HeightRequest="34"
+                                Padding="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SearchCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="🔍"
+                                   FontSize="16"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+
+                        <!-- Bouton localisation -->
+                        <Border Grid.Column="2"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                Padding="0"
+                                WidthRequest="34" HeightRequest="34">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                    <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Shadow>
+                                <Shadow Brush="#30D98C6A" Offset="0,2" Radius="4" Opacity="0.4" />
+                            </Border.Shadow>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding LocationCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="📍"
+                                   FontSize="16"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- GOOGLE MAPS                                     -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <maps:Map Grid.Row="1"
                   x:Name="GoogleMap"
                   IsShowingUser="True"
                   MapType="Street"
                   VerticalOptions="Fill"
                   HorizontalOptions="Fill" />
 
-        <!-- Panneau d'informations en bas -->
-        <Frame Grid.Row="2" 
-               BackgroundColor="White" 
-               Margin="10,0,10,10" 
-               CornerRadius="15" 
-               HasShadow="True"
-               IsVisible="{Binding HasUserLocation}">
-            <Grid Margin="15,10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- PANNEAU D'INFORMATIONS EN BAS                   -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Border Grid.Row="2"
+                StrokeShape="RoundRectangle 20,20,0,0"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                Padding="18,14,18,16"
+                Margin="0"
+                IsVisible="{Binding HasUserLocation}">
+            <Border.Shadow>
+                <Shadow Brush="#30000000" Offset="0,-4" Radius="12" Opacity="0.25" />
+            </Border.Shadow>
 
-                <Label Grid.Row="0" Grid.Column="0"
-                       Text="{Binding CurrentLocationText}"
-                       FontSize="14"
-                       FontAttributes="Bold"
-                       TextColor="#333333"
-                       VerticalOptions="Center" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <!-- Infos position -->
+                <VerticalStackLayout Grid.Column="0" Spacing="3" VerticalOptions="Center">
+                    <Label Text="{Binding CurrentLocationText}"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                           LineBreakMode="TailTruncation" />
+                    <Label Text="{Binding NearbyAnnouncements.Count, StringFormat='{0} annonces à proximité'}"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                           Opacity="0.6" />
+                </VerticalStackLayout>
 
-                <Label Grid.Row="1" Grid.Column="0"
-                       Text="{Binding NearbyAnnouncements.Count, StringFormat='{0} annonces à proximité'}"
-                       FontSize="12"
-                       TextColor="#666666"
-                       VerticalOptions="Center" />
-
-                <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
-                        Text="🔄"
-                        FontSize="18"
-                        Padding="2"
-                        BackgroundColor="#D98C6A"
-                        TextColor="White"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        CornerRadius="20"
-                        Command="{Binding RefreshCommand}" />
+                <!-- Bouton actualiser gradient -->
+                <Border Grid.Column="1"
+                        StrokeShape="RoundRectangle 16,16,16,16"
+                        StrokeThickness="0"
+                        WidthRequest="44" HeightRequest="44"
+                        Padding="0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#A86840}" Offset="0.5" />
+                            <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#8DAE6A}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#40D98C6A, Dark=#30000000}" Offset="0,3" Radius="8" Opacity="0.4" />
+                    </Border.Shadow>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding RefreshCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="🔄"
+                           FontSize="20"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
             </Grid>
-        </Frame>
+        </Border>
 
-        <!-- Indicateur de chargement -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- INDICATEUR DE CHARGEMENT                        -->
+        <!-- ═══════════════════════════════════════════════ -->
         <ActivityIndicator Grid.Row="1"
-                          IsVisible="{Binding IsBusy}"
-                          IsRunning="{Binding IsBusy}"
-                          Color="#007ACC"
-                          VerticalOptions="Center"
-                          HorizontalOptions="Center" />
+                           IsVisible="{Binding IsBusy}"
+                           IsRunning="{Binding IsBusy}"
+                           Color="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                           WidthRequest="48"
+                           HeightRequest="48"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
     </Grid>
 </ContentPage>

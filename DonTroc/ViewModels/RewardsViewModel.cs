@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using DonTroc.Configuration;
 using DonTroc.Models;
@@ -46,9 +47,12 @@ public class RewardsViewModel : BaseViewModel
 
     // Collections
     public ObservableCollection<Challenge> DailyChallenges { get; } = new();
+    public ObservableCollection<Challenge> WeeklyChallenges { get; } = new();
+    public ObservableCollection<Challenge> MonthlyChallenges { get; } = new();
     public ObservableCollection<BadgeDisplay> UnlockedBadges { get; } = new();
     public ObservableCollection<XpTransaction> RecentXpTransactions { get; } = new();
 
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(RewardsViewModel))]
     public RewardsViewModel(
         IGamificationService gamificationService,
         AuthService authService,
@@ -65,14 +69,14 @@ public class RewardsViewModel : BaseViewModel
         var (hour, minute) = _notificationService.GetQuizReminderTime();
         _quizReminderTime = new TimeSpan(hour, minute, 0);
 
-        // Commandes
-        LoadDataCommand = new Command(async () => await LoadDataAsync());
-        SpinWheelCommand = new Command(async () => await SpinWheelAsync());
-        ClaimDailyRewardCommand = new Command(async () => await ClaimDailyRewardAsync());
-        ViewAllBadgesCommand = new Command(async () => await ViewAllBadgesAsync());
-        OpenQuizCommand = new Command(async () => await OpenQuizAsync());
-        ToggleQuizReminderCommand = new Command(async () => await ToggleQuizReminderAsync());
-        SetQuizReminderTimeCommand = new Command(async () => await SetQuizReminderTimeAsync());
+        // Commandes (protégées contre les exceptions non gérées dans async void)
+        LoadDataCommand = new Command(async () => { try { await LoadDataAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur LoadData"); } });
+        SpinWheelCommand = new Command(async () => { try { await SpinWheelAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur SpinWheel"); } });
+        ClaimDailyRewardCommand = new Command(async () => { try { await ClaimDailyRewardAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur ClaimDailyReward"); } });
+        ViewAllBadgesCommand = new Command(async () => { try { await ViewAllBadgesAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur ViewAllBadges"); } });
+        OpenQuizCommand = new Command(async () => { try { await OpenQuizAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur OpenQuiz"); } });
+        ToggleQuizReminderCommand = new Command(async () => { try { await ToggleQuizReminderAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur ToggleQuizReminder"); } });
+        SetQuizReminderTimeCommand = new Command(async () => { try { await SetQuizReminderTimeAsync(); } catch (Exception ex) { _logger.LogError(ex, "Erreur SetQuizReminderTime"); } });
     }
 
     #region Propriétés
@@ -154,6 +158,43 @@ public class RewardsViewModel : BaseViewModel
     public int BadgeCount => UnlockedBadges.Count;
     public bool HasNoBadges => UnlockedBadges.Count == 0;
     public bool HasXpHistory => RecentXpTransactions.Count > 0;
+    public bool HasWeeklyChallenges => WeeklyChallenges.Count > 0;
+    public bool HasMonthlyChallenges => MonthlyChallenges.Count > 0;
+    
+    private string _weeklyProgress = "0/0 complétés";
+    public string WeeklyProgress
+    {
+        get => _weeklyProgress;
+        set => SetProperty(ref _weeklyProgress, value);
+    }
+    
+    private string _monthlyTimeRemaining = "";
+    public string MonthlyTimeRemaining
+    {
+        get => _monthlyTimeRemaining;
+        set => SetProperty(ref _monthlyTimeRemaining, value);
+    }
+    
+    private string _weeklyTimeRemaining = "";
+    public string WeeklyTimeRemaining
+    {
+        get => _weeklyTimeRemaining;
+        set => SetProperty(ref _weeklyTimeRemaining, value);
+    }
+    
+    private string _monthlyBadgeIcon = "🏅";
+    public string MonthlyBadgeIcon
+    {
+        get => _monthlyBadgeIcon;
+        set => SetProperty(ref _monthlyBadgeIcon, value);
+    }
+    
+    private string _monthlyBadgeName = "";
+    public string MonthlyBadgeName
+    {
+        get => _monthlyBadgeName;
+        set => SetProperty(ref _monthlyBadgeName, value);
+    }
     
     public bool IsQuizReminderEnabled
     {
@@ -195,7 +236,7 @@ public class RewardsViewModel : BaseViewModel
             var userId = _authService.GetUserId();
             if (string.IsNullOrEmpty(userId)) return;
 
-            // Charger le profil
+            // Charger le profil (nécessaire en premier pour les données de base)
             var profile = await _gamificationService.GetUserProfileAsync(userId);
             
             CurrentLevel = profile.CurrentLevel;
@@ -209,17 +250,19 @@ public class RewardsViewModel : BaseViewModel
             // Calculer la largeur de la barre de progression (max 300px)
             ProgressBarWidth = Math.Min(300, (profile.LevelProgress / 100.0) * 300);
 
-            // États des boutons
-            _canSpinWheel = await _gamificationService.CanSpinWheelAsync(userId);
-            _canClaimDailyReward = await _gamificationService.CanClaimDailyRewardAsync(userId);
+            // Charger en parallèle : états boutons, défis et badges
+            var spinTask = _gamificationService.CanSpinWheelAsync(userId);
+            var dailyTask = _gamificationService.CanClaimDailyRewardAsync(userId);
+            var challengesTask = LoadChallengesAsync(userId);
+            var badgesTask = LoadBadgesAsync(userId);
+
+            await Task.WhenAll(spinTask, dailyTask, challengesTask, badgesTask);
+
+            _canSpinWheel = spinTask.Result;
+            _canClaimDailyReward = dailyTask.Result;
             
             UpdateButtonStates();
 
-            // Charger les défis
-            await LoadChallengesAsync(userId);
-
-            // Charger les badges
-            await LoadBadgesAsync(userId);
 
             OnPropertyChanged(nameof(BadgeCount));
             OnPropertyChanged(nameof(HasNoBadges));
@@ -265,12 +308,75 @@ public class RewardsViewModel : BaseViewModel
         try
         {
             var challenges = await _gamificationService.GetActiveChallengesAsync(userId);
+            var dailyChallenges = challenges.Where(c => c.Type == ChallengeType.Daily).ToList();
+            var weeklyChallenges = challenges.Where(c => c.Type == ChallengeType.Weekly).ToList();
+            var monthlyChallenges = challenges.Where(c => c.Type == ChallengeType.Monthly).ToList();
             
-            DailyChallenges.Clear();
-            foreach (var challenge in challenges.Where(c => c.Type == ChallengeType.Daily))
+            // Calculer les résumés
+            var weeklyCompleted = weeklyChallenges.Count(c => c.IsCompleted);
+            var weeklyTotal = weeklyChallenges.Count;
+            var weeklyProgressText = $"{weeklyCompleted}/{weeklyTotal} complétés";
+            
+            // Temps restant hebdomadaire
+            var weeklyTimeText = "";
+            var firstWeekly = weeklyChallenges.FirstOrDefault();
+            if (firstWeekly != null)
             {
-                DailyChallenges.Add(challenge);
+                var remaining = firstWeekly.ExpiresAt - DateTime.UtcNow;
+                weeklyTimeText = remaining.Days > 0 
+                    ? $"{remaining.Days}j restants" 
+                    : $"{remaining.Hours}h restantes";
             }
+            
+            // Temps restant mensuel
+            var monthlyTimeText = "";
+            var monthlyBadgeIconText = "🏅";
+            var monthlyBadgeNameText = "";
+            var firstMonthly = monthlyChallenges.FirstOrDefault();
+            if (firstMonthly != null)
+            {
+                var remaining = firstMonthly.ExpiresAt - DateTime.UtcNow;
+                monthlyTimeText = remaining.Days > 0 
+                    ? $"{remaining.Days}j restants" 
+                    : $"{remaining.Hours}h restantes";
+                
+                // Trouver le badge exclusif
+                if (!string.IsNullOrEmpty(firstMonthly.ExclusiveBadgeId))
+                {
+                    var badge = GamificationConfig.AllBadges
+                        .FirstOrDefault(b => b.Id == firstMonthly.ExclusiveBadgeId);
+                    if (badge != null)
+                    {
+                        monthlyBadgeIconText = badge.Icon;
+                        monthlyBadgeNameText = badge.Name;
+                    }
+                }
+            }
+            
+            // Modifier les collections sur le thread UI
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                DailyChallenges.Clear();
+                foreach (var challenge in dailyChallenges)
+                    DailyChallenges.Add(challenge);
+                
+                WeeklyChallenges.Clear();
+                foreach (var challenge in weeklyChallenges)
+                    WeeklyChallenges.Add(challenge);
+                
+                MonthlyChallenges.Clear();
+                foreach (var challenge in monthlyChallenges)
+                    MonthlyChallenges.Add(challenge);
+                
+                WeeklyProgress = weeklyProgressText;
+                WeeklyTimeRemaining = weeklyTimeText;
+                MonthlyTimeRemaining = monthlyTimeText;
+                MonthlyBadgeIcon = monthlyBadgeIconText;
+                MonthlyBadgeName = monthlyBadgeNameText;
+                
+                OnPropertyChanged(nameof(HasWeeklyChallenges));
+                OnPropertyChanged(nameof(HasMonthlyChallenges));
+            });
         }
         catch (Exception ex)
         {
@@ -283,17 +389,22 @@ public class RewardsViewModel : BaseViewModel
         try
         {
             var badges = await _gamificationService.GetUserBadgesAsync(userId);
-            
-            UnlockedBadges.Clear();
-            foreach (var badge in badges.Take(10)) // Afficher les 10 derniers
+            var badgeDisplays = badges.Take(10).Select(badge => new BadgeDisplay
             {
-                UnlockedBadges.Add(new BadgeDisplay
+                Icon = badge.Icon,
+                Name = badge.Name,
+                RarityColor = GetRarityColor(badge.Rarity)
+            }).ToList();
+            
+            // Modifier la collection sur le thread UI pour éviter les crashs
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                UnlockedBadges.Clear();
+                foreach (var bd in badgeDisplays)
                 {
-                    Icon = badge.Icon,
-                    Name = badge.Name,
-                    RarityColor = GetRarityColor(badge.Rarity)
-                });
-            }
+                    UnlockedBadges.Add(bd);
+                }
+            });
         }
         catch (Exception ex)
         {

@@ -83,6 +83,14 @@ public static class MauiProgram
             client.Timeout = TimeSpan.FromMinutes(5); // 5 minutes par défaut
             client.DefaultRequestHeaders.Add("User-Agent", "DonTroc/1.0");
         });
+        
+        // HttpClient dédié aux Cloud Functions (notifications push)
+        builder.Services.AddHttpClient("PushNotification", client =>
+        {
+            client.BaseAddress = new Uri("https://europe-west1-dontroc-55570.cloudfunctions.net/");
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Add("User-Agent", "DonTroc/1.0");
+        });
 
         // Services core (ordre important pour l'injection de dépendances)
         builder.Services.AddSingleton<CacheService>();
@@ -110,7 +118,10 @@ public static class MauiProgram
 #else
         builder.Services.AddSingleton<IAdMobService, AdMobSimulationService>();
 #endif
-        builder.Services.AddTransient<AdMobService>();
+        // ⚠️ SINGLETON obligatoire : les compteurs anti-spam (cooldown, max/session, fréquence)
+        // doivent persister entre les navigations de pages. En Transient, chaque page
+        // créait une nouvelle instance → les limites étaient réinitialisées → requêtes excessives.
+        builder.Services.AddSingleton<AdMobService>();
 
         // Service d'achats in-app (suppression des pubs)
         builder.Services.AddSingleton<InAppBillingService>();
@@ -124,14 +135,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<NotificationService>();
         builder.Services.AddSingleton<PushNotificationService>();
         builder.Services.AddSingleton<SmartNotificationService>();
+        builder.Services.AddSingleton<RetentionNotificationService>();
         builder.Services.AddSingleton<AsyncImageUploadService>();
         builder.Services.AddSingleton<OptimizedImageService>();
         builder.Services.AddSingleton<GlobalNotificationService>();
         builder.Services.AddSingleton<UnreadMessageService>();
         builder.Services.AddSingleton<RatingService>();
         builder.Services.AddSingleton<TransactionService>();
-        builder.Services.AddSingleton<SocialService>();
-        builder.Services.AddSingleton<LazyLoadingService>();
+        builder.Services.AddSingleton<SocialService>();        builder.Services.AddSingleton<LazyLoadingService>();
         builder.Services.AddSingleton<FavoritesService>();
         builder.Services.AddSingleton<AudioService>();
         builder.Services.AddSingleton<AnimationService>();
@@ -140,9 +151,19 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITipsService>(sp => sp.GetRequiredService<TipsService>());
         builder.Services.AddSingleton<AppRatingService>();
         builder.Services.AddSingleton<ProximityNotificationService>();
-        
+        builder.Services.AddSingleton<RecommendationService>();
+        builder.Services.AddSingleton<LeaderboardService>();
+        builder.Services.AddSingleton<OnboardingService>();
+
+        // Service de vérification des mises à jour de l'app (Firebase Realtime DB)
+        builder.Services.AddSingleton<AppUpdateService>();
+
+
         // Service d'administration
         builder.Services.AddSingleton<AdminService>();
+
+        // Service de propositions de troc structurées
+        builder.Services.AddSingleton<TradeProposalService>();
 
 #if ANDROID
         // Service pour les notifications Push FCM
@@ -168,13 +189,19 @@ public static class MauiProgram
         builder.Services.AddTransient<SocialViewModel>();
         builder.Services.AddTransient<TransactionDetailsViewModel>();
         builder.Services.AddTransient<MapViewModel>();
-        builder.Services.AddTransient<BaseViewModel>();
         builder.Services.AddTransient<PremiumFeaturesViewModel>();
         builder.Services.AddTransient<ModerationViewModel>();
         builder.Services.AddTransient<RewardsViewModel>();
         builder.Services.AddTransient<QuizViewModel>();
         builder.Services.AddTransient<WheelOfFortuneViewModel>();
         builder.Services.AddTransient<AllBadgesViewModel>();
+        builder.Services.AddTransient<AnnonceDetailViewModel>();
+        builder.Services.AddTransient<LeaderboardViewModel>();
+        builder.Services.AddTransient<OnboardingViewModel>();
+
+        // ViewModels des propositions de troc
+        builder.Services.AddTransient<TradeProposalViewModel>();
+        builder.Services.AddTransient<TradeProposalsListViewModel>();
         
         // ViewModels d'administration
         builder.Services.AddTransient<AdminDashboardViewModel>();
@@ -184,6 +211,7 @@ public static class MauiProgram
         // Vues
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<LoginView>();
+        builder.Services.AddTransient<OnboardingView>();
         builder.Services.AddTransient<CreationAnnonceView>();
         builder.Services.AddTransient<AnnoncesView>();
         builder.Services.AddTransient<ChatView>();
@@ -204,6 +232,12 @@ public static class MauiProgram
         builder.Services.AddTransient<QuizPage>();
         builder.Services.AddTransient<WheelOfFortunePage>();
         builder.Services.AddTransient<AllBadgesPage>();
+        builder.Services.AddTransient<AnnonceDetailView>();
+        builder.Services.AddTransient<LeaderboardView>();
+
+        // Pages des propositions de troc
+        builder.Services.AddTransient<TradeProposalPage>();
+        builder.Services.AddTransient<TradeProposalsListPage>();
         
         // Pages d'administration
         builder.Services.AddTransient<AdminDashboardPage>();
@@ -213,6 +247,12 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.AddDebug();
+#else
+        // FIX CRASH RELEASE: Configurer explicitement le logging même en Release
+        // builder.Logging enregistre les services ILoggerFactory/ILogger<T> dans le DI
+        // Sans SetMinimumLevel, les services de logging sont quand même résolus
+        builder.Logging.SetMinimumLevel(LogLevel.Warning);
 #endif
 
         return builder.Build();

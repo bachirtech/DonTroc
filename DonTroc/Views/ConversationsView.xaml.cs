@@ -32,5 +32,15 @@ public partial class ConversationsView : ContentPage
         {
             _viewModel.LoadConversationsCommand.Execute(null);
         }
+
+        // 💌 Empty state animé : icône qui rebondit subtilement
+        if (EmptyConversationIcon != null)
+            AnimationService.StartBreathingAnimation(EmptyConversationIcon, 1.0, 1.15, 1300);
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        if (EmptyConversationIcon != null) AnimationService.StopBreathingAnimation(EmptyConversationIcon);
     }
 }

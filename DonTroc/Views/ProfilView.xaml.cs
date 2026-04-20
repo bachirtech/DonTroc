@@ -25,23 +25,50 @@ public partial class ProfilView : ContentPage
         BindingContext = viewModel;
         _adMobService = adMobService;
         _tipsService = tipsService;
+
+        // 🎬 Effet parallax sur le header au scroll
+        if (ProfilScrollView != null)
+            ProfilScrollView.Scrolled += OnProfilScrolled;
     }
 
-    protected override async void OnAppearing() // Méthode appelée lorsque la vue apparaît
+    private void OnProfilScrolled(object? sender, ScrolledEventArgs e)
     {
-        base.OnAppearing();
-
-        // ⚠️ Pas d'interstitiel sur la page Profil — page personnelle critique
-
-        if (BindingContext is not ProfilViewModel vm) return;
-        await vm.LoadUserProfile();
-        await vm.ExecuteLoadMesAnnoncesCommand();
-
-        // Afficher les conseils pour la première utilisation
-        if (!_tipsShown)
+        try
         {
-            _tipsShown = true;
-            await ShowTipsAsync();
+            if (ProfilHeaderBorder == null) return;
+
+            // Le header se déplace à 50% de la vitesse du scroll (effet parallax pro)
+            ProfilHeaderBorder.TranslationY = e.ScrollY * 0.5;
+
+            // Légère atténuation de l'opacité pour fondre dans le contenu
+            var fade = Math.Max(0.4, 1 - e.ScrollY / 350.0);
+            ProfilHeaderBorder.Opacity = fade;
+        }
+        catch { /* anim non critique */ }
+    }
+
+    protected override async void OnAppearing()
+    {
+        try
+        {
+            base.OnAppearing();
+
+            // ⚠️ Pas d'interstitiel sur la page Profil — page personnelle critique
+
+            if (BindingContext is not ProfilViewModel vm) return;
+            await vm.LoadUserProfile();
+            await vm.ExecuteLoadMesAnnoncesCommand();
+
+            // Afficher les conseils pour la première utilisation
+            if (!_tipsShown)
+            {
+                _tipsShown = true;
+                await ShowTipsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProfilView] Erreur OnAppearing: {ex.Message}");
         }
     }
 
@@ -82,43 +109,6 @@ public partial class ProfilView : ContentPage
         {
             if (BindingContext is ProfilViewModel vm)
                 vm.BoostAnnonceCommand.Execute(annonce);
-        }
-    }
-
-    /// <summary>
-    /// Gestionnaire d'événement pour le bouton "Changer" du sélecteur de thème
-    /// </summary>
-    private async void OnThemeButtonClicked(object sender, EventArgs e)
-    {
-        if (BindingContext is not ProfilViewModel viewModel) return;
-
-        try
-        {
-            // Afficher une ActionSheet avec les options de thème disponibles
-            var result = await DisplayActionSheet(
-                "Choisir l'apparence",
-                "Annuler",
-                null,
-                viewModel.AvailableThemes.ToArray()
-            );
-
-            // Si l'utilisateur a sélectionné une option valide
-            if (!string.IsNullOrEmpty(result) && result != "Annuler")
-            {
-                // Exécuter la commande pour changer le thème
-                if (viewModel.ChangeThemeCommand.CanExecute(result))
-                {
-                    viewModel.ChangeThemeCommand.Execute(result);
-
-                    // Afficher une confirmation subtile
-                    await DisplayAlert("✨ Thème modifié", $"L'apparence a été changée en : {result}", "OK");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            // Gestion d'erreur en cas de problème
-            await DisplayAlert("Erreur", $"Impossible de changer le thème : {ex.Message}", "OK");
         }
     }
 }

@@ -6,116 +6,185 @@
              xmlns:local="clr-namespace:DonTroc.Views"
              x:DataType="viewModels:ChatViewModel"
              x:Class="DonTroc.Views.ChatView"
-             Title="Chat">
+             Title="Chat"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
     <ContentPage.Resources>
-        <!-- Modèle pour les messages envoyés par l'utilisateur (alignés à droite) -->
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- TEMPLATE : MESSAGE ENVOYÉ (bulle droite)        -->
+        <!-- ═══════════════════════════════════════════════ -->
         <DataTemplate x:Key="SentMessageTemplate" x:DataType="models:Message">
-            <Grid Padding="5,10" MaximumWidthRequest="300" HorizontalOptions="End">
-                <Frame BackgroundColor="{StaticResource Terracotta}" CornerRadius="15" Padding="10" HasShadow="False">
-                    <Frame.GestureRecognizers>
+            <Grid Padding="8,4" MaximumWidthRequest="320" HorizontalOptions="End">
+                <Border StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16,4,16,16"
+                        Padding="12,10">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#A06842}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#25D98C6A, Dark=#20000000}"
+                               Offset="0,2" Radius="8" Opacity="0.35" />
+                    </Border.Shadow>
+                    <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnMessageTapped" NumberOfTapsRequired="1"/>
-                    </Frame.GestureRecognizers>
-                    <StackLayout>
+                    </Border.GestureRecognizers>
+
+                    <VerticalStackLayout Spacing="6">
                         <!-- Message texte -->
-                        <Label Text="{Binding Text}" 
-                               TextColor="White" 
+                        <Label Text="{Binding Text}"
+                               TextColor="White"
+                               FontSize="15"
+                               LineBreakMode="WordWrap"
                                IsVisible="{Binding Text, Converter={StaticResource StringNotNullOrEmptyConverter}}"/>
-                        
+
                         <!-- Image -->
-                        <Grid IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}">
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10,10,10,10"
+                                IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}"
+                                Padding="0">
                             <ImageButton Source="{Binding ImageUrl}"
                                          MaximumHeightRequest="200"
                                          Aspect="AspectFit"
                                          BackgroundColor="Transparent"
                                          BorderWidth="0"
+                                         CornerRadius="10"
                                          Clicked="OnImageClicked"
                                          Pressed="OnImagePressed"
                                          Released="OnImageReleased"/>
-                        </Grid>
-                        
-                        <!-- Localisation -->
-                        <Button Text="📍 Voir la localisation" 
-                                BackgroundColor="Transparent"
-                                TextColor="White"
-                                FontSize="12"
-                                IsVisible="{Binding Latitude, Converter={StaticResource DoubleNotZeroConverter}}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
-                                CommandParameter="{Binding .}"/>
+                        </Border>
 
-                        <!-- Horodatage avec statut de lecture -->
-                        <StackLayout Orientation="Horizontal" HorizontalOptions="End" Spacing="4">
-                            <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
-                                   TextColor="LightGray" 
+                        <!-- Localisation -->
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 8,8,8,8"
+                                BackgroundColor="#20FFFFFF"
+                                Padding="8,5"
+                                IsVisible="{Binding Latitude, Converter={StaticResource DoubleNotZeroConverter}}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="6" HorizontalOptions="Center">
+                                <Label Text="📍" FontSize="14" VerticalTextAlignment="Center" />
+                                <Label Text="Voir la localisation"
+                                       FontSize="12"
+                                       TextColor="White"
+                                       FontAttributes="Bold"
+                                       VerticalTextAlignment="Center" />
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Horodatage + statut -->
+                        <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
+                            <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}"
+                                   TextColor="#C0FFFFFF"
                                    FontSize="10"/>
-                            <Label Text="{Binding StatusIcon}" 
-                                   TextColor="{Binding StatusColor}" 
+                            <Label Text="{Binding StatusIcon}"
+                                   TextColor="{Binding StatusColor}"
                                    FontSize="10"
                                    FontAttributes="Bold"/>
-                        </StackLayout>
-                    </StackLayout>
-                </Frame>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
             </Grid>
         </DataTemplate>
 
-        <!-- Modèle pour les messages reçus (alignés à gauche) -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- TEMPLATE : MESSAGE REÇU (bulle gauche)          -->
+        <!-- ═══════════════════════════════════════════════ -->
         <DataTemplate x:Key="ReceivedMessageTemplate" x:DataType="models:Message">
-            <Grid Padding="5,10" MaximumWidthRequest="300" HorizontalOptions="Start">
-                <Frame BackgroundColor="{StaticResource Gray200}" CornerRadius="15" Padding="10" HasShadow="False">
-                    <Frame.GestureRecognizers>
+            <Grid Padding="8,4" MaximumWidthRequest="320" HorizontalOptions="Start">
+                <Border StrokeThickness="0"
+                        StrokeShape="RoundRectangle 4,16,16,16"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#3A342E}"
+                        Padding="12,10">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#15000000}"
+                               Offset="0,2" Radius="8" Opacity="0.3" />
+                    </Border.Shadow>
+                    <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnMessageTapped" NumberOfTapsRequired="1"/>
-                    </Frame.GestureRecognizers>
-                    <StackLayout>
+                    </Border.GestureRecognizers>
+
+                    <VerticalStackLayout Spacing="6">
                         <!-- Message texte -->
-                        <Label Text="{Binding Text}" 
-                               TextColor="Black"
+                        <Label Text="{Binding Text}"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                               FontSize="15"
+                               LineBreakMode="WordWrap"
                                IsVisible="{Binding Text, Converter={StaticResource StringNotNullOrEmptyConverter}}"/>
 
                         <!-- Image -->
-                        <Grid IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}">
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10,10,10,10"
+                                IsVisible="{Binding ImageUrl, Converter={StaticResource StringNotNullOrEmptyConverter}}"
+                                Padding="0">
                             <ImageButton Source="{Binding ImageUrl}"
                                          MaximumHeightRequest="200"
                                          Aspect="AspectFit"
                                          BackgroundColor="Transparent"
                                          BorderWidth="0"
+                                         CornerRadius="10"
                                          Clicked="OnImageClicked"
                                          Pressed="OnImagePressed"
                                          Released="OnImageReleased"/>
-                        </Grid>
+                        </Border>
 
                         <!-- Localisation -->
-                        <Button Text="📍 Voir la localisation" 
-                                BackgroundColor="Transparent"
-                                TextColor="{StaticResource Ardoise}"
-                                FontSize="12"
-                                IsVisible="{Binding LocationLatitude, Converter={StaticResource DoubleNotZeroConverter}}"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
-                                CommandParameter="{Binding .}"/>
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 8,8,8,8"
+                                BackgroundColor="{AppThemeBinding Light=#F0EDE8, Dark=#2D2620}"
+                                Padding="8,5"
+                                IsVisible="{Binding LocationLatitude, Converter={StaticResource DoubleNotZeroConverter}}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ChatViewModel}}, Path=OpenLocationCommand}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="6" HorizontalOptions="Center">
+                                <Label Text="📍" FontSize="14" VerticalTextAlignment="Center" />
+                                <Label Text="Voir la localisation"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                                       FontAttributes="Bold"
+                                       VerticalTextAlignment="Center" />
+                            </HorizontalStackLayout>
+                        </Border>
 
                         <!-- Horodatage -->
-                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
-                               TextColor="Gray" 
-                               FontSize="10" 
+                        <Label Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}"
+                               TextColor="{AppThemeBinding Light=#A0A0A0, Dark=#707070}"
+                               FontSize="10"
                                HorizontalOptions="End"/>
-                    </StackLayout>
-                </Frame>
+                    </VerticalStackLayout>
+                </Border>
             </Grid>
-        </DataTemplate>        <!-- Register the MessageTemplateSelector so CollectionView can use it (declared after templates) -->
+        </DataTemplate>
+
+        <!-- Sélecteur de template -->
         <local:MessageTemplateSelector x:Key="MessageTemplateSelector"
                                        SentMessageTemplate="{StaticResource SentMessageTemplate}"
                                        ReceivedMessageTemplate="{StaticResource ReceivedMessageTemplate}" />
     </ContentPage.Resources>
 
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- LAYOUT PRINCIPAL                                -->
+    <!-- ═══════════════════════════════════════════════ -->
     <Grid RowDefinitions="*,Auto,Auto">
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnBackgroundTapped" />
         </Grid.GestureRecognizers>
-        
-        <!-- Liste des messages -->
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- LISTE DES MESSAGES                          -->
+        <!-- ═══════════════════════════════════════════ -->
         <CollectionView Grid.Row="0"
                         ItemsSource="{Binding Messages}"
                         ItemTemplate="{StaticResource MessageTemplateSelector}"
-                        SelectionMode="None">
+                        SelectionMode="None"
+                        Margin="4,0">
             <CollectionView.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCollectionViewTapped" />
                 <PanGestureRecognizer PanUpdated="OnPanUpdated" />
@@ -123,90 +192,199 @@
         </CollectionView>
 
         <!-- Indicateur de frappe -->
-        <Label Grid.Row="0" 
-               IsVisible="{Binding IsOtherUserTyping}"
-               Text="{Binding TypingIndicatorText}"
-               TextColor="{StaticResource Ardoise}"
-               FontSize="12"
-               FontAttributes="Italic"
-               HorizontalOptions="Start">
-        </Label>
+        <Border Grid.Row="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 12,12,12,12"
+                BackgroundColor="{AppThemeBinding Light=#E8FFFFFF, Dark=#30FFFFFF}"
+                Padding="12,6"
+                Margin="12,0,12,8"
+                HorizontalOptions="Start"
+                VerticalOptions="End"
+                IsVisible="{Binding IsOtherUserTyping}">
+            <Label Text="{Binding TypingIndicatorText}"
+                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                   FontSize="12"
+                   FontAttributes="Italic" />
+        </Border>
 
-        <!-- Zone de saisie et envoi de message -->
-        <Frame Grid.Row="1" Padding="0" Margin="8,5" BorderColor="{StaticResource Gray200}" BackgroundColor="White" CornerRadius="25" HasShadow="True">
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- BARRE DE SAISIE MODERNE                     -->
+        <!-- ═══════════════════════════════════════════ -->
+        <Border Grid.Row="1"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 24,24,24,24"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2D2D2D}"
+                Margin="10,6,10,8"
+                Padding="0">
+            <Border.Shadow>
+                <Shadow Brush="{AppThemeBinding Light=#20000000, Dark=#30000000}"
+                       Offset="0,2" Radius="12" Opacity="0.3" />
+            </Border.Shadow>
+
             <Grid ColumnDefinitions="Auto,Auto,*,Auto" VerticalOptions="Center">
-                
-                <!-- Bouton pour les options multimédia (image, etc.) -->
-                <Button Grid.Column="0" 
-                        Text="+" 
-                        FontSize="24" 
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource Primary}"
-                        BackgroundColor="Transparent"
-                        BorderColor="Transparent"
-                        Command="{Binding ToggleMediaOptionsCommand}"
-                        VerticalOptions="Center"
-                        Padding="12,0,5,0"/>
 
-                <!-- Bouton pour les émojis -->
-                <Button Grid.Column="1" 
-                        Text="😊" 
-                        FontSize="22"
-                        TextColor="{StaticResource Primary}"
-                        BackgroundColor="Transparent"
-                        BorderColor="Transparent"
-                        Command="{Binding ToggleEmojiPickerCommand}"
-                        VerticalOptions="Center"
-                        Padding="5,0"/>
+                <!-- Bouton + (multimédia) -->
+                <Border Grid.Column="0"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16,16,16,16"
+                        BackgroundColor="{AppThemeBinding Light=#F5F0EB, Dark=#3A342E}"
+                        WidthRequest="36" HeightRequest="36"
+                        Margin="6,0,2,0"
+                        HorizontalOptions="Center" VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleMediaOptionsCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="+"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
 
-                <!-- Champ de saisie du message -->
+                <!-- Bouton emoji -->
+                <Border Grid.Column="1"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16,16,16,16"
+                        BackgroundColor="Transparent"
+                        WidthRequest="36" HeightRequest="36"
+                        HorizontalOptions="Center" VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleEmojiPickerCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="😊"
+                           FontSize="20"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+
+                <!-- Champ de saisie -->
                 <Editor Grid.Column="2"
                         x:Name="MessageEditor"
                         Text="{Binding NewMessageText}"
                         Placeholder="Votre message..."
+                        PlaceholderColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
                         AutoSize="TextChanges"
                         VerticalOptions="Center"
                         BackgroundColor="Transparent"
-                        Focused="OnEditorFocused"/>
+                        TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                        FontSize="15"
+                        Focused="OnEditorFocused"
+                        Margin="4,0" />
 
-                <!-- Bouton d'envoi ou d'enregistrement vocal -->
-                <Button Grid.Column="3"
-                        Text="{Binding SendButtonText}"
-                        FontSize="{Binding SendButtonFontSize}"
-                        BackgroundColor="{Binding SendButtonBackgroundColor}"
-                        TextColor="White"
-                        FontAttributes="Bold"
-                        CornerRadius="20"
-                        HeightRequest="40"
-                        WidthRequest="40"
-                        Margin="5"
-                        Command="{Binding SendOrRecordCommand}"
-                        VerticalOptions="Center"/>
+                <!-- Bouton envoi / enregistrement vocal -->
+                <Border Grid.Column="3"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 18,18,18,18"
+                        WidthRequest="42" HeightRequest="42"
+                        Margin="4,0,6,0"
+                        HorizontalOptions="Center" VerticalOptions="Center">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#A06842}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="#30D98C6A" Offset="0,2" Radius="6" Opacity="0.3" />
+                    </Border.Shadow>
+                    <Button Text="{Binding SendButtonText}"
+                            FontSize="{Binding SendButtonFontSize}"
+                            BackgroundColor="Transparent"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="18"
+                            WidthRequest="42"
+                            HeightRequest="42"
+                            Padding="0"
+                            Command="{Binding SendOrRecordCommand}" />
+                </Border>
             </Grid>
-        </Frame>
+        </Border>
 
-        <!-- Options multimédia (cachées par défaut) -->
-        <Frame Grid.Row="1" 
-               IsVisible="{Binding IsMediaOptionsVisible}"
-               BackgroundColor="{StaticResource White}"
-               BorderColor="{StaticResource Gray300}"
-               CornerRadius="20"
-               Padding="10"
-               Margin="10,0,10,70" 
-               VerticalOptions="End"
-               HasShadow="True">
-            <StackLayout Orientation="Horizontal" Spacing="20" HorizontalOptions="Center">
-                <Button Text="📷 Photo" Command="{Binding TakePhotoCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
-                <Button Text="🖼️ Galerie" Command="{Binding SelectImageCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
-                <Button Text="📍 Position" Command="{Binding SendLocationCommand}" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
-            </StackLayout>
-        </Frame>
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- OPTIONS MULTIMÉDIA (popup)                  -->
+        <!-- ═══════════════════════════════════════════ -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding IsMediaOptionsVisible}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 20,20,20,20"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2D2D2D}"
+                Padding="16,12"
+                Margin="14,0,14,72"
+                VerticalOptions="End">
+            <Border.Shadow>
+                <Shadow Brush="{AppThemeBinding Light=#30000000, Dark=#40000000}"
+                       Offset="0,4" Radius="16" Opacity="0.4" />
+            </Border.Shadow>
 
-        <!-- Sélecteur d'émojis -->
+            <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
+                <!-- Photo -->
+                <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            BackgroundColor="{AppThemeBinding Light=#FFEDE3, Dark=#3D2E24}"
+                            WidthRequest="52" HeightRequest="52"
+                            HorizontalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding TakePhotoCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="📷" FontSize="24"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Photo"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+
+                <!-- Galerie -->
+                <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                            WidthRequest="52" HeightRequest="52"
+                            HorizontalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectImageCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="🖼️" FontSize="24"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Galerie"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+
+                <!-- Position -->
+                <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A2E3D}"
+                            WidthRequest="52" HeightRequest="52"
+                            HorizontalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SendLocationCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="📍" FontSize="24"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Position"
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SÉLECTEUR D'ÉMOJIS                          -->
+        <!-- ═══════════════════════════════════════════ -->
         <local:EmojiPickerView Grid.Row="2"
                                IsVisible="{Binding IsEmojiPickerVisible}"
                                EmojiSelectedCommand="{Binding InsertEmojiCommand}"
                                HeightRequest="280"
-                               BackgroundColor="#F8F8F8"/>
+                               BackgroundColor="{AppThemeBinding Light=#FAF7F3, Dark=#2C2620}"/>
     </Grid>
 </ContentPage>

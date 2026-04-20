@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DonTroc.Views.DailyRewardPopup"
+             x:Name="PopupContainer"
+             IsVisible="False"
+             BackgroundColor="Transparent">
+
+    <Grid>
+        <!-- Overlay semi-transparent -->
+        <BoxView BackgroundColor="#80000000">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnOverlayTapped" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Carte principale -->
+        <Border x:Name="PopupCard"
+                StrokeShape="RoundRectangle 24,24,24,24"
+                StrokeThickness="0"
+                WidthRequest="340"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Padding="0"
+                Scale="0.5"
+                Opacity="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="{AppThemeBinding Light=#FFFAF5, Dark=#2D2520}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light=#FFF0E6, Dark=#1E1814}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#60000000" Offset="0,8" Radius="24" Opacity="0.5" />
+            </Border.Shadow>
+
+            <VerticalStackLayout Spacing="0">
+
+                <!-- Header gradient -->
+                <Border StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24,24,0,0"
+                        Padding="20,22,20,18">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#8B5A3A}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#A06842}" Offset="0.5" />
+                            <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Label x:Name="FireIcon"
+                               Text="🔥"
+                               FontSize="42"
+                               HorizontalTextAlignment="Center"
+                               Scale="0.3"
+                               Opacity="0" />
+                        <Label x:Name="StreakLabel"
+                               Text="Série de 1 jour"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalTextAlignment="Center"
+                               Opacity="0" />
+                        <Label x:Name="SubtitleLabel"
+                               Text="Récupérez votre récompense quotidienne !"
+                               FontSize="13"
+                               TextColor="#D0FFFFFF"
+                               HorizontalTextAlignment="Center"
+                               Opacity="0" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Les 7 jours -->
+                <Grid x:Name="DaysGrid"
+                      ColumnDefinitions="*,*,*,*,*,*,*"
+                      ColumnSpacing="4"
+                      Padding="14,18,14,8"
+                      Opacity="0">
+
+                    <!-- Jour 1 -->
+                    <Border x:Name="Day1" Grid.Column="0"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J1" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🎁" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="20 XP" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Jour 2 -->
+                    <Border x:Name="Day2" Grid.Column="1"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J2" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🎁" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="30 XP" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Jour 3 -->
+                    <Border x:Name="Day3" Grid.Column="2"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J3" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🚀" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="1 Boost" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Jour 4 -->
+                    <Border x:Name="Day4" Grid.Column="3"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J4" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🎁" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="50 XP" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Jour 5 -->
+                    <Border x:Name="Day5" Grid.Column="4"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J5" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🎁" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="75 XP" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Jour 6 -->
+                    <Border x:Name="Day6" Grid.Column="5"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J6" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🚀" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="2 Boost" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Jour 7 (bonus) -->
+                    <Border x:Name="Day7" Grid.Column="6"
+                            StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                            Padding="0" HeightRequest="68">
+                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="J7" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🎉" FontSize="18" HorizontalTextAlignment="Center" />
+                            <Label Text="150 XP" FontSize="8"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Récompense du jour mise en avant -->
+                <Border x:Name="TodayRewardCard"
+                        StrokeShape="RoundRectangle 16,16,16,16"
+                        StrokeThickness="2"
+                        Stroke="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}"
+                        BackgroundColor="{AppThemeBinding Light=#FFF8F2, Dark=#3D2E24}"
+                        Margin="18,6,18,4"
+                        Padding="16,12"
+                        Opacity="0"
+                        Scale="0.8">
+                    <HorizontalStackLayout Spacing="14" HorizontalOptions="Center">
+                        <Label x:Name="TodayRewardIcon"
+                               Text="🎁"
+                               FontSize="36"
+                               VerticalTextAlignment="Center" />
+                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                            <Label x:Name="TodayRewardTitle"
+                                   Text="Récompense du jour"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#D98C6A, Dark=#E5A07E}" />
+                            <Label x:Name="TodayRewardDescription"
+                                   Text="+20 XP"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                </Border>
+
+                <!-- Bouton Récupérer -->
+                <Button x:Name="ClaimButton"
+                        Text="🎁 Récupérer ma récompense"
+                        BackgroundColor="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="16"
+                        HeightRequest="52"
+                        Margin="18,10,18,8"
+                        Clicked="OnClaimButtonClicked"
+                        Opacity="0" />
+
+                <!-- Bouton Plus tard -->
+                <Label x:Name="LaterLabel"
+                       Text="Plus tard"
+                       FontSize="13"
+                       TextColor="{AppThemeBinding Light=#8B6F5E, Dark=#B8A090}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,0,0,16"
+                       Opacity="0">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnLaterTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Confettis -->
+        <Grid x:Name="ConfettiGrid" IsVisible="False" InputTransparent="True">
+            <Label x:Name="Confetti1" Text="🎉" FontSize="24" HorizontalOptions="Start" VerticalOptions="Start" Opacity="0" />
+            <Label x:Name="Confetti2" Text="⭐" FontSize="20" HorizontalOptions="End" VerticalOptions="Start" Opacity="0" />
+            <Label x:Name="Confetti3" Text="🎊" FontSize="22" HorizontalOptions="Start" VerticalOptions="Center" Opacity="0" />
+            <Label x:Name="Confetti4" Text="✨" FontSize="18" HorizontalOptions="End" VerticalOptions="Center" Opacity="0" />
+            <Label x:Name="Confetti5" Text="🔥" FontSize="20" HorizontalOptions="Center" VerticalOptions="Start" Opacity="0" />
+            <Label x:Name="Confetti6" Text="🎁" FontSize="22" HorizontalOptions="Center" VerticalOptions="End" Opacity="0" />
+        </Grid>
+    </Grid>
+</ContentView>
+

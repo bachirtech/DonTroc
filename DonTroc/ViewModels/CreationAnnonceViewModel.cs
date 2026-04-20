@@ -28,6 +28,7 @@ public class CreationAnnonceViewModel : BaseViewModel
     private readonly FirebaseService _firebaseService; // Service pour interagir avec Firebase
     private readonly GamificationService _gamificationService; // Service de gamification
     private readonly GeolocationService _geolocationService; // Service pour la géolocalisation
+    private readonly AdMobService _adMobService; // Service de monétisation publicitaire
 
     private readonly ILogger<CreationAnnonceViewModel> _logger;
 
@@ -51,7 +52,8 @@ public class CreationAnnonceViewModel : BaseViewModel
     public CreationAnnonceViewModel(FirebaseService firebaseService, AuthService authService,
         GeolocationService geolocationService, ILogger<CreationAnnonceViewModel> logger,
         GamificationService gamificationService, SmartNotificationService smartNotificationService,
-        AsyncImageUploadService asyncImageUploadService, ProximityNotificationService proximityNotificationService)
+        AsyncImageUploadService asyncImageUploadService, ProximityNotificationService proximityNotificationService,
+        AdMobService adMobService)
     {
         _firebaseService = firebaseService;
         _authService = authService;
@@ -61,6 +63,7 @@ public class CreationAnnonceViewModel : BaseViewModel
         _smartNotificationService = smartNotificationService;
         _asyncImageUploadService = asyncImageUploadService;
         _proximityNotificationService = proximityNotificationService;
+        _adMobService = adMobService;
 
         _logger.LogInformation("CreationAnnonceViewModel initialisé.");
 
@@ -448,6 +451,18 @@ public class CreationAnnonceViewModel : BaseViewModel
                 : "Votre annonce a été publiée.";
 
             await ShowSuccessAlert("Succès", successMessage);
+
+            // 10. Afficher un interstitiel après la publication (moment naturel de transition)
+            try
+            {
+                await _adMobService.ShowInterstitialAfterActionAsync("annonce_published");
+            }
+            catch (Exception adEx)
+            {
+                _logger.LogWarning("Erreur lors de l'affichage de l'interstitiel: {Error}", adEx.Message);
+                // Ne jamais bloquer la navigation à cause d'une pub
+            }
+
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)

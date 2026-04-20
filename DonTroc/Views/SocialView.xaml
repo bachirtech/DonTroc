@@ -10,69 +10,127 @@
     <Grid RowDefinitions="Auto,*" Padding="15" RowSpacing="15">
         
         <!-- En-tête avec statistiques -->
-        <Frame Grid.Row="0" Style="{StaticResource CardFrame}" Padding="20">
+        <Border Grid.Row="0" 
+                StrokeShape="RoundRectangle 18,18,18,18"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                Padding="20">
+            <Border.Shadow>
+                <Shadow Brush="{AppThemeBinding Light=#20A8C686, Dark=#30000000}" Offset="0,4" Radius="14" Opacity="0.4" />
+            </Border.Shadow>
             <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="15">
                 
                 <!-- Titre -->
                 <Label Grid.Row="0" Text="🌟 Votre Impact Social" 
                        FontSize="Large" FontAttributes="Bold" 
                        HorizontalOptions="Center" 
-                       TextColor="{StaticResource VertSauge}" />
+                       TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}" />
                 
                 <!-- Statistiques en grille -->
                 <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="10">
                     
                     <!-- Amis -->
-                    <Frame Grid.Column="0" BackgroundColor="{StaticResource VertSauge}" 
-                           Padding="15" CornerRadius="12" HasShadow="False">
-                        <StackLayout HorizontalOptions="Center">
-                            <Label Text="👥" FontSize="Large" HorizontalOptions="Center" />
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0FFFFFF, Dark=#30FFFFFF}"
+                            Padding="14,16">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#25A8C686, Dark=#20000000}" Offset="0,3" Radius="10" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="👥" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
                             <Label Text="{Binding SocialStats.NombreAmis}" 
-                                   FontSize="Large" FontAttributes="Bold" 
-                                   TextColor="White" HorizontalOptions="Center" />
-                            <Label Text="Amis" FontSize="Small" 
-                                   TextColor="White" HorizontalOptions="Center" />
-                        </StackLayout>
-                    </Frame>
+                                   FontSize="28" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}" 
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Amis" FontSize="11" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" 
+                                   HorizontalTextAlignment="Center" Opacity="0.8" />
+                        </VerticalStackLayout>
+                    </Border>
                     
                     <!-- Parrainages -->
-                    <Frame Grid.Column="1" BackgroundColor="{StaticResource Terracotta}" 
-                           Padding="15" CornerRadius="12" HasShadow="False">
-                        <StackLayout HorizontalOptions="Center">
-                            <Label Text="🎯" FontSize="Large" HorizontalOptions="Center" />
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0FFFFFF, Dark=#30FFFFFF}"
+                            Padding="14,16">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#25D98C6A, Dark=#20000000}" Offset="0,3" Radius="10" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFEDE3, Dark=#3D2E24}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="🎯" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
                             <Label Text="{Binding SocialStats.NombreParrainages}" 
-                                   FontSize="Large" FontAttributes="Bold" 
-                                   TextColor="White" HorizontalOptions="Center" />
-                            <Label Text="Parrainages" FontSize="Small" 
-                                   TextColor="White" HorizontalOptions="Center" />
-                        </StackLayout>
-                    </Frame>
+                                   FontSize="28" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}" 
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Parrainages" FontSize="10" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" 
+                                   HorizontalTextAlignment="Center" Opacity="0.8" />
+                        </VerticalStackLayout>
+                    </Border>
                     
                     <!-- Partages -->
-                    <Frame Grid.Column="2" BackgroundColor="{StaticResource Ardoise}" 
-                           Padding="15" CornerRadius="12" HasShadow="False">
-                        <StackLayout HorizontalOptions="Center">
-                            <Label Text="📤" FontSize="Large" HorizontalOptions="Center" />
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light=#F0FFFFFF, Dark=#30FFFFFF}"
+                            Padding="14,16">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#256B7A8F, Dark=#20000000}" Offset="0,3" Radius="10" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E8EDF2, Dark=#2A3040}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="📤" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
                             <Label Text="{Binding SocialStats.NombrePartages}" 
-                                   FontSize="Large" FontAttributes="Bold" 
-                                   TextColor="White" HorizontalOptions="Center" />
-                            <Label Text="Partages" FontSize="Small" 
-                                   TextColor="White" HorizontalOptions="Center" />
-                        </StackLayout>
-                    </Frame>
+                                   FontSize="28" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" 
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Partages" FontSize="11" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" 
+                                   HorizontalTextAlignment="Center" Opacity="0.8" />
+                        </VerticalStackLayout>
+                    </Border>
                 </Grid>
                 
                 <!-- Boutons d'action -->
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
                     <Button Grid.Column="0" Text="🎁 Mon Code" 
-                            Style="{StaticResource PrimaryButton}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                            TextColor="White"
+                            FontFamily="PoppinsBold" FontSize="14"
+                            CornerRadius="22" Padding="14,10"
                             Command="{Binding GenerateReferralCodeCommand}" />
                     <Button Grid.Column="1" Text="🔗 Utiliser Code" 
-                            Style="{StaticResource SecondaryButton}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocSecondary}, Dark={StaticResource DonTrocSecondaryDark}}"
+                            TextColor="White"
+                            FontFamily="PoppinsBold" FontSize="14"
+                            CornerRadius="22" Padding="14,10"
                             Clicked="OnUseReferralCodeClicked" />
                 </Grid>
             </Grid>
-        </Frame>
+        </Border>
         
         <!-- Contenu principal avec tabs -->
         <Grid Grid.Row="1">

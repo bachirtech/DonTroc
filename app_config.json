@@ -1,0 +1,16 @@
+{
+  "android": {
+    "latest_version_code": 28,
+    "latest_version_name": "2.0",
+    "min_required_version_code": 0,
+    "update_message": "Une nouvelle version de DonTroc est disponible avec des améliorations et corrections.",
+    "release_notes": "- 🤝 Système de propositions de troc structurées\n- 🎯 Amis & Parrainage modernisés\n- 🧠 Recommandations personnalisées\n- 🐛 Corrections et optimisations"
+  },
+  "ios": {
+    "latest_version_code": 28,
+    "latest_version_name": "2.0",
+    "min_required_version_code": 0,
+    "update_message": "Une nouvelle version de DonTroc est disponible avec des améliorations et corrections.",
+    "release_notes": "- 🤝 Système de propositions de troc structurées\n- 🎯 Amis & Parrainage modernisés\n- 🧠 Recommandations personnalisées\n- 🐛 Corrections et optimisations"
+  }
+}

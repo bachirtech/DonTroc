@@ -34,7 +34,7 @@ public class FavoritesService
         _authService = authService;
         _notificationService = notificationService;
         _firebaseClient = new FirebaseClient(
-            "https://dontroc-55570-default-rtdb.europe-west1.firebasedatabase.app/",
+            ConfigurationService.FirebaseUrl,
             new FirebaseOptions
             {
                 AuthTokenAsyncFactory = async () => await _authService.GetAuthTokenAsync() ?? ""

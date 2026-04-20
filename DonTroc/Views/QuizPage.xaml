@@ -6,7 +6,7 @@
              x:Class="DonTroc.Views.QuizPage"
              x:DataType="vm:QuizViewModel"
              Title="Quiz du Jour"
-             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -18,630 +18,786 @@
     </ContentPage.Resources>
 
     <Grid>
-        <!-- Écran d'accueil du Quiz -->
-        <ScrollView IsVisible="{Binding IsQuizActive, Converter={StaticResource InverseBoolConverter}}">
-            <VerticalStackLayout Padding="20" Spacing="20">
-                
-                <!-- En-tête -->
-                <Border StrokeShape="RoundRectangle 20"
-                        BackgroundColor="#E8F5E9"
-                        Padding="20"
-                        Margin="0,10,0,0">
-                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="🧠" FontSize="60" HorizontalOptions="Center"/>
-                        <Label Text="Quiz du Jour" 
-                               FontSize="28" 
-                               FontAttributes="Bold"
-                               HorizontalOptions="Center"
-                               TextColor="#2E7D32"/>
-                        <Label Text="Testez vos connaissances sur l'écologie, le recyclage et la solidarité !"
-                               FontSize="14"
-                               HorizontalTextAlignment="Center"
-                               TextColor="#666666"/>
-                    </VerticalStackLayout>
-                </Border>
 
-                <!-- Stats utilisateur -->
-                <Border StrokeShape="RoundRectangle 15"
-                        BackgroundColor="White"
-                        Padding="15"
-                        IsVisible="{Binding UserProfile, Converter={StaticResource NullToBoolConverter}}">
-                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
-                            <Label Text="{Binding UserProfile.TotalQuizzesCompleted}" 
-                                   FontSize="24" 
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ÉCRAN D'ACCUEIL DU QUIZ                                    -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <Grid RowDefinitions="Auto,*"
+              IsVisible="{Binding IsQuizActive, Converter={StaticResource InverseBoolConverter}}">
+
+            <!-- ── HEADER GRADIENT ── -->
+            <Border Grid.Row="0"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0,0,32,32"
+                    Padding="20,15,20,24">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{AppThemeBinding Light=#5B9A4A, Dark=#3A6B30}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light=#4CAF50, Dark=#2E7D32}" Offset="0.5" />
+                        <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="#40000000" Offset="0,6" Radius="16" Opacity="0.3" />
+                </Border.Shadow>
+
+                <VerticalStackLayout Spacing="14">
+
+                    <!-- Bannière pub -->
+                    <views:AdBannerView
+                        HeightRequest="50"
+                        MinimumHeightRequest="50"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent" />
+
+                    <!-- Titre + Icône -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 16,16,16,16"
+                                StrokeThickness="0"
+                                BackgroundColor="#33FFFFFF"
+                                WidthRequest="52" HeightRequest="52"
+                                HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="🧠" FontSize="24"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Quiz du Jour"
+                                   FontSize="22"
                                    FontAttributes="Bold"
-                                   TextColor="#4CAF50"
-                                   HorizontalOptions="Center"/>
-                            <Label Text="Quiz joués" 
-                                   FontSize="11" 
-                                   TextColor="#666666"
-                                   HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                        
-                        <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
-                            <Label Text="{Binding UserProfile.OverallSuccessRate, StringFormat='{0:F0}%'}" 
-                                   FontSize="24" 
-                                   FontAttributes="Bold"
-                                   TextColor="#2196F3"
-                                   HorizontalOptions="Center"/>
-                            <Label Text="Réussite" 
-                                   FontSize="11" 
-                                   TextColor="#666666"
-                                   HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                        
-                        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
-                            <HorizontalStackLayout HorizontalOptions="Center">
-                                <Label Text="🔥" FontSize="20"/>
-                                <Label Text="{Binding CurrentStreak}" 
-                                       FontSize="24" 
-                                       FontAttributes="Bold"
-                                       TextColor="#FF9800"/>
-                            </HorizontalStackLayout>
-                            <Label Text="Streak" 
-                                   FontSize="11" 
-                                   TextColor="#666666"
-                                   HorizontalOptions="Center"/>
+                                   TextColor="White"
+                                   FontFamily="PoppinsBold" />
+                            <Label Text="Testez vos connaissances !"
+                                   FontSize="13"
+                                   TextColor="#D0FFFFFF" />
                         </VerticalStackLayout>
                     </Grid>
-                </Border>
 
-                <!-- Bouton Quiz Quotidien -->
-                <Border StrokeShape="RoundRectangle 15"
-                        BackgroundColor="White"
-                        Padding="20">
-                    <VerticalStackLayout Spacing="15">
-                        <HorizontalStackLayout Spacing="10">
-                            <Label Text="📅" FontSize="30"/>
-                            <VerticalStackLayout>
-                                <Label Text="Quiz Quotidien" 
-                                       FontSize="18" 
-                                       FontAttributes="Bold"/>
-                                <Label Text="3 questions • Gagnez des XP !"
-                                       FontSize="12"
-                                       TextColor="#666666"/>
-                            </VerticalStackLayout>
-                        </HorizontalStackLayout>
-                        
-                        <Button Text="{Binding CanPlayDailyQuiz, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Jouer maintenant|Déjà joué aujourd\x27hui'}"
-                                Command="{Binding StartDailyQuizCommand}"
-                                IsEnabled="{Binding CanPlayDailyQuiz}"
-                                BackgroundColor="{Binding CanPlayDailyQuiz, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#4CAF50|#BDBDBD'}"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                HeightRequest="50"
-                                CornerRadius="10"/>
-                        
-                        <Label Text="⏰ Revenez demain pour un nouveau quiz !"
-                               IsVisible="{Binding CanPlayDailyQuiz, Converter={StaticResource InverseBoolConverter}}"
-                               FontSize="12"
-                               TextColor="#FF9800"
-                               HorizontalTextAlignment="Center"/>
-                    </VerticalStackLayout>
-                </Border>
+                    <!-- Mini Stats en ligne -->
+                    <Grid ColumnDefinitions="*,Auto,*,Auto,*" Margin="0,2,0,0"
+                          IsVisible="{Binding UserProfile, Converter={StaticResource NullToBoolConverter}}">
+                        <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="{Binding UserProfile.TotalQuizzesCompleted}"
+                                   FontSize="22" FontAttributes="Bold" TextColor="White"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🎮 Joués" FontSize="11" TextColor="#C0FFFFFF"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                        <BoxView Grid.Column="1" WidthRequest="1" HeightRequest="30"
+                                 BackgroundColor="#40FFFFFF" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="{Binding UserProfile.OverallSuccessRate, StringFormat='{0:F0}%'}"
+                                   FontSize="22" FontAttributes="Bold" TextColor="White"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="✅ Réussite" FontSize="11" TextColor="#C0FFFFFF"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                        <BoxView Grid.Column="3" WidthRequest="1" HeightRequest="30"
+                                 BackgroundColor="#40FFFFFF" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="{Binding CurrentStreak}"
+                                   FontSize="22" FontAttributes="Bold" TextColor="White"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="🔥 Série" FontSize="11" TextColor="#C0FFFFFF"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
 
-                <!-- Quiz Thématiques -->
-                <Label Text="Quiz Thématiques" 
-                       FontSize="18" 
-                       FontAttributes="Bold"
-                       Margin="0,10,0,0"/>
-                
-                <Grid ColumnDefinitions="*,*" 
-                      RowDefinitions="Auto,Auto,Auto"
-                      ColumnSpacing="10" 
-                      RowSpacing="10">
-                    
-                    <!-- Écologie -->
-                    <Border Grid.Row="0" Grid.Column="0"
-                            StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#E8F5E9"
-                            Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" 
-                                                  CommandParameter="Ecologie"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="🌍" FontSize="35" HorizontalOptions="Center"/>
-                            <Label Text="Écologie" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                       Color="White" HeightRequest="24" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── CONTENU SCROLLABLE ── -->
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="18,0,18,24" Spacing="16" Margin="0,-14,0,0">
+
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- QUIZ QUOTIDIEN                              -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    <Border StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="18,16">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="14">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Border Grid.Column="0"
+                                        StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                        WidthRequest="40" HeightRequest="40"
+                                        HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="📅" FontSize="20"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                    <Label Text="Quiz Quotidien" FontSize="18" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                           FontFamily="PoppinsBold" />
+                                    <Label Text="3 questions • Gagnez des XP !" FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                           Opacity="0.6" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <BoxView HeightRequest="1"
+                                     BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}" Margin="0,0,0,2" />
+
+                            <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                    Padding="0" HeightRequest="50" HorizontalOptions="Fill">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{Binding CanPlayDailyQuiz, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#4CAF50|#BDBDBD'}" Offset="0.0" />
+                                        <GradientStop Color="{Binding CanPlayDailyQuiz, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#66BB6A|#CECECE'}" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Shadow>
+                                    <Shadow Brush="{AppThemeBinding Light=#304CAF50, Dark=#20000000}"
+                                           Offset="0,3" Radius="10" Opacity="0.5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding StartDailyQuizCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding CanPlayDailyQuiz, Converter={StaticResource BoolToTextConverter}, ConverterParameter='▶  Jouer maintenant|✓  Déjà joué aujourd\x27hui'}"
+                                       TextColor="White" FontSize="16" FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                            </Border>
+
+                            <Border StrokeShape="RoundRectangle 10,10,10,10" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFF8E1, Dark=#3E2E1A}"
+                                    Padding="12,8"
+                                    IsVisible="{Binding CanPlayDailyQuiz, Converter={StaticResource InverseBoolConverter}}">
+                                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                    <Label Text="⏰" FontSize="14" VerticalOptions="Center"/>
+                                    <Label Text="Revenez demain pour un nouveau quiz !" FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#F57C00, Dark=#FFB74D}" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
                         </VerticalStackLayout>
                     </Border>
-                    
-                    <!-- Recyclage -->
-                    <Border Grid.Row="0" Grid.Column="1"
-                            StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#E3F2FD"
-                            Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" 
-                                                  CommandParameter="Recyclage"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="♻️" FontSize="35" HorizontalOptions="Center"/>
-                            <Label Text="Recyclage" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- QUIZ THÉMATIQUES                            -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    <Border StrokeShape="RoundRectangle 18,18,18,18" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="18,16">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="14">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Border Grid.Column="0"
+                                        StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#F3E5F5, Dark=#2D1E33}"
+                                        WidthRequest="40" HeightRequest="40"
+                                        HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="📚" FontSize="20"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Grid.Column="1" Text="Quiz Thématiques" FontSize="18" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       VerticalTextAlignment="Center" FontFamily="PoppinsBold" />
+                            </Grid>
+                            <BoxView HeightRequest="1"
+                                     BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}" Margin="0,0,0,2" />
+
+                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                                <!-- Écologie -->
+                                <Border Grid.Row="0" Grid.Column="0"
+                                        StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                        Padding="12,16" HeightRequest="100">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#204CAF50, Dark=#10000000}" Offset="0,3" Radius="8" Opacity="0.3" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" CommandParameter="Ecologie"/>
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#C8E6C9, Dark=#1B5E20}"
+                                                WidthRequest="40" HeightRequest="40" HorizontalOptions="Center">
+                                            <Label Text="🌍" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Label Text="Écologie" FontSize="12" FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Recyclage -->
+                                <Border Grid.Row="0" Grid.Column="1"
+                                        StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A3054}"
+                                        Padding="12,16" HeightRequest="100">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#202196F3, Dark=#10000000}" Offset="0,3" Radius="8" Opacity="0.3" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" CommandParameter="Recyclage"/>
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#BBDEFB, Dark=#0D47A1}"
+                                                WidthRequest="40" HeightRequest="40" HorizontalOptions="Center">
+                                            <Label Text="♻️" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Label Text="Recyclage" FontSize="12" FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Solidarité -->
+                                <Border Grid.Row="0" Grid.Column="2"
+                                        StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#FCE4EC, Dark=#3D1E28}"
+                                        Padding="12,16" HeightRequest="100">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#20E91E63, Dark=#10000000}" Offset="0,3" Radius="8" Opacity="0.3" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" CommandParameter="Solidarite"/>
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#F8BBD0, Dark=#880E4F}"
+                                                WidthRequest="40" HeightRequest="40" HorizontalOptions="Center">
+                                            <Label Text="🤝" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Label Text="Solidarité" FontSize="12" FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Économie Circulaire -->
+                                <Border Grid.Row="1" Grid.Column="0"
+                                        StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3E2E1A}"
+                                        Padding="12,16" HeightRequest="100">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#20FF9800, Dark=#10000000}" Offset="0,3" Radius="8" Opacity="0.3" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" CommandParameter="EconomieCirculaire"/>
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#FFE0B2, Dark=#E65100}"
+                                                WidthRequest="40" HeightRequest="40" HorizontalOptions="Center">
+                                            <Label Text="🔄" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Label Text="Éco. Circulaire" FontSize="9" FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Astuces -->
+                                <Border Grid.Row="1" Grid.Column="1"
+                                        StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#F3E5F5, Dark=#2D1E33}"
+                                        Padding="12,16" HeightRequest="100">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#209C27B0, Dark=#10000000}" Offset="0,3" Radius="8" Opacity="0.3" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" CommandParameter="Astuces"/>
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#CE93D8, Dark=#7B1FA2}"
+                                                WidthRequest="40" HeightRequest="40" HorizontalOptions="Center">
+                                            <Label Text="💡" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Label Text="Astuces" FontSize="12" FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Culture -->
+                                <Border Grid.Row="1" Grid.Column="2"
+                                        StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#EFEBE9, Dark=#3E2723}"
+                                        Padding="12,16" HeightRequest="100">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#20795548, Dark=#10000000}" Offset="0,3" Radius="8" Opacity="0.3" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" CommandParameter="Culture"/>
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#BCAAA4, Dark=#4E342E}"
+                                                WidthRequest="40" HeightRequest="40" HorizontalOptions="Center">
+                                            <Label Text="📚" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Label Text="Culture" FontSize="12" FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
                         </VerticalStackLayout>
                     </Border>
-                    
-                    <!-- Solidarité -->
-                    <Border Grid.Row="1" Grid.Column="0"
-                            StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#FCE4EC"
-                            Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" 
-                                                  CommandParameter="Solidarite"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="🤝" FontSize="35" HorizontalOptions="Center"/>
-                            <Label Text="Solidarité" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- QUIZ BONUS                                  -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    <Border StrokeShape="RoundRectangle 18,18,18,18" StrokeThickness="0"
+                            Padding="18,16" IsVisible="{Binding CanUnlockBonusQuiz}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}" Offset="0.0" />
+                                <GradientStop Color="{AppThemeBinding Light=#FFECB3, Dark=#4E342E}" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#30FF9800, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                <Border Grid.Column="0"
+                                        StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                        WidthRequest="46" HeightRequest="46"
+                                        HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="{AppThemeBinding Light=#FFE082, Dark=#5D4037}" Offset="0.0" />
+                                            <GradientStop Color="{AppThemeBinding Light=#FFD54F, Dark=#F9A825}" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Label Text="🎁" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                    <Label Text="Quiz Bonus" FontSize="18" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                           FontFamily="PoppinsBold" />
+                                    <Label Text="Questions exclusives • Récompenses doublées" FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" Opacity="0.6" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                    Padding="0" HeightRequest="45" HorizontalOptions="Fill">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF9800" Offset="0.0" />
+                                        <GradientStop Color="#FFB74D" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Shadow>
+                                    <Shadow Brush="#30FF9800" Offset="0,3" Radius="10" Opacity="0.5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding UnlockBonusQuizCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="📺  Débloquer avec une pub" TextColor="White" FontSize="15"
+                                       FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                            </Border>
                         </VerticalStackLayout>
                     </Border>
-                    
-                    <!-- Économie Circulaire -->
-                    <Border Grid.Row="1" Grid.Column="1"
-                            StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#FFF3E0"
-                            Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" 
-                                                  CommandParameter="EconomieCirculaire"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="🔄" FontSize="35" HorizontalOptions="Center"/>
-                            <Label Text="Éco. Circulaire" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                    </Border>
-                    
-                    <!-- Astuces -->
-                    <Border Grid.Row="2" Grid.Column="0"
-                            StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#F3E5F5"
-                            Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" 
-                                                  CommandParameter="Astuces"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="💡" FontSize="35" HorizontalOptions="Center"/>
-                            <Label Text="Astuces" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                    </Border>
-                    
-                    <!-- Culture -->
-                    <Border Grid.Row="2" Grid.Column="1"
-                            StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#EFEBE9"
-                            Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding StartThematicQuizCommand}" 
-                                                  CommandParameter="Culture"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                            <Label Text="📚" FontSize="35" HorizontalOptions="Center"/>
-                            <Label Text="Culture" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </Grid>
-                
-                <!-- Quiz Bonus - Débloquable avec pub -->
-                <Border StrokeShape="RoundRectangle 15"
-                        BackgroundColor="#FFF8E1"
-                        Stroke="#FFD54F"
-                        StrokeThickness="2"
-                        Padding="15"
-                        IsVisible="{Binding CanUnlockBonusQuiz}">
-                    <VerticalStackLayout Spacing="10">
+
+                    <!-- Quiz Bonus déjà débloqué -->
+                    <Border StrokeShape="RoundRectangle 14,14,14,14"
+                            StrokeThickness="1.5"
+                            Stroke="{AppThemeBinding Light=#81C784, Dark=#388E3C}"
+                            BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                            Padding="14,12"
+                            IsVisible="{Binding HasBonusQuizUnlocked}">
                         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                            <Label Text="🎁" FontSize="30"/>
-                            <VerticalStackLayout>
-                                <Label Text="Quiz Bonus" 
-                                       FontSize="18" 
-                                       FontAttributes="Bold"
-                                       TextColor="#F57C00"/>
-                                <Label Text="Questions exclusives • Récompenses doublées"
-                                       FontSize="12"
-                                       TextColor="#666666"/>
-                            </VerticalStackLayout>
-                        </HorizontalStackLayout>
-                        
-                        <Button Text="📺 Débloquer avec une pub"
-                                Command="{Binding UnlockBonusQuizCommand}"
-                                BackgroundColor="#FF9800"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                HeightRequest="45"
-                                CornerRadius="10"/>
-                    </VerticalStackLayout>
-                </Border>
-                
-                <!-- Message Quiz Bonus déjà débloqué -->
-                <Border StrokeShape="RoundRectangle 15"
-                        BackgroundColor="#E8F5E9"
-                        Stroke="#81C784"
-                        StrokeThickness="2"
-                        Padding="15"
-                        IsVisible="{Binding HasBonusQuizUnlocked}">
-                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Label Text="✅" FontSize="24"/>
-                        <Label Text="Quiz Bonus débloqué pour aujourd'hui !"
-                               FontSize="14"
-                               FontAttributes="Bold"
-                               TextColor="#388E3C"
-                               VerticalOptions="Center"/>
-                    </HorizontalStackLayout>
-                </Border>
-                
-                <!-- Bannière Publicitaire -->
-                <views:AdBannerView HorizontalOptions="Fill"
-                                    HeightRequest="50"
-                                    MinimumHeightRequest="50"
-                                    BackgroundColor="Transparent"
-                                    Margin="0,10,0,0"/>
-                
-            </VerticalStackLayout>
-        </ScrollView>
-
-        <!-- Écran de Quiz Actif -->
-        <Grid IsVisible="{Binding IsQuizActive}"
-              RowDefinitions="Auto,*,Auto"
-              Padding="20">
-            
-            <!-- En-tête du quiz -->
-            <VerticalStackLayout Grid.Row="0" Spacing="10">
-                <!-- Barre de progression -->
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                    <Label Grid.Column="0" 
-                           Text="{Binding QuestionNumber, StringFormat='Question {0}'}"
-                           FontSize="14"
-                           TextColor="#666666"/>
-                    <ProgressBar Grid.Column="1" 
-                                 Progress="{Binding Progress}"
-                                 ProgressColor="#4CAF50"
-                                 VerticalOptions="Center"/>
-                    <Label Grid.Column="2"
-                           Text="{Binding TotalQuestions, StringFormat='/ {0}'}"
-                           FontSize="14"
-                           TextColor="#666666"/>
-                </Grid>
-                
-                <!-- Timer et catégorie -->
-                <Grid ColumnDefinitions="*,Auto">
-                    <Border Grid.Column="0"
-                            StrokeShape="RoundRectangle 8"
-                            BackgroundColor="{Binding CategoryColor}"
-                            Padding="8,4"
-                            HorizontalOptions="Start">
-                        <Label Text="{Binding CategoryName}" 
-                               TextColor="White" 
-                               FontSize="12"/>
-                    </Border>
-                    
-                    <Border Grid.Column="1"
-                            StrokeShape="RoundRectangle 20"
-                            BackgroundColor="{Binding TimeRemaining, Converter={StaticResource IntToColorConverter}, ConverterParameter='10|#FF5722|#4CAF50'}"
-                            Padding="12,6"
-                            HorizontalOptions="End">
-                        <HorizontalStackLayout Spacing="5">
-                            <Label Text="⏱️" FontSize="16"/>
-                            <Label Text="{Binding TimeRemaining, StringFormat='{0}s'}" 
-                                   TextColor="White" 
+                            <Label Text="✅" FontSize="18" VerticalOptions="Center"/>
+                            <Label Text="Quiz Bonus débloqué pour aujourd'hui !" FontSize="13"
                                    FontAttributes="Bold"
-                                   FontSize="16"/>
-                        </HorizontalStackLayout>
-                    </Border>
-                </Grid>
-                
-                <!-- Bouton Temps Bonus (visible quand le temps est faible) -->
-                <Border StrokeShape="RoundRectangle 10"
-                        BackgroundColor="#FFF3E0"
-                        Stroke="#FFB74D"
-                        StrokeThickness="1"
-                        Padding="10"
-                        IsVisible="{Binding CanAddExtraTime}">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <HorizontalStackLayout Grid.Column="0" Spacing="8">
-                            <Label Text="⏰" FontSize="18" VerticalOptions="Center"/>
-                            <Label Text="Temps presque écoulé !"
-                                   FontSize="13"
-                                   FontAttributes="Bold"
-                                   TextColor="#E65100"
+                                   TextColor="{AppThemeBinding Light=#2E7D32, Dark=#81C784}"
                                    VerticalOptions="Center"/>
                         </HorizontalStackLayout>
-                        <Button Grid.Column="1"
-                                Text="📺 +15s"
-                                Command="{Binding AddExtraTimeCommand}"
-                                BackgroundColor="#FF9800"
-                                TextColor="White"
-                                FontSize="12"
-                                FontAttributes="Bold"
-                                HeightRequest="35"
-                                Padding="10,0"
-                                CornerRadius="8"/>
+                    </Border>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ÉCRAN DE QUIZ ACTIF                                        -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <Grid IsVisible="{Binding IsQuizActive}"
+              RowDefinitions="Auto,*,Auto"
+              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+            <!-- En-tête quiz actif -->
+            <Border Grid.Row="0" StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0,0,24,24"
+                    Padding="20,12,20,18">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="{AppThemeBinding Light=#5B9A4A, Dark=#3A6B30}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light=#4CAF50, Dark=#2E7D32}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="#30000000" Offset="0,4" Radius="12" Opacity="0.3" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="12">
+                    <!-- Barre de progression -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="{Binding QuestionNumber, StringFormat='Q. {0}'}"
+                               FontSize="14" FontAttributes="Bold" TextColor="#D0FFFFFF"/>
+                        <Grid Grid.Column="1" VerticalOptions="Center">
+                            <Border BackgroundColor="#25FFFFFF" StrokeShape="RoundRectangle 5,5,5,5"
+                                    StrokeThickness="0" HeightRequest="8" />
+                            <ProgressBar Progress="{Binding Progress}" ProgressColor="White" HeightRequest="8"/>
+                        </Grid>
+                        <Label Grid.Column="2" Text="{Binding TotalQuestions, StringFormat='/ {0}'}"
+                               FontSize="14" TextColor="#D0FFFFFF"/>
                     </Grid>
-                </Border>
-            </VerticalStackLayout>
-            
+                    <!-- Timer et catégorie -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 10,10,10,10" StrokeThickness="0"
+                                BackgroundColor="#30FFFFFF" Padding="10,5" HorizontalOptions="Start">
+                            <Label Text="{Binding CategoryName}" TextColor="White" FontSize="12" FontAttributes="Bold"/>
+                        </Border>
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 20,20,20,20" StrokeThickness="0"
+                                BackgroundColor="{Binding TimeRemaining, Converter={StaticResource IntToColorConverter}, ConverterParameter='10|#FF5722|#FFFFFF'}"
+                                Padding="14,6" HorizontalOptions="End">
+                            <Border.Shadow>
+                                <Shadow Brush="#20000000" Offset="0,2" Radius="6" Opacity="0.3" />
+                            </Border.Shadow>
+                            <HorizontalStackLayout Spacing="5">
+                                <Label Text="⏱️" FontSize="14"/>
+                                <Label Text="{Binding TimeRemaining, StringFormat='{0}s'}"
+                                       TextColor="{Binding TimeRemaining, Converter={StaticResource IntToColorConverter}, ConverterParameter='10|#FFFFFF|#2E7D32'}"
+                                       FontAttributes="Bold" FontSize="16"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </Grid>
+                    <!-- Bouton Temps Bonus -->
+                    <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="#25FFFFFF" Padding="10"
+                            IsVisible="{Binding CanAddExtraTime}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <HorizontalStackLayout Grid.Column="0" Spacing="8">
+                                <Label Text="⏰" FontSize="16" VerticalOptions="Center"/>
+                                <Label Text="Temps presque écoulé !" FontSize="13" FontAttributes="Bold"
+                                       TextColor="White" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                            <Border Grid.Column="1" StrokeShape="RoundRectangle 10,10,10,10" StrokeThickness="0"
+                                    Padding="12,6" VerticalOptions="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF9800" Offset="0.0" />
+                                        <GradientStop Color="#FFB74D" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding AddExtraTimeCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="📺 +15s" TextColor="White" FontSize="12" FontAttributes="Bold"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
             <!-- Question et réponses -->
-            <ScrollView Grid.Row="1" Margin="0,20">
-                <VerticalStackLayout Spacing="15">
+            <ScrollView Grid.Row="1" Padding="18,16">
+                <VerticalStackLayout Spacing="14">
                     <!-- Question -->
-                    <Border StrokeShape="RoundRectangle 15"
-                            BackgroundColor="White"
+                    <Border StrokeShape="RoundRectangle 18,18,18,18" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
                             Padding="20">
-                        <VerticalStackLayout Spacing="10">
-                            <Label Text="{Binding CurrentQuestion.Icon}" 
-                                   FontSize="40" 
-                                   HorizontalOptions="Center"/>
-                            <Label Text="{Binding CurrentQuestion.Question}"
-                                   FontSize="18"
-                                   FontAttributes="Bold"
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="{Binding CurrentQuestion.Icon}" FontSize="40" HorizontalOptions="Center"/>
+                            <Label Text="{Binding CurrentQuestion.Question}" FontSize="17" FontAttributes="Bold"
                                    HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
                                    LineBreakMode="WordWrap"/>
                         </VerticalStackLayout>
                     </Border>
-                    
+
                     <!-- Options de réponse -->
-                    <VerticalStackLayout Spacing="10" 
-                                         BindableLayout.ItemsSource="{Binding AnswerOptions}">
+                    <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding AnswerOptions}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="vm:QuizAnswerOption">
-                                <Border StrokeShape="RoundRectangle 12"
+                                <Border StrokeShape="RoundRectangle 14,14,14,14"
                                         BackgroundColor="{Binding BackgroundColor}"
                                         Stroke="{Binding BorderColor}"
                                         StrokeThickness="2"
-                                        Padding="15"
-                                        x:Name="AnswerBorder">
+                                        Padding="14" x:Name="AnswerBorder">
+                                    <Border.Shadow>
+                                        <Shadow Brush="{AppThemeBinding Light=#10000000, Dark=#10000000}"
+                                               Offset="0,2" Radius="6" Opacity="0.2" />
+                                    </Border.Shadow>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnAnswerTapped" 
-                                                              CommandParameter="{Binding Index}"/>
+                                        <TapGestureRecognizer Tapped="OnAnswerTapped" CommandParameter="{Binding Index}"/>
                                     </Border.GestureRecognizers>
                                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                        <Border Grid.Column="0"
-                                                StrokeShape="RoundRectangle 15"
-                                                BackgroundColor="{Binding BorderColor}"
-                                                WidthRequest="30"
-                                                HeightRequest="30">
+                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                                BackgroundColor="{Binding BorderColor}" WidthRequest="32" HeightRequest="32">
                                             <Label Text="{Binding Index, Converter={StaticResource IndexToLetterConverter}}"
-                                                   TextColor="White"
-                                                   FontAttributes="Bold"
-                                                   HorizontalOptions="Center"
-                                                   VerticalOptions="Center"/>
+                                                   TextColor="White" FontAttributes="Bold" FontSize="14"
+                                                   HorizontalOptions="Center" VerticalOptions="Center"/>
                                         </Border>
-                                        <Label Grid.Column="1"
-                                               Text="{Binding Text}"
-                                               FontSize="15"
-                                               VerticalOptions="Center"
-                                               LineBreakMode="WordWrap"/>
+                                        <Label Grid.Column="1" Text="{Binding Text}" FontSize="15"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                               VerticalOptions="Center" LineBreakMode="WordWrap"/>
                                         <Label Grid.Column="2"
                                                Text="{Binding IsCorrect, Converter={StaticResource BoolToTextConverter}, ConverterParameter='✓|'}"
-                                               IsVisible="{Binding ShowResult}"
-                                               TextColor="#4CAF50"
-                                               FontSize="20"
-                                               FontAttributes="Bold"
-                                               VerticalOptions="Center"/>
+                                               IsVisible="{Binding ShowResult}" TextColor="#4CAF50"
+                                               FontSize="22" FontAttributes="Bold" VerticalOptions="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
-                    
+
                     <!-- Explication après réponse -->
-                    <Border StrokeShape="RoundRectangle 12"
-                            BackgroundColor="{Binding LastAnswerCorrect, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#E8F5E9|#FFEBEE'}"
-                            Padding="15"
-                            IsVisible="{Binding ShowQuestionResult}">
+                    <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                            BackgroundColor="{Binding LastAnswerCorrect, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#E8F5E0|#FFEBEE'}"
+                            Padding="16" IsVisible="{Binding ShowQuestionResult}">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#10000000, Dark=#10000000}" Offset="0,2" Radius="8" Opacity="0.2" />
+                        </Border.Shadow>
                         <VerticalStackLayout Spacing="10">
                             <HorizontalStackLayout Spacing="8">
-                                <Label Text="{Binding LastAnswerCorrect, Converter={StaticResource BoolToTextConverter}, ConverterParameter='✅|❌'}" 
-                                       FontSize="24"/>
+                                <Label Text="{Binding LastAnswerCorrect, Converter={StaticResource BoolToTextConverter}, ConverterParameter='✅|❌'}" FontSize="22"/>
                                 <Label Text="{Binding LastAnswerCorrect, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Bonne réponse !|Mauvaise réponse'}"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
+                                       FontSize="16" FontAttributes="Bold"
                                        TextColor="{Binding LastAnswerCorrect, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#2E7D32|#C62828'}"
                                        VerticalOptions="Center"/>
                             </HorizontalStackLayout>
-                            <Label Text="{Binding Explanation}"
-                                   FontSize="14"
-                                   TextColor="#555555"
-                                   LineBreakMode="WordWrap"/>
+                            <Label Text="{Binding Explanation}" FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   Opacity="0.75" LineBreakMode="WordWrap"/>
                         </VerticalStackLayout>
                     </Border>
-                    
-                    <!-- Bouton Seconde Chance (visible après une mauvaise réponse) -->
-                    <Border StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#FFF8E1"
-                            Stroke="#FFD54F"
-                            StrokeThickness="2"
-                            Padding="15"
-                            IsVisible="{Binding CanUseSecondChance}">
+
+                    <!-- Seconde Chance -->
+                    <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                            Padding="16" IsVisible="{Binding CanUseSecondChance}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}" Offset="0.0" />
+                                <GradientStop Color="{AppThemeBinding Light=#FFECB3, Dark=#4E342E}" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#30FF9800, Dark=#20000000}" Offset="0,3" Radius="10" Opacity="0.4" />
+                        </Border.Shadow>
                         <VerticalStackLayout Spacing="10">
                             <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
-                                <Label Text="🎯" FontSize="24"/>
-                                <Label Text="Seconde Chance !"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
-                                       TextColor="#F57C00"
-                                       VerticalOptions="Center"/>
+                                <Label Text="🎯" FontSize="22"/>
+                                <Label Text="Seconde Chance !" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#F57C00, Dark=#FFB74D}" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
-                            
-                            <Label Text="Regardez une pub pour retenter cette question"
-                                   FontSize="12"
-                                   TextColor="#666666"
-                                   HorizontalTextAlignment="Center"/>
-                            
-                            <Button Text="📺 Obtenir une seconde chance"
-                                    Command="{Binding SecondChanceCommand}"
-                                    IsEnabled="{Binding IsLoadingAd, Converter={StaticResource InverseBoolConverter}}"
-                                    BackgroundColor="#FF9800"
-                                    TextColor="White"
-                                    FontAttributes="Bold"
-                                    HeightRequest="45"
-                                    CornerRadius="10"/>
-                            
-                            <ActivityIndicator IsRunning="{Binding IsLoadingAd}"
-                                               IsVisible="{Binding IsLoadingAd}"
-                                               HeightRequest="20"
-                                               Color="#FF9800"/>
+                            <Label Text="Regardez une pub pour retenter cette question" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   Opacity="0.6" HorizontalTextAlignment="Center"/>
+                            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                    Padding="0" HeightRequest="42" HorizontalOptions="Fill">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF9800" Offset="0.0" />
+                                        <GradientStop Color="#FFB74D" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SecondChanceCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="📺  Obtenir une seconde chance" TextColor="White" FontSize="14"
+                                       FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                            </Border>
+                            <ActivityIndicator IsRunning="{Binding IsLoadingAd}" IsVisible="{Binding IsLoadingAd}"
+                                               HeightRequest="20" Color="#FF9800"/>
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
             </ScrollView>
-            
-            <!-- Bouton suivant -->
-            <Button Grid.Row="2"
-                    Text="Question suivante →"
-                    Command="{Binding NextQuestionCommand}"
-                    IsVisible="{Binding ShowQuestionResult}"
-                    BackgroundColor="#4CAF50"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    HeightRequest="55"
-                    CornerRadius="12"/>
-        </Grid>
 
-        <!-- Écran de résultat -->
-        <Grid IsVisible="{Binding ShowResult}"
-              BackgroundColor="#F5F5F5"
-              Padding="20">
-            <Border StrokeShape="RoundRectangle 20"
-                    BackgroundColor="White"
-                    Padding="25"
-                    VerticalOptions="Center"
-                    MaximumWidthRequest="400">
-                <VerticalStackLayout Spacing="20" HorizontalOptions="Center">
-                    
-                    <!-- Icône et titre -->
-                    <Label Text="{Binding ResultIcon}" 
-                           FontSize="80" 
-                           HorizontalOptions="Center"/>
-                    <Label Text="{Binding ResultTitle}"
-                           FontSize="24"
-                           FontAttributes="Bold"
-                           HorizontalTextAlignment="Center"/>
-                    
-                    <!-- Score -->
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="20" RowSpacing="10">
-                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" HorizontalOptions="Center">
-                            <Label Text="{Binding CorrectAnswers, StringFormat='{0}'}"
-                                   FontSize="36"
-                                   FontAttributes="Bold"
-                                   TextColor="#4CAF50"
-                                   HorizontalOptions="Center"/>
-                            <Label Text="Bonnes réponses"
-                                   FontSize="12"
-                                   TextColor="#666666"
-                                   HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                        
-                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" HorizontalOptions="Center">
-                            <Label Text="{Binding TotalXpEarned, StringFormat='+{0}'}"
-                                   FontSize="36"
-                                   FontAttributes="Bold"
-                                   TextColor="#FF9800"
-                                   HorizontalOptions="Center"/>
-                            <Label Text="XP gagnés"
-                                   FontSize="12"
-                                   TextColor="#666666"
-                                   HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                    </Grid>
-                    
-                    <!-- Bonus XP affiché après avoir regardé la pub -->
-                    <Border StrokeShape="RoundRectangle 10"
-                            BackgroundColor="#E8F5E9"
-                            Padding="12"
-                            IsVisible="{Binding BonusXpEarned, Converter={StaticResource IntToBoolConverter}}">
-                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
-                            <Label Text="🎁" FontSize="20"/>
-                            <Label Text="{Binding BonusXpEarned, StringFormat='Bonus: +{0} XP'}"
-                                   FontSize="14"
-                                   FontAttributes="Bold"
-                                   TextColor="#2E7D32"
-                                   VerticalOptions="Center"/>
-                        </HorizontalStackLayout>
-                    </Border>
-                    
-                    <!-- Bouton Doubler les XP avec Rewarded Ad -->
-                    <Border StrokeShape="RoundRectangle 12"
-                            BackgroundColor="#FFF8E1"
-                            Stroke="#FFD54F"
-                            StrokeThickness="2"
-                            Padding="15"
-                            IsVisible="{Binding CanDoubleXp}">
-                        <VerticalStackLayout Spacing="10">
-                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
-                                <Label Text="🎬" FontSize="24"/>
-                                <Label Text="Doublez vos XP !"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
-                                       TextColor="#F57C00"
-                                       VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
-                            
-                            <Label Text="Regardez une courte publicité pour doubler vos XP gagnés"
-                                   FontSize="12"
-                                   TextColor="#666666"
-                                   HorizontalTextAlignment="Center"/>
-                            
-                            <Button Text="📺 Regarder et doubler mes XP"
-                                    Command="{Binding DoubleXpCommand}"
-                                    IsEnabled="{Binding IsLoadingAd, Converter={StaticResource InverseBoolConverter}}"
-                                    BackgroundColor="#FF9800"
-                                    TextColor="White"
-                                    FontAttributes="Bold"
-                                    HeightRequest="45"
-                                    CornerRadius="10"/>
-                            
-                            <ActivityIndicator IsRunning="{Binding IsLoadingAd}"
-                                               IsVisible="{Binding IsLoadingAd}"
-                                               HeightRequest="20"
-                                               Color="#FF9800"/>
-                        </VerticalStackLayout>
-                    </Border>
-                    
-                    <!-- Streak -->
-                    <Border StrokeShape="RoundRectangle 10"
-                            BackgroundColor="#FFF3E0"
-                            Padding="15"
-                            IsVisible="{Binding CurrentStreak, Converter={StaticResource IntToBoolConverter}}">
-                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                            <Label Text="🔥" FontSize="24"/>
-                            <Label Text="{Binding CurrentStreak, StringFormat='Streak de {0} jours !'}"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   TextColor="#E65100"
-                                   VerticalOptions="Center"/>
-                        </HorizontalStackLayout>
-                    </Border>
-                    
-                    <!-- Message -->
-                    <Label Text="{Binding ResultMessage}"
-                           FontSize="14"
-                           TextColor="#666666"
-                           HorizontalTextAlignment="Center"
-                           LineBreakMode="WordWrap"/>
-                    
-                    <!-- Boutons -->
-                    <VerticalStackLayout Spacing="10">
-                        <Button Text="Retour à l'accueil"
-                                Command="{Binding CloseQuizCommand}"
-                                BackgroundColor="#4CAF50"
-                                TextColor="White"
-                                FontAttributes="Bold"
-                                HeightRequest="50"
-                                CornerRadius="10"/>
-                    </VerticalStackLayout>
-                    
-                </VerticalStackLayout>
+            <!-- Bouton suivant -->
+            <Border Grid.Row="2" StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                    Padding="0" HeightRequest="55" Margin="18,0,18,20"
+                    IsVisible="{Binding ShowQuestionResult}" HorizontalOptions="Fill">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="{AppThemeBinding Light=#4CAF50, Dark=#2E7D32}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light=#66BB6A, Dark=#43A047}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="#304CAF50" Offset="0,4" Radius="12" Opacity="0.5" />
+                </Border.Shadow>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NextQuestionCommand}" />
+                </Border.GestureRecognizers>
+                <Label Text="Question suivante  →" TextColor="White" FontSize="17"
+                       FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
             </Border>
         </Grid>
 
-        <!-- Loading -->
-        <ActivityIndicator IsRunning="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"
-                           Color="#4CAF50"/>
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ÉCRAN DE RÉSULTAT                                          -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <Grid IsVisible="{Binding ShowResult}"
+              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+            <ScrollView>
+                <VerticalStackLayout Padding="20" Spacing="16" VerticalOptions="Center">
+
+                    <!-- Carte résultat -->
+                    <Border StrokeShape="RoundRectangle 22,22,22,22" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="24" MaximumWidthRequest="420">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#25D98C6A, Dark=#25000000}"
+                                   Offset="0,6" Radius="20" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="18" HorizontalOptions="Center">
+                            <Label Text="{Binding ResultIcon}" FontSize="72" HorizontalOptions="Center"/>
+                            <Label Text="{Binding ResultTitle}" FontSize="24" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   HorizontalTextAlignment="Center" FontFamily="PoppinsBold"/>
+
+                            <!-- Scores -->
+                            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="0">
+                                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="2">
+                                    <Label Text="{Binding CorrectAnswers, StringFormat='{0}'}"
+                                           FontSize="36" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#4CAF50, Dark=#81C784}" HorizontalOptions="Center"/>
+                                    <Label Text="Bonnes réponses" FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                           Opacity="0.6" HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                                <BoxView Grid.Column="1" WidthRequest="1" HeightRequest="40"
+                                         BackgroundColor="{AppThemeBinding Light=#15000000, Dark=#15FFFFFF}" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="2">
+                                    <Label Text="{Binding TotalXpEarned, StringFormat='+{0}'}"
+                                           FontSize="36" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#FF9800, Dark=#FFB74D}" HorizontalOptions="Center"/>
+                                    <Label Text="XP gagnés" FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                           Opacity="0.6" HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Bonus XP -->
+                            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                    Padding="12"
+                                    IsVisible="{Binding BonusXpEarned, Converter={StaticResource IntToBoolConverter}}">
+                                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                    <Label Text="🎁" FontSize="18"/>
+                                    <Label Text="{Binding BonusXpEarned, StringFormat='Bonus: +{0} XP'}"
+                                           FontSize="14" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#2E7D32, Dark=#81C784}" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Streak -->
+                            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                    Padding="14"
+                                    IsVisible="{Binding CurrentStreak, Converter={StaticResource IntToBoolConverter}}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{AppThemeBinding Light=#FFF3E0, Dark=#3E2E1A}" Offset="0.0" />
+                                        <GradientStop Color="{AppThemeBinding Light=#FFECB3, Dark=#4E342E}" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                    <Label Text="🔥" FontSize="22"/>
+                                    <Label Text="{Binding CurrentStreak, StringFormat='Streak de {0} jours !'}"
+                                           FontSize="16" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Message -->
+                            <Label Text="{Binding ResultMessage}" FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   Opacity="0.65" HorizontalTextAlignment="Center" LineBreakMode="WordWrap"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Doubler les XP -->
+                    <Border StrokeShape="RoundRectangle 18,18,18,18" StrokeThickness="0"
+                            Padding="18,16" IsVisible="{Binding CanDoubleXp}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}" Offset="0.0" />
+                                <GradientStop Color="{AppThemeBinding Light=#FFECB3, Dark=#4E342E}" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#30FF9800, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="12">
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="🎬" FontSize="22"/>
+                                <Label Text="Doublez vos XP !" FontSize="17" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#F57C00, Dark=#FFB74D}" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                            <Label Text="Regardez une courte publicité pour doubler vos XP gagnés" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   Opacity="0.6" HorizontalTextAlignment="Center"/>
+                            <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                    Padding="0" HeightRequest="48" HorizontalOptions="Fill">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF9800" Offset="0.0" />
+                                        <GradientStop Color="#FFB74D" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Shadow>
+                                    <Shadow Brush="#30FF9800" Offset="0,3" Radius="10" Opacity="0.5" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding DoubleXpCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="📺  Regarder et doubler mes XP" TextColor="White" FontSize="15"
+                                       FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                            </Border>
+                            <ActivityIndicator IsRunning="{Binding IsLoadingAd}" IsVisible="{Binding IsLoadingAd}"
+                                               HeightRequest="20" Color="#FF9800"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Bouton Retour -->
+                    <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                            Padding="0" HeightRequest="52" HorizontalOptions="Fill">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="{AppThemeBinding Light=#4CAF50, Dark=#2E7D32}" Offset="0.0" />
+                                <GradientStop Color="{AppThemeBinding Light=#66BB6A, Dark=#43A047}" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Shadow>
+                            <Shadow Brush="#304CAF50" Offset="0,4" Radius="12" Opacity="0.5" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding CloseQuizCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="Retour à l'accueil" TextColor="White" FontSize="16"
+                               FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Border>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- Loading global -->
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center"
+                           Color="{AppThemeBinding Light=#4CAF50, Dark=#81C784}"/>
     </Grid>
 </ContentPage>
 

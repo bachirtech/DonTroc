@@ -230,7 +230,8 @@ public class LoginViewModel : BaseViewModel
                 {
                     System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur notifications: {notifEx.Message}");
                 }
-                
+
+                // Connexion réussie → aller au Dashboard
                 Application.Current.MainPage = new AppShell(_unreadMessageService);
                 
                 // Navigation explicite si Shell.Current est disponible
@@ -294,17 +295,32 @@ public class LoginViewModel : BaseViewModel
         if (IsBusy) return;
         IsBusy = true;
 
-        var success = await _authService.SignUpAsync(Email, Password);
-        if (success)
+        try
         {
-            await Application.Current?.MainPage?.DisplayAlert("Succès", "Votre compte a été créé. Vous pouvez maintenant vous connecter.", "OK")!;
+            var success = await _authService.SignUpAsync(Email, Password);
+            if (success)
+            {
+                await Application.Current?.MainPage?.DisplayAlert(
+                    "Vérifiez votre e-mail ✉️",
+                    $"Votre compte a été créé avec succès !\n\n" +
+                    $"📬 Un e-mail de vérification a été envoyé à :\n{Email}\n\n" +
+                    "Pour activer votre compte :\n" +
+                    "1. Ouvrez votre boîte de réception\n" +
+                    "2. Cliquez sur le lien de vérification\n" +
+                    "3. Revenez ici pour vous connecter\n\n" +
+                    "💡 Pensez à vérifier le dossier spam si vous ne trouvez pas l'e-mail.",
+                    "J'ai compris")!;
+            }
+            // Le message d'erreur est déjà géré par AuthService (domaine invalide, etc.)
         }
-        else
+        catch (Exception ex)
         {
-            await Application.Current?.MainPage?.DisplayAlert("Erreur", "Impossible de créer le compte. L'email est peut-être déjà utilisé.", "OK")!;
+            System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Erreur inscription: {ex.Message}");
         }
-
-        IsBusy = false;
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     // Logique de réinitialisation du mot de passe

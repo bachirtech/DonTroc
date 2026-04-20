@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:DataType="viewModels:TradeProposalViewModel"
+             x:Class="DonTroc.Views.TradeProposalPage"
+             Title="Proposer un troc"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="16,20,16,20" Spacing="16">
+
+                <!-- Annonce cible -->
+                <Border x:Name="TargetCardBorder"
+                        StrokeShape="RoundRectangle 16,16,16,16"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="14">
+                    <Border.Shadow>
+                        <Shadow Brush="#15000000" Offset="0,3" Radius="10" Opacity="0.3" />
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                WidthRequest="80" HeightRequest="80"
+                                BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
+                            <Image Source="{Binding TargetAnnonce.FirstPhotoUrl}"
+                                   Aspect="AspectFill"
+                                   WidthRequest="80" HeightRequest="80" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                            <Label Text="Vous souhaitez obtenir"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   Opacity="0.6" />
+                            <Label Text="{Binding TargetAnnonce.Titre}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   FontFamily="PoppinsBold"
+                                   LineBreakMode="TailTruncation"
+                                   MaxLines="2"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                            <Label Text="{Binding TargetAnnonce.Categorie}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Icône séparateur ↕ -->
+                <Label x:Name="SwapIconLabel"
+                       Text="🔄"
+                       FontSize="28"
+                       HorizontalOptions="Center" />
+
+                <!-- Label sélection -->
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Proposez une de vos annonces"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           FontFamily="PoppinsBold"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    <Label Text="Choisissez l'objet que vous souhaitez échanger."
+                           FontSize="12"
+                           Opacity="0.65"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                </VerticalStackLayout>
+
+                <!-- Loader -->
+                <ActivityIndicator IsRunning="{Binding IsLoadingAnnonces}"
+                                   IsVisible="{Binding IsLoadingAnnonces}"
+                                   Color="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                                   HeightRequest="32" />
+
+                <!-- Empty state -->
+                <Border IsVisible="{Binding HasNoAnnonces}"
+                        StrokeShape="RoundRectangle 14,14,14,14"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light=#FFF5EE, Dark=#3D2E1E}"
+                        Padding="20,24">
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                        <Label Text="📭" FontSize="40" HorizontalTextAlignment="Center" />
+                        <Label Text="Aucune annonce disponible à échanger"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Label Text="Publiez une annonce avant de proposer un troc."
+                               FontSize="12"
+                               Opacity="0.7"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Grille horizontale des annonces utilisateur -->
+                <CollectionView ItemsSource="{Binding UserAnnonces}"
+                                HeightRequest="220"
+                                SelectionMode="None"
+                                IsVisible="{Binding IsLoadingAnnonces, Converter={StaticResource InverseBoolConverter}}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Annonce">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                    WidthRequest="160"
+                                    Padding="0">
+                                <Border.Shadow>
+                                    <Shadow Brush="#20000000" Offset="0,2" Radius="8" Opacity="0.3" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:TradeProposalViewModel}}, Path=SelectAnnonceCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid RowDefinitions="120,Auto">
+                                    <Border Grid.Row="0"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 14,14,0,0"
+                                            BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
+                                        <Image Source="{Binding FirstPhotoUrl}"
+                                               Aspect="AspectFill"
+                                               HeightRequest="120" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Row="1" Padding="10,8" Spacing="3">
+                                        <Label Text="{Binding Titre}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               MaxLines="1"
+                                               LineBreakMode="TailTruncation"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                        <Label Text="{Binding Categorie}"
+                                               FontSize="11"
+                                               TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Aperçu sélection -->
+                <Border x:Name="PreviewBorder"
+                        IsVisible="{Binding HasSelection}"
+                        StrokeShape="RoundRectangle 16,16,16,16"
+                        StrokeThickness="0"
+                        Padding="14">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="{AppThemeBinding Light=#FFF3E8, Dark=#3D2E1E}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#FFEADB, Dark=#4D3A24}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                        <!-- Offre -->
+                        <VerticalStackLayout Grid.Column="0" Spacing="4" HorizontalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                    StrokeThickness="0"
+                                    WidthRequest="64" HeightRequest="64"
+                                    BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
+                                <Image Source="{Binding SelectedAnnonce.FirstPhotoUrl}"
+                                       Aspect="AspectFill" />
+                            </Border>
+                            <Label Text="{Binding SelectedAnnonce.Titre}"
+                                   FontSize="11"
+                                   MaxLines="1"
+                                   LineBreakMode="TailTruncation"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1" x:Name="ExchangeArrow" Text="↔" FontSize="24"
+                               VerticalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}" />
+
+                        <!-- Cible -->
+                        <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                    StrokeThickness="0"
+                                    WidthRequest="64" HeightRequest="64"
+                                    BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
+                                <Image Source="{Binding TargetAnnonce.FirstPhotoUrl}"
+                                       Aspect="AspectFill" />
+                            </Border>
+                            <Label Text="{Binding TargetAnnonce.Titre}"
+                                   FontSize="11"
+                                   MaxLines="1"
+                                   LineBreakMode="TailTruncation"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Message -->
+                <Border StrokeShape="RoundRectangle 14,14,14,14"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="12,6">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="💬 Message (optionnel)"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Editor Text="{Binding Message}"
+                                Placeholder="Expliquez pourquoi ce troc a du sens..."
+                                AutoSize="TextChanges"
+                                MaxLength="500"
+                                FontSize="14"
+                                HeightRequest="90"
+                                TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <BoxView HeightRequest="10" BackgroundColor="Transparent" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Barre d'actions -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="Auto,*"
+              ColumnSpacing="10"
+              Padding="16,10,16,16"
+              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+            <Border Grid.Column="0"
+                    StrokeShape="RoundRectangle 14,14,14,14"
+                    StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                    HeightRequest="50" WidthRequest="100">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CancelCommand}" />
+                </Border.GestureRecognizers>
+                <Label Text="Annuler"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+            </Border>
+
+            <Border Grid.Column="1"
+                    StrokeShape="RoundRectangle 14,14,14,14"
+                    StrokeThickness="0"
+                    HeightRequest="50"
+                    Opacity="{Binding CanSubmit, Converter={StaticResource BoolToOpacityConverter}}">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                        <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#A06842}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="{AppThemeBinding Light=#40D98C6A, Dark=#40B8704E}"
+                            Offset="0,3" Radius="10" Opacity="0.4" />
+                </Border.Shadow>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SubmitCommand}" />
+                </Border.GestureRecognizers>
+                <Grid>
+                    <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8"
+                                           IsVisible="{Binding IsSending, Converter={StaticResource InverseBoolConverter}}">
+                        <Label Text="🔄" FontSize="18" VerticalTextAlignment="Center" />
+                        <Label Text="Envoyer la proposition"
+                               FontSize="15" FontAttributes="Bold"
+                               TextColor="White" VerticalTextAlignment="Center" />
+                    </HorizontalStackLayout>
+                    <ActivityIndicator IsRunning="{Binding IsSending}"
+                                       IsVisible="{Binding IsSending}"
+                                       Color="White"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>
+

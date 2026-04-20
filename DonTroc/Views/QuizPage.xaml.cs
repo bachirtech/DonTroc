@@ -18,12 +18,19 @@ public partial class QuizPage : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        
-        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
-        await _adMobService.TryShowInterstitialOnNavigationAsync("Quiz");
-        
-        await _viewModel.InitializeCommand.ExecuteAsync(null);
+        try
+        {
+            base.OnAppearing();
+            
+            // Tenter d'afficher un interstitiel (avec limitation de fréquence)
+            await _adMobService.TryShowInterstitialOnNavigationAsync("Quiz");
+            
+            await _viewModel.InitializeCommand.ExecuteAsync(null);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[QuizPage] Erreur OnAppearing: {ex.Message}");
+        }
     }
 
     protected override void OnDisappearing()

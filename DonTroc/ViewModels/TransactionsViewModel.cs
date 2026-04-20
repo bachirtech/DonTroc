@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DonTroc.Models;
 using DonTroc.Services;
 using System.Collections.ObjectModel;
@@ -42,6 +43,7 @@ public class TransactionsViewModel : BaseViewModel
     public ICommand EvaluerTransactionCommand { get; }
     public ICommand VoirDetailsCommand { get; }
 
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TransactionsViewModel))]
     public TransactionsViewModel(TransactionService transactionService, FirebaseService firebaseService, RatingService ratingService, AuthService authService)
     {
         _transactionService = transactionService;

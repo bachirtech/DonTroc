@@ -211,7 +211,7 @@ public class PremiumFeaturesViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Regarde une publicité pour obtenir 2 heures sans publicité
+    /// Regarde une publicité pour obtenir 30 minutes sans publicité
     /// </summary>
     private async Task WatchAdForAdFree()
     {
@@ -230,16 +230,19 @@ public class PremiumFeaturesViewModel : BaseViewModel
             }
 
             // Afficher la publicité récompensée
+            await Services.AnimationService.ShowPreRewardedTeaserAsync("Préparation de votre temps sans pub...");
             var rewardEarned = await _adMobService.ShowRewardedAdAsync();
 
             if (rewardEarned)
             {
-                // Accorder 2 heures sans publicité
-                AdFreeUntil = DateTime.Now.AddHours(2);
+                // Accorder 30 minutes sans publicité
+                AdFreeUntil = DateTime.Now.AddMinutes(30);
                 IsAdFreeActive = true;
 
-                await Shell.Current.DisplayAlert("Récompense obtenue ! 🎉", 
-                    "Vous bénéficiez maintenant de 2 heures sans publicité !", "Génial !");
+                _ = Services.AnimationService.ShowRewardEarnedAsync(
+                    "Sans pub activé !",
+                    30,
+                    suffix: " minutes");
 
                 // Sauvegarder le statut
                 SaveUserPremiumStatus();
@@ -280,6 +283,7 @@ public class PremiumFeaturesViewModel : BaseViewModel
                 return;
             }
 
+            await Services.AnimationService.ShowPreRewardedTeaserAsync("Préparation de vos boosts...");
             var rewardEarned = await _adMobService.ShowRewardedAdAsync();
 
             if (rewardEarned)
@@ -287,8 +291,10 @@ public class PremiumFeaturesViewModel : BaseViewModel
                 // Accorder 3 crédits de boost
                 BoostCredits += 3;
 
-                await Shell.Current.DisplayAlert("Crédits obtenus ! 🚀", 
-                    "Vous avez reçu 3 crédits de boost pour mettre en avant vos annonces !", "Super !");
+                _ = Services.AnimationService.ShowRewardEarnedAsync(
+                    "Crédits boost obtenus !",
+                    3,
+                    suffix: " crédits 🚀");
 
                 SaveUserPremiumStatus();
             }
@@ -323,12 +329,15 @@ public class PremiumFeaturesViewModel : BaseViewModel
                 return;
             }
 
+            await Services.AnimationService.ShowPreRewardedTeaserAsync("Préparation des statistiques...");
             var rewardEarned = await _adMobService.ShowRewardedAdAsync();
 
             if (rewardEarned)
             {
-                await Shell.Current.DisplayAlert("Statistiques débloquées ! 📊", 
-                    "Vous avez maintenant accès aux statistiques détaillées de vos annonces !", "Parfait !");
+                _ = Services.AnimationService.ShowRewardEarnedAsync(
+                    "Stats avancées débloquées !",
+                    1,
+                    suffix: " accès Premium 📊");
 
                 // Ici vous pourriez implémenter l'accès aux statistiques détaillées
                 // par exemple en sauvegardant un flag dans les préférences

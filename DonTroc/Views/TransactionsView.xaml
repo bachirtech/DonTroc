@@ -5,310 +5,614 @@
              xmlns:viewmodels="clr-namespace:DonTroc.ViewModels"
              xmlns:models="clr-namespace:DonTroc.Models"
              xmlns:views="clr-namespace:DonTroc.Views"
+             x:DataType="viewmodels:TransactionsViewModel"
              Title="Mes Transactions"
-             BackgroundColor="{StaticResource BeigeClair}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
-    <Grid>
-    <ScrollView>
-        <StackLayout Padding="20" Spacing="20">
-            
-            <!-- Section des transactions en attente -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="10" 
-                   HasShadow="True"
-                   IsVisible="{Binding TransactionsEnAttente.Count, Converter={StaticResource IntToBoolConverter}}">
-                
-                <StackLayout Spacing="15">
-                    <Label Text="⏳ Transactions en attente" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="{StaticResource Terracotta}" />
-                    
-                    <CollectionView ItemsSource="{Binding TransactionsEnAttente}"
-                                    SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:Transaction">
-                                <Grid Padding="10" 
-                                      BackgroundColor="{StaticResource BeigeClair}"
-                                      Margin="0,5">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+    <Grid RowDefinitions="Auto,*">
 
-                                    <!-- Informations de la transaction -->
-                                    <StackLayout Grid.Row="0" Grid.Column="0">
-                                        <Label Text="{Binding TypeDisplay}" 
-                                               FontAttributes="Bold" 
-                                               TextColor="{StaticResource Ardoise}" />
-                                        <Label Text="{Binding DateCreation, StringFormat='Le {0:dd/MM/yyyy à HH:mm}'}" 
-                                               FontSize="12" 
-                                               TextColor="{StaticResource Ardoise}" />
-                                    </StackLayout>
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- HEADER GRADIENT                                 -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Border Grid.Row="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,28,28"
+                Padding="20,15,20,22">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#8B5A3A}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#6B4A32}" Offset="0.5" />
+                    <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#40000000" Offset="0,6" Radius="16" Opacity="0.3" />
+            </Border.Shadow>
 
-                                    <!-- Statut -->
-                                    <Label Grid.Row="0" Grid.Column="1"
-                                           Text="{Binding StatutDisplay}"
-                                           BackgroundColor="{StaticResource Terracotta}"
+            <VerticalStackLayout Spacing="12">
+                <!-- Bannière pub -->
+                <views:AdBannerView
+                    HeightRequest="50"
+                    MinimumHeightRequest="50"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent" />
+
+                <!-- Titre + Icône -->
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            StrokeThickness="0"
+                            BackgroundColor="#33FFFFFF"
+                            WidthRequest="52" HeightRequest="52"
+                            HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="🤝" FontSize="26"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Transactions"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               FontFamily="PoppinsBold" />
+                        <Label Text="Suivez vos échanges et dons"
+                               FontSize="13"
+                               TextColor="#D0FFFFFF" />
+                    </VerticalStackLayout>
+                    <!-- Bouton refresh -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 14,14,14,14"
+                            StrokeThickness="0"
+                            BackgroundColor="#30FFFFFF"
+                            WidthRequest="42" HeightRequest="42"
+                            HorizontalOptions="Center" VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding RefreshCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="🔄" FontSize="20"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </Grid>
+
+                <!-- Indicateur de chargement -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="White"
+                                   HeightRequest="24" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- CONTENU SCROLLABLE                              -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <RefreshView Grid.Row="1"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <ScrollView>
+                <VerticalStackLayout Padding="16,0,16,20" Spacing="16" Margin="0,-8,0,0">
+
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- SECTION : TRANSACTIONS EN ATTENTE           -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    <Border StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="18,16"
+                            IsVisible="{Binding TransactionsEnAttente.Count, Converter={StaticResource IntToBoolConverter}}">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
+
+                        <VerticalStackLayout Spacing="14">
+                            <!-- En-tête de section -->
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                <Border Grid.Column="0"
+                                        StrokeShape="RoundRectangle 12,12,12,12"
+                                        StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}"
+                                        WidthRequest="40" HeightRequest="40"
+                                        HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="⏳" FontSize="20"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Grid.Column="1"
+                                       Text="En attente"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       VerticalTextAlignment="Center"
+                                       FontFamily="PoppinsBold" />
+                                <!-- Compteur -->
+                                <Border Grid.Column="2"
+                                        StrokeShape="RoundRectangle 12,12,12,12"
+                                        StrokeThickness="0"
+                                        Padding="10,4"
+                                        VerticalOptions="Center">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                            <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Label Text="{Binding TransactionsEnAttente.Count, StringFormat='{0}'}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
                                            TextColor="White"
-                                           Padding="8,4"
-                                           FontSize="12" />
+                                           HorizontalTextAlignment="Center" />
+                                </Border>
+                            </Grid>
 
-                                    <!-- Message du demandeur -->
-                                    <Label Grid.Row="1" Grid.ColumnSpan="2"
-                                           Text="{Binding MessageDemandeur}"
-                                           FontAttributes="Italic"
-                                           TextColor="{StaticResource Ardoise}"
-                                           Margin="0,5,0,0"
-                                           IsVisible="{Binding MessageDemandeur, Converter={StaticResource StringToBoolConverter}}" />
+                            <!-- Séparateur subtil -->
+                            <BoxView HeightRequest="1"
+                                     BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                     Margin="0,0,0,2" />
 
-                                    <!-- Boutons d'action -->
-                                    <StackLayout Grid.Row="2" Grid.ColumnSpan="2" 
-                                                 Orientation="Horizontal" 
-                                                 Spacing="10" 
-                                                 Margin="0,10,0,0">
-                                        
-                                        <Button Text="✓ Confirmer"
-                                                BackgroundColor="{StaticResource Vert}"
-                                                TextColor="White"
-                                                CornerRadius="5"
-                                                FontSize="12"
-                                                Padding="15,5"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=ConfirmerTransactionCommand}"
-                                                CommandParameter="{Binding .}"
-                                                IsVisible="{Binding PeutEtreConfirmee}" />
-                                        
-                                        <Button Text="✗ Refuser"
-                                                BackgroundColor="{StaticResource Rouge}"
-                                                TextColor="White"
-                                                CornerRadius="5"
-                                                FontSize="12"
-                                                Padding="15,5"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=AnnulerTransactionCommand}"
-                                                CommandParameter="{Binding .}"
-                                                IsVisible="{Binding PeutEtreAnnulee}" />
-                                        
-                                        <Button Text="📋 Détails"
-                                                BackgroundColor="{StaticResource Ardoise}"
-                                                TextColor="White"
-                                                CornerRadius="5"
-                                                FontSize="12"
-                                                Padding="15,5"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=VoirDetailsCommand}"
-                                                CommandParameter="{Binding .}" />
-                                    </StackLayout>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </StackLayout>
-            </Frame>
-
-            <!-- Section de l'historique complet -->
-            <Frame BackgroundColor="White" 
-                   CornerRadius="10" 
-                   HasShadow="True">
-                
-                <StackLayout Spacing="15">
-                    <StackLayout Orientation="Horizontal" Spacing="10">
-                        <Label Text="📜 Historique des transactions" 
-                               FontSize="18" 
-                               FontAttributes="Bold" 
-                               TextColor="{StaticResource Terracotta}"
-                               VerticalOptions="Center" />
-                        
-                        <ActivityIndicator IsRunning="{Binding IsBusy}" 
-                                           IsVisible="{Binding IsBusy}"
-                                           Color="{StaticResource Terracotta}" />
-                        
-                        <Button Text="🔄"
-                                BackgroundColor="Transparent"
-                                TextColor="{StaticResource Terracotta}"
-                                Command="{Binding RefreshCommand}"
-                                CornerRadius="15"
-                                WidthRequest="30"
-                                HeightRequest="30" />
-                    </StackLayout>
-                    
-                    <RefreshView IsRefreshing="{Binding IsRefreshing}"
-                                 Command="{Binding RefreshCommand}">
-                        
-                        <CollectionView ItemsSource="{Binding Transactions}"
-                                        SelectionMode="None"
-                                        EmptyView="Aucune transaction trouvée">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:Transaction">
-                                    <Grid Padding="15" 
-                                          BackgroundColor="{StaticResource BeigeClair}"
-                                          Margin="0,5">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- En-tête de la transaction -->
-                                        <StackLayout Grid.Row="0" Grid.Column="0">
-                                            <Label Text="{Binding TypeDisplay}" 
-                                                   FontAttributes="Bold" 
-                                                   FontSize="16"
-                                                   TextColor="{StaticResource Ardoise}" />
-                                            <Label Text="{Binding DateCreation, StringFormat='Le {0:dd/MM/yyyy à HH:mm}'}" 
-                                                   FontSize="12" 
-                                                   TextColor="{StaticResource Ardoise}" />
-                                        </StackLayout>
-
-                                        <!-- Statut avec couleur -->
-                                        <Border Grid.Row="0" Grid.Column="1"
-                                                Padding="8,4"
+                            <!-- Liste des transactions en attente -->
+                            <CollectionView ItemsSource="{Binding TransactionsEnAttente}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                                </CollectionView.ItemsLayout>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Transaction">
+                                        <Border StrokeShape="RoundRectangle 14,14,14,14"
                                                 StrokeThickness="0"
-                                                StrokeShape="RoundRectangle 5,5,5,5">
-                                            <Border.Triggers>
-                                                <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="EnAttente">
-                                                    <Setter Property="BackgroundColor" Value="Orange" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Confirmee">
-                                                    <Setter Property="BackgroundColor" Value="{StaticResource Vert}" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Terminee">
-                                                    <Setter Property="BackgroundColor" Value="{StaticResource Ardoise}" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Annulee">
-                                                    <Setter Property="BackgroundColor" Value="{StaticResource Rouge}" />
-                                                </DataTrigger>
-                                            </Border.Triggers>
-                                            <Label Text="{Binding StatutDisplay}"
-                                                   FontSize="12"
-                                                   TextColor="White"
-                                                   HorizontalTextAlignment="Center" />
+                                                BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                                Padding="14,12">
+                                            <Border.Shadow>
+                                                <Shadow Brush="{AppThemeBinding Light=#10000000, Dark=#10000000}"
+                                                       Offset="0,2" Radius="8" Opacity="0.3" />
+                                            </Border.Shadow>
+
+                                            <VerticalStackLayout Spacing="10">
+                                                <!-- Header : Type + Statut -->
+                                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                                    <!-- Icône type -->
+                                                    <Border Grid.Column="0"
+                                                            StrokeShape="RoundRectangle 10,10,10,10"
+                                                            StrokeThickness="0"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFEDE3, Dark=#3D2E24}"
+                                                            WidthRequest="36" HeightRequest="36">
+                                                        <Label FontSize="16"
+                                                               HorizontalOptions="Center" VerticalOptions="Center">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Don">
+                                                                    <Setter Property="Text" Value="🎁" />
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Troc">
+                                                                    <Setter Property="Text" Value="🔄" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </Border>
+                                                    <!-- Infos -->
+                                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                                        <Label Text="{Binding TypeDisplay}"
+                                                               FontSize="15"
+                                                               FontAttributes="Bold"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                                        <Label Text="{Binding DateCreation, StringFormat='{0:dd MMM yyyy à HH:mm}'}"
+                                                               FontSize="11"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                               Opacity="0.6" />
+                                                    </VerticalStackLayout>
+                                                    <!-- Badge statut -->
+                                                    <Border Grid.Column="2"
+                                                            StrokeShape="RoundRectangle 10,10,10,10"
+                                                            StrokeThickness="0"
+                                                            Padding="10,5"
+                                                            VerticalOptions="Center">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="#FFB74D" Offset="0.0" />
+                                                                <GradientStop Color="#FFA726" Offset="1.0" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Label Text="{Binding StatutDisplay}"
+                                                               FontSize="11"
+                                                               FontAttributes="Bold"
+                                                               TextColor="White"
+                                                               HorizontalTextAlignment="Center" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Message du demandeur -->
+                                                <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                                        StrokeThickness="0"
+                                                        BackgroundColor="{AppThemeBinding Light=#F5F0EB, Dark=#2D2620}"
+                                                        Padding="12,8"
+                                                        IsVisible="{Binding MessageDemandeur, Converter={StaticResource StringToBoolConverter}}">
+                                                    <Label Text="{Binding MessageDemandeur}"
+                                                           FontSize="13"
+                                                           FontAttributes="Italic"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                           Opacity="0.85"
+                                                           LineBreakMode="WordWrap"
+                                                           MaxLines="3" />
+                                                </Border>
+
+                                                <!-- Boutons d'action -->
+                                                <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
+                                                    <!-- Confirmer -->
+                                                    <Border Grid.Column="0"
+                                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                                            StrokeThickness="0"
+                                                            Padding="0"
+                                                            HeightRequest="40"
+                                                            IsVisible="{Binding PeutEtreConfirmee}">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="{AppThemeBinding Light=#66BB6A, Dark=#43A047}" Offset="0.0" />
+                                                                <GradientStop Color="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}" Offset="1.0" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Border.Shadow>
+                                                            <Shadow Brush="#304CAF50" Offset="0,2" Radius="6" Opacity="0.3" />
+                                                        </Border.Shadow>
+                                                        <Button Text="✓ Confirmer"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="White"
+                                                                FontSize="13"
+                                                                FontAttributes="Bold"
+                                                                CornerRadius="12"
+                                                                Padding="0"
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=ConfirmerTransactionCommand}"
+                                                                CommandParameter="{Binding .}" />
+                                                    </Border>
+
+                                                    <!-- Refuser -->
+                                                    <Border Grid.Column="1"
+                                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                                            StrokeThickness="0"
+                                                            Padding="0"
+                                                            HeightRequest="40"
+                                                            IsVisible="{Binding PeutEtreAnnulee}">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="{AppThemeBinding Light=#EF5350, Dark=#D32F2F}" Offset="0.0" />
+                                                                <GradientStop Color="{AppThemeBinding Light=#E53935, Dark=#C62828}" Offset="1.0" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Border.Shadow>
+                                                            <Shadow Brush="#30E53935" Offset="0,2" Radius="6" Opacity="0.3" />
+                                                        </Border.Shadow>
+                                                        <Button Text="✗ Refuser"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="White"
+                                                                FontSize="13"
+                                                                FontAttributes="Bold"
+                                                                CornerRadius="12"
+                                                                Padding="0"
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=AnnulerTransactionCommand}"
+                                                                CommandParameter="{Binding .}" />
+                                                    </Border>
+
+                                                    <!-- Détails -->
+                                                    <Border Grid.Column="2"
+                                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                                            StrokeThickness="0"
+                                                            BackgroundColor="{AppThemeBinding Light=#F0EDE8, Dark=#3A342E}"
+                                                            Padding="0"
+                                                            HeightRequest="40"
+                                                            WidthRequest="40">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=VoirDetailsCommand}"
+                                                                                  CommandParameter="{Binding .}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Label Text="📋"
+                                                               FontSize="18"
+                                                               HorizontalOptions="Center"
+                                                               VerticalOptions="Center" />
+                                                    </Border>
+                                                </Grid>
+                                            </VerticalStackLayout>
                                         </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
 
-                                        <!-- Dates importantes -->
-                                        <StackLayout Grid.Row="1" Grid.ColumnSpan="2" 
-                                                     Margin="0,5,0,0"
-                                                     IsVisible="{Binding DateConfirmation, Converter={StaticResource ObjectToBoolConverter}}">
-                                            <Label Text="{Binding DateConfirmation, StringFormat='Confirmée le {0:dd/MM/yyyy à HH:mm}'}" 
-                                                   FontSize="12" 
-                                                   TextColor="{StaticResource Vert}" />
-                                        </StackLayout>
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- SECTION : HISTORIQUE COMPLET                 -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    <Border StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="18,16">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,4" Radius="14" Opacity="0.4" />
+                        </Border.Shadow>
 
-                                        <StackLayout Grid.Row="2" Grid.ColumnSpan="2" 
-                                                     Margin="0,5,0,0"
-                                                     IsVisible="{Binding DateFinalisation, Converter={StaticResource ObjectToBoolConverter}}">
-                                            <Label Text="{Binding DateFinalisation, StringFormat='Finalisée le {0:dd/MM/yyyy à HH:mm}'}" 
-                                                   FontSize="12" 
-                                                   TextColor="{StaticResource Ardoise}" />
-                                        </StackLayout>
+                        <VerticalStackLayout Spacing="14">
+                            <!-- En-tête de section -->
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <Border Grid.Column="0"
+                                        StrokeShape="RoundRectangle 12,12,12,12"
+                                        StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                        WidthRequest="40" HeightRequest="40"
+                                        HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="📜" FontSize="20"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Grid.Column="1"
+                                       Text="Historique"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       VerticalTextAlignment="Center"
+                                       FontFamily="PoppinsBold" />
+                            </Grid>
 
-                                        <!-- Boutons d'action contextuels -->
-                                        <StackLayout Grid.Row="3" Grid.ColumnSpan="2" 
-                                                     Orientation="Horizontal" 
-                                                     Spacing="10" 
-                                                     Margin="0,10,0,0">
-                                            
-                                            <!-- Bouton Finaliser pour les transactions confirmées -->
-                                            <Button Text="✅ Finaliser"
-                                                    BackgroundColor="{StaticResource Vert}"
-                                                    TextColor="White"
-                                                    CornerRadius="5"
-                                                    FontSize="12"
-                                                    Padding="15,5"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=FinaliserTransactionCommand}"
-                                                    CommandParameter="{Binding .}"
-                                                    IsVisible="{Binding PeutEtreFinalisee}" />
-                                            
-                                            <!-- Boutons pour transactions terminées avec système d'évaluation -->
-                                            <StackLayout Orientation="Horizontal" 
-                                                         Spacing="8"
-                                                         IsVisible="{Binding Statut, Converter={StaticResource EqualConverter}, ConverterParameter=Terminee}">
-                                                
-                                                <!-- Bouton pour évaluer l'autre partie -->
-                                                <Button Text="⭐ Évaluer"
-                                                        BackgroundColor="{StaticResource Terracotta}"
-                                                        TextColor="White"
-                                                        CornerRadius="8"
-                                                        FontSize="12"
-                                                        Padding="12,6"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=EvaluerTransactionCommand}"
-                                                        CommandParameter="{Binding .}"
-                                                        IsVisible="{Binding PeutEtreEvaluee}" />
-                                                
-                                                <!-- Indicateur d'évaluation déjà faite -->
-                                                <Label Text="✅ Déjà évaluée"
-                                                       FontSize="12"
-                                                       TextColor="{StaticResource VertSauge}"
+                            <!-- Séparateur subtil -->
+                            <BoxView HeightRequest="1"
+                                     BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                     Margin="0,0,0,2" />
+
+                            <!-- Liste des transactions historiques -->
+                            <CollectionView ItemsSource="{Binding Transactions}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                                </CollectionView.ItemsLayout>
+
+                                <!-- État vide élégant -->
+                                <CollectionView.EmptyView>
+                                    <Border StrokeShape="RoundRectangle 16,16,16,16"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                            Padding="24,30"
+                                            Margin="0,10">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                                            <Label Text="📋"
+                                                   FontSize="48"
+                                                   HorizontalTextAlignment="Center" />
+                                            <Label Text="Aucune transaction"
+                                                   FontSize="17"
+                                                   FontAttributes="Bold"
+                                                   HorizontalTextAlignment="Center"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                            <Label Text="Vos dons et trocs apparaîtront ici dès que vous commencerez à échanger."
+                                                   FontSize="13"
+                                                   HorizontalTextAlignment="Center"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   Opacity="0.6"
+                                                   MaxLines="3"
+                                                   LineBreakMode="WordWrap" />
+                                            <!-- Bouton vers annonces -->
+                                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                                    StrokeThickness="0"
+                                                    Padding="0"
+                                                    HorizontalOptions="Center"
+                                                    HeightRequest="42"
+                                                    Margin="0,6,0,0">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                                        <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                                <Border.Shadow>
+                                                    <Shadow Brush="#40D98C6A" Offset="0,2" Radius="6" Opacity="0.3" />
+                                                </Border.Shadow>
+                                                <Label Text="🔍 Découvrir des annonces"
+                                                       TextColor="White"
                                                        FontAttributes="Bold"
-                                                       VerticalOptions="Center"
-                                                       IsVisible="{Binding DejaEvaluee}" />
-                                                
-                                                <!-- Bouton voir les détails -->
-                                                <Button Text="📋 Détails"
-                                                        BackgroundColor="{StaticResource Ardoise}"
-                                                        TextColor="White"
-                                                        CornerRadius="8"
-                                                        FontSize="12"
-                                                        Padding="12,6"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=VoirDetailsCommand}"
-                                                        CommandParameter="{Binding .}" />
-                                            </StackLayout>
-                                            
-                                            <!-- Boutons pour autres statuts (existants) -->
-                                            <StackLayout Orientation="Horizontal" 
-                                                         Spacing="10"
-                                                         IsVisible="{Binding Statut, Converter={StaticResource NotEqualConverter}, ConverterParameter=Terminee}">
-                                                
-                                                <!-- Bouton Voir détails -->
-                                                <Button Text="📋 Détails"
-                                                        BackgroundColor="{StaticResource Ardoise}"
-                                                        TextColor="White"
-                                                        CornerRadius="5"
-                                                        FontSize="12"
-                                                        Padding="15,5"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=VoirDetailsCommand}"
-                                                        CommandParameter="{Binding .}" />
-                                            </StackLayout>
-                                        </StackLayout>
-                                    </Grid>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </RefreshView>
-                </StackLayout>
-            </Frame>
+                                                       FontSize="14"
+                                                       HorizontalTextAlignment="Center"
+                                                       VerticalTextAlignment="Center"
+                                                       Padding="24,0" />
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </CollectionView.EmptyView>
 
-            <!-- Message si aucune transaction -->
-            <StackLayout IsVisible="{Binding Transactions.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=inverse}"
-                         Padding="20"
-                         HorizontalOptions="Center">
-                <Label Text="📋"
-                       FontSize="48"
-                       HorizontalOptions="Center"
-                       TextColor="{StaticResource Ardoise}" />
-                <Label Text="Aucune transaction pour le moment"
-                       FontSize="16"
-                       HorizontalOptions="Center"
-                       TextColor="{StaticResource Ardoise}" />
-                <Label Text="Vos dons et trocs apparaîtront ici"
-                       FontSize="14"
-                       HorizontalOptions="Center"
-                       TextColor="{StaticResource Ardoise}"
-                       Margin="0,5,0,0" />
-            </StackLayout>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Transaction">
+                                        <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                                StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                                Padding="14,12">
+                                            <Border.Shadow>
+                                                <Shadow Brush="{AppThemeBinding Light=#10000000, Dark=#10000000}"
+                                                       Offset="0,2" Radius="8" Opacity="0.3" />
+                                            </Border.Shadow>
 
-        </StackLayout>
-    </ScrollView>
-    
-    <!-- Overlay pour les conseils -->
-    <views:TipOverlayView x:Name="TipOverlay" />
+                                            <VerticalStackLayout Spacing="10">
+                                                <!-- Header : Type + Statut -->
+                                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                                    <!-- Icône type -->
+                                                    <Border Grid.Column="0"
+                                                            StrokeShape="RoundRectangle 10,10,10,10"
+                                                            StrokeThickness="0"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFEDE3, Dark=#3D2E24}"
+                                                            WidthRequest="36" HeightRequest="36">
+                                                        <Label FontSize="16"
+                                                               HorizontalOptions="Center" VerticalOptions="Center">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Don">
+                                                                    <Setter Property="Text" Value="🎁" />
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Troc">
+                                                                    <Setter Property="Text" Value="🔄" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </Border>
+                                                    <!-- Infos -->
+                                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                                        <Label Text="{Binding TypeDisplay}"
+                                                               FontSize="15"
+                                                               FontAttributes="Bold"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                                        <Label Text="{Binding DateCreation, StringFormat='{0:dd MMM yyyy à HH:mm}'}"
+                                                               FontSize="11"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                               Opacity="0.6" />
+                                                    </VerticalStackLayout>
+                                                    <!-- Badge statut avec couleurs dynamiques -->
+                                                    <Border Grid.Column="2"
+                                                            StrokeShape="RoundRectangle 10,10,10,10"
+                                                            StrokeThickness="0"
+                                                            Padding="10,5"
+                                                            VerticalOptions="Center">
+                                                        <Border.Triggers>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="EnAttente">
+                                                                <Setter Property="BackgroundColor" Value="#FFA726" />
+                                                            </DataTrigger>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Confirmee">
+                                                                <Setter Property="BackgroundColor" Value="{StaticResource Vert}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="EnCours">
+                                                                <Setter Property="BackgroundColor" Value="#42A5F5" />
+                                                            </DataTrigger>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Terminee">
+                                                                <Setter Property="BackgroundColor" Value="{StaticResource Ardoise}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Annulee">
+                                                                <Setter Property="BackgroundColor" Value="{StaticResource Rouge}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding Statut}" Value="Litigieuse">
+                                                                <Setter Property="BackgroundColor" Value="#FF7043" />
+                                                            </DataTrigger>
+                                                        </Border.Triggers>
+                                                        <Label Text="{Binding StatutDisplay}"
+                                                               FontSize="11"
+                                                               FontAttributes="Bold"
+                                                               TextColor="White"
+                                                               HorizontalTextAlignment="Center" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Dates importantes -->
+                                                <HorizontalStackLayout Spacing="12"
+                                                                       IsVisible="{Binding DateConfirmation, Converter={StaticResource ObjectToBoolConverter}}">
+                                                    <Label Text="✅" FontSize="12" VerticalTextAlignment="Center" />
+                                                    <Label Text="{Binding DateConfirmation, StringFormat='Confirmée le {0:dd/MM/yyyy}'}"
+                                                           FontSize="12"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Vert}, Dark=#81C784}"
+                                                           VerticalTextAlignment="Center" />
+                                                </HorizontalStackLayout>
+
+                                                <HorizontalStackLayout Spacing="12"
+                                                                       IsVisible="{Binding DateFinalisation, Converter={StaticResource ObjectToBoolConverter}}">
+                                                    <Label Text="🏁" FontSize="12" VerticalTextAlignment="Center" />
+                                                    <Label Text="{Binding DateFinalisation, StringFormat='Finalisée le {0:dd/MM/yyyy}'}"
+                                                           FontSize="12"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                           Opacity="0.7"
+                                                           VerticalTextAlignment="Center" />
+                                                </HorizontalStackLayout>
+
+                                                <!-- Boutons d'action contextuels -->
+                                                <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8"
+                                                      Margin="0,2,0,0">
+
+                                                    <!-- Bouton Finaliser (pour transactions confirmées) -->
+                                                    <Border Grid.Column="0" Grid.ColumnSpan="2"
+                                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                                            StrokeThickness="0"
+                                                            Padding="0"
+                                                            HeightRequest="40"
+                                                            IsVisible="{Binding PeutEtreFinalisee}">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="{AppThemeBinding Light=#66BB6A, Dark=#43A047}" Offset="0.0" />
+                                                                <GradientStop Color="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}" Offset="1.0" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Border.Shadow>
+                                                            <Shadow Brush="#304CAF50" Offset="0,2" Radius="6" Opacity="0.3" />
+                                                        </Border.Shadow>
+                                                        <Button Text="✅ Finaliser l'échange"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="White"
+                                                                FontSize="13"
+                                                                FontAttributes="Bold"
+                                                                CornerRadius="12"
+                                                                Padding="0"
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=FinaliserTransactionCommand}"
+                                                                CommandParameter="{Binding .}" />
+                                                    </Border>
+
+                                                    <!-- Bouton Évaluer (pour transactions terminées) -->
+                                                    <Border Grid.Column="0"
+                                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                                            StrokeThickness="0"
+                                                            Padding="0"
+                                                            HeightRequest="40"
+                                                            IsVisible="{Binding PeutEtreEvaluee}">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                                                <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Border.Shadow>
+                                                            <Shadow Brush="#30D98C6A" Offset="0,2" Radius="6" Opacity="0.3" />
+                                                        </Border.Shadow>
+                                                        <Button Text="⭐ Évaluer"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="White"
+                                                                FontSize="13"
+                                                                FontAttributes="Bold"
+                                                                CornerRadius="12"
+                                                                Padding="0"
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=EvaluerTransactionCommand}"
+                                                                CommandParameter="{Binding .}" />
+                                                    </Border>
+
+                                                    <!-- Label déjà évaluée -->
+                                                    <HorizontalStackLayout Grid.Column="0"
+                                                                           IsVisible="{Binding DejaEvaluee}"
+                                                                           Spacing="6"
+                                                                           VerticalOptions="Center"
+                                                                           Padding="8,0">
+                                                        <Label Text="✅" FontSize="13" VerticalTextAlignment="Center" />
+                                                        <Label Text="Évaluée"
+                                                               FontSize="13"
+                                                               FontAttributes="Bold"
+                                                               TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}"
+                                                               VerticalTextAlignment="Center" />
+                                                    </HorizontalStackLayout>
+
+                                                    <!-- Bouton Détails (toujours visible) -->
+                                                    <Border Grid.Column="2"
+                                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                                            StrokeThickness="0"
+                                                            BackgroundColor="{AppThemeBinding Light=#F0EDE8, Dark=#3A342E}"
+                                                            Padding="0"
+                                                            HeightRequest="40"
+                                                            WidthRequest="40">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=VoirDetailsCommand}"
+                                                                                  CommandParameter="{Binding .}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Label Text="📋"
+                                                               FontSize="18"
+                                                               HorizontalOptions="Center"
+                                                               VerticalOptions="Center" />
+                                                    </Border>
+                                                </Grid>
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Espace final -->
+                    <BoxView HeightRequest="16" BackgroundColor="Transparent" />
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+        <!-- Overlay pour les conseils -->
+        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="2" />
+
     </Grid>
 </ContentPage>

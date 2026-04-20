@@ -11,7 +11,7 @@ using Microsoft.Maui.Controls;
 namespace DonTroc.ViewModels;
 
 /// <summary>
-/// ViewModel pour gérer l'affichage et l'interaction avec les favoris
+/// ViewModel pour gérer l'affichage et l'interaction avec les favoris et alertes
 /// </summary>
 public class FavoritesViewModel : BaseViewModel
 {
@@ -22,6 +22,15 @@ public class FavoritesViewModel : BaseViewModel
     public ObservableCollection<Favorite> Favorites { get; } = new();
     public ObservableCollection<FavoriteList> UserLists { get; } = new();
     public ObservableCollection<AnnonceAlert> UserAlerts { get; } = new();
+    
+    // Catégories disponibles pour les alertes
+    public List<string> AvailableCategories { get; } = new()
+    {
+        "Vêtements", "Meubles", "Livres", "Électronique", "Maison", "Jardin", "Outils", "Loisirs", "Autre"
+    };
+    
+    // Types d'annonces disponibles
+    public List<string> AvailableTypes { get; } = new() { "Les deux", "Don", "Troc" };
     
     // Propriétés pour l'interface
     private FavoriteList? _selectedList;
@@ -93,6 +102,25 @@ public class FavoritesViewModel : BaseViewModel
         set => SetProperty(ref _newAlertLocation, value);
     }
     
+    // Catégories sélectionnées pour la nouvelle alerte (stockées sous forme de set)
+    private readonly HashSet<string> _selectedAlertCategories = new();
+    public ObservableCollection<AlertCategoryItem> AlertCategoryItems { get; } = new();
+    
+    private string _selectedAlertType = "Les deux";
+    public string SelectedAlertType
+    {
+        get => _selectedAlertType;
+        set => SetProperty(ref _selectedAlertType, value);
+    }
+    
+    // Compteur alertes
+    private int _alertCount;
+    public int AlertCount
+    {
+        get => _alertCount;
+        set => SetProperty(ref _alertCount, value);
+    }
+    
     // Commandes
     public ICommand LoadDataCommand { get; }
     public ICommand ToggleFavoriteCommand { get; }
@@ -103,6 +131,8 @@ public class FavoritesViewModel : BaseViewModel
     public ICommand DeleteFavoriteCommand { get; }
     public ICommand DeleteListCommand { get; }
     public ICommand DeleteAlertCommand { get; }
+    public ICommand ToggleAlertCommand { get; }
+    public ICommand ToggleCategoryCommand { get; }
     public ICommand NavigateToAnnonceCommand { get; }
 
     public FavoritesViewModel(FavoritesService favoritesService, AuthService authService)
@@ -110,16 +140,48 @@ public class FavoritesViewModel : BaseViewModel
         _favoritesService = favoritesService;
         _authService = authService;
         
+        // Initialiser les catégories pour l'UI
+        foreach (var cat in AvailableCategories)
+        {
+            AlertCategoryItems.Add(new AlertCategoryItem { Name = cat, IsSelected = false });
+        }
+        
         LoadDataCommand = new Command(async () => await LoadDataAsync());
         ToggleFavoriteCommand = new Command<Annonce>(async (annonce) => await ToggleFavoriteAsync(annonce));
         ShowCreateListCommand = new Command(() => ShowCreateListDialog = true);
         CreateListCommand = new Command(async () => await CreateListAsync());
-        ShowCreateAlertCommand = new Command(() => ShowCreateAlertDialog = true);
+        ShowCreateAlertCommand = new Command(() =>
+        {
+            // Réinitialiser le formulaire
+            NewAlertName = string.Empty;
+            NewAlertKeywords = string.Empty;
+            NewAlertLocation = string.Empty;
+            SelectedAlertType = "Les deux";
+            _selectedAlertCategories.Clear();
+            foreach (var item in AlertCategoryItems)
+                item.IsSelected = false;
+            ShowCreateAlertDialog = true;
+        });
         CreateAlertCommand = new Command(async () => await CreateAlertAsync());
         DeleteFavoriteCommand = new Command<Favorite>(async (favorite) => await DeleteFavoriteAsync(favorite));
         DeleteListCommand = new Command<FavoriteList>(async (list) => await DeleteListAsync(list));
         DeleteAlertCommand = new Command<AnnonceAlert>(async (alert) => await DeleteAlertAsync(alert));
+        ToggleAlertCommand = new Command<AnnonceAlert>(async (alert) => await ToggleAlertActiveAsync(alert));
+        ToggleCategoryCommand = new Command<AlertCategoryItem>(ToggleCategory);
         NavigateToAnnonceCommand = new Command<Favorite>(async (favorite) => await NavigateToAnnonceAsync(favorite));
+    }
+    
+    /// <summary>
+    /// Toggle une catégorie dans la sélection pour la création d'alerte
+    /// </summary>
+    private void ToggleCategory(AlertCategoryItem? item)
+    {
+        if (item == null) return;
+        item.IsSelected = !item.IsSelected;
+        if (item.IsSelected)
+            _selectedAlertCategories.Add(item.Name);
+        else
+            _selectedAlertCategories.Remove(item.Name);
     }
     
     /// <summary>
@@ -162,6 +224,7 @@ public class FavoritesViewModel : BaseViewModel
             {
                 UserAlerts.Add(alert);
             }
+            AlertCount = UserAlerts.Count;
         }
         catch (Exception ex)
         {
@@ -290,7 +353,7 @@ public class FavoritesViewModel : BaseViewModel
     }
     
     /// <summary>
-    /// Crée une nouvelle alerte
+    /// Crée une nouvelle alerte avec catégories et type
     /// </summary>
     private async Task CreateAlertAsync()
     {
@@ -304,13 +367,27 @@ public class FavoritesViewModel : BaseViewModel
         {
             var keywords = NewAlertKeywords.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(k => k.Trim())
+                .Where(k => !string.IsNullOrEmpty(k))
                 .ToList();
+
+            var categories = _selectedAlertCategories.ToList();
+            
+            // Convertir le type sélectionné
+            var annonceType = SelectedAlertType switch
+            {
+                "Don" => "don",
+                "Troc" => "troc",
+                _ => "both"
+            };
+            
+            var location = string.IsNullOrWhiteSpace(NewAlertLocation) ? null : NewAlertLocation.Trim();
             
             var success = await _favoritesService.CreateAlertAsync(
-                NewAlertName,
+                NewAlertName.Trim(),
                 keywords,
-                new List<string>(), // Categories - à implémenter plus tard
-                NewAlertLocation.Trim()
+                categories,
+                location,
+                annonceType: annonceType
             );
             
             if (success)
@@ -322,9 +399,13 @@ public class FavoritesViewModel : BaseViewModel
                 NewAlertName = string.Empty;
                 NewAlertKeywords = string.Empty;
                 NewAlertLocation = string.Empty;
+                SelectedAlertType = "Les deux";
+                _selectedAlertCategories.Clear();
+                foreach (var item in AlertCategoryItems)
+                    item.IsSelected = false;
                 ShowCreateAlertDialog = false;
                 
-                await Shell.Current.DisplayAlert("Succès", "Alerte créée avec succès", "OK");
+                await Shell.Current.DisplayAlert("Succès", "Alerte créée ! Vous serez notifié quand des annonces correspondantes seront publiées.", "OK");
             }
             else
             {
@@ -361,7 +442,7 @@ public class FavoritesViewModel : BaseViewModel
     }
     
     /// <summary>
-    /// Supprime une liste (après confirmation)
+    /// Supprime une liste et tous ses favoris
     /// </summary>
     private async Task DeleteListAsync(FavoriteList list)
     {
@@ -374,8 +455,28 @@ public class FavoritesViewModel : BaseViewModel
         
         if (result)
         {
-            // Implémentation à faire dans le service
-            await Shell.Current.DisplayAlert("Info", "Fonctionnalité en cours de développement", "OK");
+            try
+            {
+                var success = await _favoritesService.DeleteListAsync(list.Id);
+                if (success)
+                {
+                    UserLists.Remove(list);
+                    if (SelectedList == list)
+                    {
+                        SelectedList = UserLists.FirstOrDefault();
+                    }
+                    await Shell.Current.DisplayAlert("Succès", "Liste supprimée", "OK");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Erreur", "Impossible de supprimer la liste", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FavoritesViewModel] Erreur suppression liste: {ex.Message}");
+                await Shell.Current.DisplayAlert("Erreur", "Une erreur est survenue", "OK");
+            }
         }
     }
     
@@ -393,8 +494,53 @@ public class FavoritesViewModel : BaseViewModel
         
         if (result)
         {
-            // Implémentation à faire dans le service
-            await Shell.Current.DisplayAlert("Info", "Fonctionnalité en cours de développement", "OK");
+            try
+            {
+                var success = await _favoritesService.DeleteAlertAsync(alert.Id);
+                if (success)
+                {
+                    UserAlerts.Remove(alert);
+                    AlertCount = UserAlerts.Count;
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Erreur", "Impossible de supprimer l'alerte", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FavoritesViewModel] Erreur suppression alerte: {ex.Message}");
+                await Shell.Current.DisplayAlert("Erreur", "Une erreur est survenue", "OK");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Active ou désactive une alerte
+    /// </summary>
+    private async Task ToggleAlertActiveAsync(AnnonceAlert? alert)
+    {
+        if (alert == null) return;
+        
+        try
+        {
+            var newState = !alert.IsActive;
+            var success = await _favoritesService.ToggleAlertAsync(alert.Id, newState);
+            if (success)
+            {
+                alert.IsActive = newState;
+                // Force refresh de l'item dans la collection
+                var index = UserAlerts.IndexOf(alert);
+                if (index >= 0)
+                {
+                    UserAlerts.RemoveAt(index);
+                    UserAlerts.Insert(index, alert);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[FavoritesViewModel] Erreur toggle alerte: {ex.Message}");
         }
     }
     
@@ -410,21 +556,14 @@ public class FavoritesViewModel : BaseViewModel
 
         try
         {
-            // Si on a une URL d'image, on ouvre le visualiseur d'images
-            if (!string.IsNullOrEmpty(favorite.AnnonceImageUrl) && Uri.IsWellFormedUriString(favorite.AnnonceImageUrl, UriKind.Absolute))
+            // Naviguer vers la page de détail de l'annonce
+            if (!string.IsNullOrEmpty(favorite.AnnonceId))
             {
-                // Encoder l'URL pour éviter les problèmes de caractères spéciaux
-                var encodedUrl = Uri.EscapeDataString(favorite.AnnonceImageUrl);
-                await Shell.Current.GoToAsync($"ImageViewerView?imageUrls={encodedUrl}");
+                await Shell.Current.GoToAsync($"AnnonceDetailView?annonceId={favorite.AnnonceId}");
             }
             else
             {
-                // Sinon, on affiche les détails
-                await Shell.Current.DisplayAlert(
-                    favorite.AnnonceTitle,
-                    $"Type: {favorite.AnnonceType}\nCatégorie: {favorite.AnnonceCategory}\nLocalisation: {favorite.AnnonceLocation}\n\nPour voir les détails complets, recherchez cette annonce dans la liste des annonces.",
-                    "OK"
-                );
+                await Shell.Current.DisplayAlert("Erreur", "L'identifiant de l'annonce est manquant.", "OK");
             }
         }
         catch (Exception)
@@ -470,3 +609,19 @@ public class FavoritesViewModel : BaseViewModel
         return await _favoritesService.IsFavoriteAsync(annonceId);
     }
 }
+
+/// <summary>
+/// Item de catégorie pour l'UI de sélection dans le formulaire de création d'alerte
+/// </summary>
+public class AlertCategoryItem : BaseViewModel
+{
+    public string Name { get; set; } = string.Empty;
+    
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
+    }
+}
+

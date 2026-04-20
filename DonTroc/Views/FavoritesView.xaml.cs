@@ -34,6 +34,10 @@ public partial class FavoritesView : ContentPage
             await viewModel.LoadDataAsync();
         }
 
+        // 💔 Empty state animé : cœur qui bat doucement quand la liste est vide
+        if (EmptyFavoriteIcon != null)
+            AnimationService.StartBreathingAnimation(EmptyFavoriteIcon, 1.0, 1.18, 1100);
+
         // Afficher les conseils pour la première utilisation
         if (!_tipsShown)
         {
@@ -58,51 +62,47 @@ public partial class FavoritesView : ContentPage
         }
     }
 
-    // Gestionnaires pour les onglets
+    // ─── Onglets ────────────────────────────────────────
     private void OnFavoritesTabClicked(object sender, EventArgs e)
     {
-        // Mettre à jour l'apparence des boutons d'onglet
-        FavoritesTabButton.BackgroundColor = Color.FromArgb("#512BD4"); // Primary color
+        FavoritesTabBorder.BackgroundColor = Color.FromArgb("#50FFFFFF");
         FavoritesTabButton.TextColor = Colors.White;
-        AlertsTabButton.BackgroundColor = Colors.LightGray;
-        AlertsTabButton.TextColor = Colors.Black;
+        FavoritesTabButton.FontAttributes = FontAttributes.Bold;
+        AlertsTabBorder.BackgroundColor = Color.FromArgb("#20FFFFFF");
+        AlertsTabButton.TextColor = Color.FromArgb("#D0FFFFFF");
+        AlertsTabButton.FontAttributes = FontAttributes.None;
 
-        // Afficher le contenu des favoris
         FavoritesContent.IsVisible = true;
         AlertsContent.IsVisible = false;
     }
 
     private void OnAlertsTabClicked(object sender, EventArgs e)
     {
-        // Mettre à jour l'apparence des boutons d'onglet
-        AlertsTabButton.BackgroundColor = Color.FromArgb("#512BD4"); // Primary color
+        AlertsTabBorder.BackgroundColor = Color.FromArgb("#50FFFFFF");
         AlertsTabButton.TextColor = Colors.White;
-        FavoritesTabButton.BackgroundColor = Colors.LightGray;
-        FavoritesTabButton.TextColor = Colors.Black;
+        AlertsTabButton.FontAttributes = FontAttributes.Bold;
+        FavoritesTabBorder.BackgroundColor = Color.FromArgb("#20FFFFFF");
+        FavoritesTabButton.TextColor = Color.FromArgb("#D0FFFFFF");
+        FavoritesTabButton.FontAttributes = FontAttributes.None;
 
-        // Afficher le contenu des alertes
         FavoritesContent.IsVisible = false;
         AlertsContent.IsVisible = true;
     }
 
-    // Gestionnaires pour les dialogues
+    // ─── Dialogues ──────────────────────────────────────
     private void OnCancelCreateList(object sender, EventArgs e)
     {
         if (BindingContext is FavoritesViewModel viewModel)
-        {
             viewModel.ShowCreateListDialog = false;
-        }
     }
 
     private void OnCancelCreateAlert(object sender, EventArgs e)
     {
         if (BindingContext is FavoritesViewModel viewModel)
-        {
             viewModel.ShowCreateAlertDialog = false;
-        }
     }
 
-    // Gestionnaires pour les favoris
+    // ─── Favoris ────────────────────────────────────────
     private void OnViewFavoriteClicked(object? sender, EventArgs e)
     {
         if (sender is Button button && button.BindingContext is Favorite favorite)
@@ -114,11 +114,15 @@ public partial class FavoritesView : ContentPage
 
     private void OnDeleteFavoriteClicked(object? sender, EventArgs e)
     {
-        if (sender is Button button && button.BindingContext is Favorite favorite)
-        {
-            if (BindingContext is FavoritesViewModel vm)
-                vm.DeleteFavoriteCommand.Execute(favorite);
-        }
+        // Maintenant déclenché par TapGestureRecognizer sur Border
+        Favorite? favorite = null;
+        if (sender is Border border && border.BindingContext is Favorite f)
+            favorite = f;
+        else if (sender is Button button && button.BindingContext is Favorite f2)
+            favorite = f2;
+
+        if (favorite != null && BindingContext is FavoritesViewModel vm)
+            vm.DeleteFavoriteCommand.Execute(favorite);
     }
 
     private void OnFavoriteTapped(object? sender, TappedEventArgs e)
@@ -130,13 +134,43 @@ public partial class FavoritesView : ContentPage
         }
     }
 
-    // Gestionnaire pour supprimer une alerte
+    // ─── Alertes ────────────────────────────────────────
     private void OnDeleteAlertClicked(object? sender, EventArgs e)
     {
-        if (sender is Button button && button.BindingContext is AnnonceAlert alert)
+        AnnonceAlert? alert = null;
+        if (sender is Border border && border.BindingContext is AnnonceAlert a)
+            alert = a;
+        else if (sender is Button button && button.BindingContext is AnnonceAlert a2)
+            alert = a2;
+
+        if (alert != null && BindingContext is FavoritesViewModel vm)
+            vm.DeleteAlertCommand.Execute(alert);
+    }
+
+    private void OnToggleAlertClicked(object? sender, EventArgs e)
+    {
+        AnnonceAlert? alert = null;
+        if (sender is Border border && border.BindingContext is AnnonceAlert a)
+            alert = a;
+        else if (sender is Button button && button.BindingContext is AnnonceAlert a2)
+            alert = a2;
+
+        if (alert != null && BindingContext is FavoritesViewModel vm)
+            vm.ToggleAlertCommand.Execute(alert);
+    }
+
+    private void OnCategoryChipTapped(object? sender, EventArgs e)
+    {
+        if (sender is Border border && border.BindingContext is AlertCategoryItem item
+            && BindingContext is FavoritesViewModel vm)
         {
-            if (BindingContext is FavoritesViewModel vm)
-                vm.DeleteAlertCommand.Execute(alert);
+            vm.ToggleCategoryCommand.Execute(item);
         }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        if (EmptyFavoriteIcon != null) AnimationService.StopBreathingAnimation(EmptyFavoriteIcon);
     }
 }

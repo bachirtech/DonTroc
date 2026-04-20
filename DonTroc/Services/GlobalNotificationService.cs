@@ -19,7 +19,9 @@ namespace DonTroc.Services
         private readonly ILogger<GlobalNotificationService> _logger;
         
         private readonly Dictionary<string, IDisposable> _conversationSubscriptions = new();
-        private readonly HashSet<string> _processedMessageIds = new();
+        private readonly LinkedList<string> _processedMessageIds = new();
+        private readonly HashSet<string> _processedMessageIdSet = new();
+        private const int MAX_PROCESSED_IDS = 500;
         private bool _isInitialized = false;
         private string? _activeConversationId;
 
@@ -101,16 +103,19 @@ namespace DonTroc.Services
         {
             try
             {
-                // Éviter de traiter le même message plusieurs fois
-                if (_processedMessageIds.Contains(message.Id))
+                // Éviter de traiter le même message plusieurs fois (cache FIFO borné)
+                if (_processedMessageIdSet.Contains(message.Id))
                     return;
 
-                _processedMessageIds.Add(message.Id);
+                _processedMessageIdSet.Add(message.Id);
+                _processedMessageIds.AddLast(message.Id);
 
-                // Limiter la taille du cache des messages traités
-                if (_processedMessageIds.Count > 1000)
+                // Supprimer les plus anciens quand le cache est plein (FIFO)
+                while (_processedMessageIds.Count > MAX_PROCESSED_IDS)
                 {
-                    _processedMessageIds.Clear();
+                    var oldest = _processedMessageIds.First!.Value;
+                    _processedMessageIds.RemoveFirst();
+                    _processedMessageIdSet.Remove(oldest);
                 }
 
                 var currentUserId = _authService.GetUserId();
@@ -237,6 +242,7 @@ namespace DonTroc.Services
             }
             _conversationSubscriptions.Clear();
             _processedMessageIds.Clear();
+            _processedMessageIdSet.Clear();
             _isInitialized = false;
             
             _logger.LogInformation("Service de notifications globales nettoyé");

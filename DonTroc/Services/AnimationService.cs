@@ -362,4 +362,185 @@ public class AnimationService
         await element.TranslateTo(distance, 0, duration / 2, Easing.CubicOut);
         await element.TranslateTo(0, 0, duration / 2, Easing.SpringOut);
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // PHASE 1 — Nouvelles animations captivantes
+    // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Anime un Label avec un compteur qui défile (style jackpot).
+    /// Très satisfaisant pour les gains XP, points, niveaux.
+    /// </summary>
+    /// <example>AnimationService.CountUpAsync(MyLabel, 0, 250, suffix: " XP");</example>
+    public static Task CountUpAsync(Label label, int from, int to, uint duration = 800, string suffix = "", string prefix = "")
+    {
+        if (label == null) return Task.CompletedTask;
+        var tcs = new TaskCompletionSource();
+        var animation = new Animation(
+            v => label.Text = $"{prefix}{(int)v}{suffix}",
+            from, to, Easing.CubicOut);
+        animation.Commit(label, $"CountUp_{label.GetHashCode()}", 16, duration,
+            finished: (_, __) => tcs.TrySetResult());
+        return tcs.Task;
+    }
+
+    /// <summary>
+    /// Animation "heart pop" style Instagram pour un bouton/icône favori.
+    /// Petit overshoot, retour avec spring → effet satisfaisant.
+    /// </summary>
+    public static async Task HeartPopAsync(VisualElement element)
+    {
+        if (element == null) return;
+        try { HapticFeedback.Default.Perform(HapticFeedbackType.Click); } catch { }
+        await element.ScaleTo(1.4, 120, Easing.CubicOut);
+        await element.ScaleTo(0.9, 100, Easing.CubicIn);
+        await element.ScaleTo(1.0, 180, Easing.SpringOut);
+    }
+
+    /// <summary>
+    /// Anime un élément qui apparaît dans une CollectionView avec un slide-up + fade.
+    /// À brancher sur l'event Loaded du root du DataTemplate pour effet cascade.
+    /// </summary>
+    public static async Task SlideUpFadeInAsync(VisualElement element, uint duration = 380)
+    {
+        if (element == null) return;
+        element.Opacity = 0;
+        element.TranslationY = 30;
+        await Task.WhenAll(
+            element.FadeTo(1, duration, Easing.CubicOut),
+            element.TranslateTo(0, 0, duration, Easing.CubicOut)
+        );
+    }
+
+    /// <summary>
+    /// Affiche un toast moderne qui slide depuis le haut de l'écran.
+    /// Remplace les DisplayAlert basiques pour les messages courts.
+    /// </summary>
+    public enum ToastType { Success, Info, Warning, Error }
+
+    public static async Task ShowToastAsync(string message, ToastType type = ToastType.Info, int durationMs = 2500)
+    {
+        try
+        {
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                var page = Shell.Current?.CurrentPage ?? Application.Current?.MainPage;
+                if (page is not ContentPage contentPage) return;
+
+                // Trouver/créer un Grid wrapper
+                Grid? wrapper = contentPage.Content as Grid;
+                if (wrapper == null)
+                {
+                    var original = contentPage.Content;
+                    wrapper = new Grid();
+                    contentPage.Content = wrapper;
+                    if (original != null) wrapper.Children.Add(original);
+                }
+
+                var (bg, icon) = type switch
+                {
+                    ToastType.Success => (Color.FromArgb("#22A06B"), "✅"),
+                    ToastType.Warning => (Color.FromArgb("#E0A018"), "⚠️"),
+                    ToastType.Error => (Color.FromArgb("#D14C4C"), "❌"),
+                    _ => (Color.FromArgb("#3B5BDB"), "ℹ️"),
+                };
+
+                var toast = new Border
+                {
+                    StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
+                    StrokeThickness = 0,
+                    BackgroundColor = bg,
+                    Padding = new Thickness(16, 12),
+                    Margin = new Thickness(20, 60, 20, 0),
+                    HorizontalOptions = LayoutOptions.Fill,
+                    VerticalOptions = LayoutOptions.Start,
+                    Opacity = 0,
+                    TranslationY = -100,
+                    Shadow = new Shadow { Brush = Brush.Black, Offset = new Point(0, 4), Radius = 12, Opacity = 0.25f },
+                    Content = new HorizontalStackLayout
+                    {
+                        Spacing = 10,
+                        VerticalOptions = LayoutOptions.Center,
+                        Children =
+                        {
+                            new Label { Text = icon, FontSize = 18, VerticalOptions = LayoutOptions.Center },
+                            new Label
+                            {
+                                Text = message,
+                                TextColor = Colors.White,
+                                FontSize = 14,
+                                FontAttributes = FontAttributes.Bold,
+                                VerticalOptions = LayoutOptions.Center,
+                                LineBreakMode = LineBreakMode.WordWrap,
+                                HorizontalOptions = LayoutOptions.FillAndExpand,
+                            },
+                        }
+                    }
+                };
+
+                wrapper.Children.Add(toast);
+
+                // Slide-down + fade-in
+                await Task.WhenAll(
+                    toast.TranslateTo(0, 0, 350, Easing.SpringOut),
+                    toast.FadeTo(1, 250)
+                );
+
+                await Task.Delay(durationMs);
+
+                // Slide-up + fade-out
+                await Task.WhenAll(
+                    toast.TranslateTo(0, -100, 300, Easing.CubicIn),
+                    toast.FadeTo(0, 250)
+                );
+
+                wrapper.Children.Remove(toast);
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Toast] Erreur: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Animation infinie de "respiration" — utile pour streak flamme, badges, etc.
+    /// Doit être annulée manuellement avec element.AbortAnimation("Breathing").
+    /// </summary>
+    public static void StartBreathingAnimation(VisualElement element, double minScale = 1.0, double maxScale = 1.08, uint duration = 1500)
+    {
+        if (element == null) return;
+        var animation = new Animation();
+        animation.Add(0, 0.5, new Animation(v => element.Scale = v, minScale, maxScale, Easing.SinInOut));
+        animation.Add(0.5, 1, new Animation(v => element.Scale = v, maxScale, minScale, Easing.SinInOut));
+        animation.Commit(element, "Breathing", 16, duration, repeat: () => true);
+    }
+
+    public static void StopBreathingAnimation(VisualElement element)
+    {
+        if (element == null) return;
+        element.AbortAnimation("Breathing");
+        element.Scale = 1.0;
+    }
+
+    /// <summary>
+    /// Affiche un petit teaser visuel avant de lancer une rewarded ad
+    /// (toast informatif). Améliore le taux de complétion des pubs récompensées.
+    /// </summary>
+    public static Task ShowPreRewardedTeaserAsync(string message)
+    {
+        return ShowToastAsync(message ?? "Préparation de votre récompense...", ToastType.Info, 1400);
+    }
+
+    /// <summary>
+    /// Affiche une animation de récompense gagnée après une rewarded ad complétée.
+    /// </summary>
+    public static Task ShowRewardEarnedAsync(string title, int amount = 0, string suffix = "")
+    {
+        var msg = amount > 0
+            ? $"🎉 {title} +{amount}{suffix}"
+            : $"🎉 {title}";
+        return ShowToastAsync(msg, ToastType.Success, 2200);
+    }
 }
+

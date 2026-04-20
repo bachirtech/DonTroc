@@ -19,7 +19,7 @@ namespace DonTroc.Services
         private readonly AuthService _authService;
         
         // Limitations de sécurité
-        private const int MAX_FILE_SIZE = 100 * 1080 * 1080; // ~100MB la taille maximale (configurable)
+        private const int MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
          private const int MAX_FILES_PER_UPLOAD = 5;
          private const int MAX_FILES_PER_USER_PER_DAY = 50; // 50 images par utilisateur par jour
         
@@ -515,32 +515,51 @@ namespace DonTroc.Services
         }
 
         /// <summary>
-        /// Compte les uploads de l'utilisateur aujourd'hui
+        /// Compte les uploads de l'utilisateur aujourd'hui.
+        /// Utilise Preferences comme compteur simple par jour.
         /// </summary>
-        private async Task<int> GetUserUploadsCountTodayAsync()
+        private Task<int> GetUserUploadsCountTodayAsync()
         {
-            // TODO: Implémenter le comptage réel depuis votre base de données
-            // Cette méthode devrait compter les uploads de l'utilisateur aujourd'hui
-            await Task.Delay(1); // Placeholder
-            return 0;
+            try
+            {
+                var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+                var key = $"uploads_{_authService.GetUserId()}_{today}";
+                var count = Preferences.Get(key, 0);
+                return Task.FromResult(count);
+            }
+            catch
+            {
+                return Task.FromResult(0);
+            }
         }
 
         /// <summary>
-        /// Enregistre l'activité d'upload pour le suivi
+        /// Enregistre l'activité d'upload pour le suivi (compteur quotidien)
         /// </summary>
-        private async Task LogUploadActivityAsync(string userId, int filesCount)
+        private Task LogUploadActivityAsync(string userId, int filesCount)
         {
-            // TODO: Enregistrer dans votre système de logs ou base de données
-            await Task.CompletedTask;
+            try
+            {
+                var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+                var key = $"uploads_{userId}_{today}";
+                var current = Preferences.Get(key, 0);
+                Preferences.Set(key, current + filesCount);
+                System.Diagnostics.Debug.WriteLine($"[Cloudinary] Upload: user={userId}, count={filesCount}, total today={current + filesCount}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Cloudinary] Erreur log upload: {ex.Message}");
+            }
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Enregistre les incidents de sécurité
         /// </summary>
-        private async Task LogSecurityIncidentAsync(string userId, string incidentType, string details)
+        private Task LogSecurityIncidentAsync(string userId, string incidentType, string details)
         {
-            // TODO: Enregistrer dans votre système de sécurité
-            await Task.CompletedTask;
+            System.Diagnostics.Debug.WriteLine($"[Cloudinary] ⚠️ INCIDENT SÉCURITÉ: type={incidentType}, user={userId}, details={details}");
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -550,14 +569,18 @@ namespace DonTroc.Services
         {
             try
             {
-                // Vérifier que l'utilisateur peut supprimer cette image
-                if (!await CanUserDeleteImageAsync())
-                    return false;
-
                 // Extraire le public_id de l'URL Cloudinary
                 var publicId = ExtractPublicIdFromUrl(imageUrl);
                 if (string.IsNullOrEmpty(publicId))
                     return false;
+
+                // Vérifier que l'utilisateur peut supprimer cette image
+                if (!CanUserDeleteImage(publicId, userId))
+                {
+                    await LogSecurityIncidentAsync(userId, "Unauthorized Delete", 
+                        $"Tentative de suppression d'une image non possédée: {publicId}");
+                    return false;
+                }
 
                 var deletionParams = new DeletionParams(publicId);
                 var result = await _cloudinary.DestroyAsync(deletionParams);
@@ -574,13 +597,17 @@ namespace DonTroc.Services
         }
 
         /// <summary>
-        /// Vérifie si l'utilisateur peut supprimer cette image
+        /// Vérifie si l'utilisateur peut supprimer cette image.
+        /// L'image doit appartenir à l'utilisateur (le public_id Cloudinary contient le userId comme préfixe de dossier).
         /// </summary>
-        private async Task<bool> CanUserDeleteImageAsync()
+        private bool CanUserDeleteImage(string publicId, string userId)
         {
-            // TODO: Vérifier dans votre base de données que cette image appartient à l'utilisateur
-            await Task.Delay(1); // Placeholder
-            return true;
+            if (string.IsNullOrEmpty(publicId) || string.IsNullOrEmpty(userId))
+                return false;
+
+            // Les images sont uploadées dans le dossier "dontroc/{userId}/..."
+            // Vérifier que le public_id commence par le préfixe de l'utilisateur
+            return publicId.Contains($"/{userId}/") || publicId.StartsWith($"{userId}/");
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.Maui.Maps;
 using DonTroc.ViewModels;
 using DonTroc.Models;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Collections.Specialized;
 using Microsoft.Maui.ApplicationModel;
@@ -17,6 +18,8 @@ namespace DonTroc.Views
         private bool _isUpdatingPins;
         private bool _eventsInitialized;
 
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(MapView))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(MapViewModel))]
         public MapView(MapViewModel viewModel)
         {
             InitializeComponent();
@@ -37,17 +40,35 @@ namespace DonTroc.Views
 
         protected override async void OnAppearing()
         {
-            base.OnAppearing();
-
-            // Attacher les événements une seule fois pour éviter les doublons
-            if (!_eventsInitialized)
+            try
             {
-                InitializeMapEvents();
-                _eventsInitialized = true;
-            }
+                base.OnAppearing();
 
-            // Initialiser le ViewModel — les pins seront mis à jour via les événements PropertyChanged
-            await _viewModel.InitializeAsync();
+                // 🎬 Fade-in élégant de la carte au démarrage (au lieu d'un pop brutal)
+                if (GoogleMap != null && GoogleMap.Opacity < 0.99)
+                {
+                    GoogleMap.Opacity = 0;
+                    GoogleMap.Scale = 0.97;
+                    _ = Task.WhenAll(
+                        GoogleMap.FadeTo(1, 500, Easing.CubicOut),
+                        GoogleMap.ScaleTo(1, 600, Easing.CubicOut)
+                    );
+                }
+
+                // Attacher les événements une seule fois pour éviter les doublons
+                if (!_eventsInitialized)
+                {
+                    InitializeMapEvents();
+                    _eventsInitialized = true;
+                }
+
+                // Initialiser le ViewModel — les pins seront mis à jour via les événements PropertyChanged
+                await _viewModel.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MapView] Erreur OnAppearing: {ex.Message}");
+            }
         }
 
         private void InitializeMapEvents()

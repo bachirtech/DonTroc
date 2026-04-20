@@ -24,9 +24,8 @@ public class RatingService
         _firebaseService = firebaseService;
         
         // Créer le client Firebase avec authentification, comme dans FirebaseService
-        var baseUrl = "https://dontroc-55570-default-rtdb.europe-west1.firebasedatabase.app/";
         _firebaseClient = new FirebaseClient(
-            baseUrl,
+            ConfigurationService.FirebaseUrl,
             new FirebaseOptions
             {
                 AuthTokenAsyncFactory = () => authService.GetAuthTokenAsync()
@@ -188,7 +187,7 @@ public class RatingService
             
             // Calculer le nombre d'échanges réussis (transactions terminées)
             var transactions = await _firebaseClient
-                .Child("Transactions")
+                .Child("transactions")
                 .OrderBy("Statut")
                 .EqualTo((int)StatutTransaction.Terminee)
                 .OnceAsync<Transaction>();
@@ -236,7 +235,7 @@ public class RatingService
         {
             // Vérifier que la transaction existe et est terminée
             var transaction = await _firebaseClient
-                .Child("Transactions")
+                .Child("transactions")
                 .Child(transactionId)
                 .OnceSingleAsync<Transaction>();
 

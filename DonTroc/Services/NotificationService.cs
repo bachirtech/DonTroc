@@ -29,6 +29,14 @@ namespace DonTroc.Services
         private const string CHANNEL_NAME = "Messages DonTroc";
         private const string QUIZ_CHANNEL_ID = "dontroc_quiz";
         private const string QUIZ_CHANNEL_NAME = "Défis Quiz DonTroc";
+        private const string GAMIFICATION_CHANNEL_ID = "dontroc_gamification";
+        private const string GAMIFICATION_CHANNEL_NAME = "Récompenses DonTroc";
+        private const string PROXIMITY_CHANNEL_ID = "dontroc_proximity";
+        private const string PROXIMITY_CHANNEL_NAME = "Annonces à proximité";
+        
+        // Compteur atomique pour éviter les collisions d'ID de notification
+        // DateTime.Now.Millisecond (0-999) causait des remplacements de notifications
+        private static int _notificationIdCounter = 1000;
 
         public NotificationService(ILogger<NotificationService> logger)
         {
@@ -44,6 +52,8 @@ namespace DonTroc.Services
 #if ANDROID
             CreateNotificationChannel();
             CreateQuizNotificationChannel();
+            CreateGamificationNotificationChannel();
+            CreateProximityNotificationChannel();
             await Task.CompletedTask; // Pour éviter le warning CS1998 sur Android
 #elif IOS
             await RequestNotificationPermissionAsync();
@@ -98,6 +108,54 @@ namespace DonTroc.Services
                 _logger.LogError(ex, "Erreur lors de la création du canal de notification Quiz Android");
             }
         }
+
+        /// <summary>
+        /// Crée le canal de notification pour la gamification sur Android.
+        /// </summary>
+        private void CreateGamificationNotificationChannel()
+        {
+            try
+            {
+                var context = Platform.CurrentActivity ?? Android.App.Application.Context;
+                var notificationManager = NotificationManagerCompat.From(context);
+
+                var channel = new NotificationChannel(GAMIFICATION_CHANNEL_ID, GAMIFICATION_CHANNEL_NAME, NotificationImportance.High)
+                {
+                    Description = "Notifications pour les succès, niveaux et défis"
+                };
+
+                notificationManager.CreateNotificationChannel(channel);
+                _logger.LogInformation("Canal de notification Gamification Android créé avec succès");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la création du canal de notification Gamification Android");
+            }
+        }
+
+        /// <summary>
+        /// Crée le canal de notification pour la proximité sur Android.
+        /// </summary>
+        private void CreateProximityNotificationChannel()
+        {
+            try
+            {
+                var context = Platform.CurrentActivity ?? Android.App.Application.Context;
+                var notificationManager = NotificationManagerCompat.From(context);
+
+                var channel = new NotificationChannel(PROXIMITY_CHANNEL_ID, PROXIMITY_CHANNEL_NAME, NotificationImportance.Default)
+                {
+                    Description = "Notifications pour les annonces publiées à proximité"
+                };
+
+                notificationManager.CreateNotificationChannel(channel);
+                _logger.LogInformation("Canal de notification Proximité Android créé avec succès");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la création du canal de notification Proximité Android");
+            }
+        }
 #endif
 
 #if IOS
@@ -125,10 +183,45 @@ namespace DonTroc.Services
                 _logger.LogError(ex, "Erreur lors de la demande de permission iOS");
             }
         }
+#elif ANDROID
+        /// <summary>
+        /// Demande la permission POST_NOTIFICATIONS sur Android 13+ (API 33).
+        /// </summary>
+        public async Task RequestNotificationPermissionAsync()
+        {
+            try
+            {
+                if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Tiramisu)
+                {
+                    var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+                    if (status != PermissionStatus.Granted)
+                    {
+                        _logger.LogInformation("Demande de permission POST_NOTIFICATIONS à l'utilisateur...");
+                        status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+                        
+                        if (status == PermissionStatus.Granted)
+                        {
+                            _logger.LogInformation("Permission de notification Android accordée");
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Permission de notification Android refusée par l'utilisateur");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Permission de notification Android déjà accordée");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la demande de permission de notification Android");
+            }
+        }
 #else
         public Task RequestNotificationPermissionAsync()
         {
-            // Pas d'implémentation nécessaire pour les autres plateformes ici
             return Task.CompletedTask;
         }
 #endif
@@ -181,21 +274,26 @@ namespace DonTroc.Services
                 
                 var pendingIntent = PendingIntent.GetActivity(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-                var notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                var builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .SetContentTitle(title)
                     .SetContentText(content)
-                    .SetSmallIcon(Android.Resource.Drawable.IcDialogInfo) // Icône par défaut
+                    .SetSmallIcon(Resource.Drawable.ic_notification)
                     .SetContentIntent(pendingIntent)
                     .SetAutoCancel(true)
                     .SetPriority(NotificationCompat.PriorityDefault)
-                    .Build();
+                    .SetColor(Android.Graphics.Color.ParseColor("#D98C6A").ToArgb());
+                
+                // Ajouter le logo couleur en large icon
+                SetLargeAppIcon(context, builder);
+
+                var notification = builder.Build();
 
                 var notificationManager = NotificationManagerCompat.From(context);
                 
                 // Vérifier les permissions de notification
                 if (ContextCompat.CheckSelfPermission(context, Android.Manifest.Permission.PostNotifications) == Permission.Granted)
                 {
-                    notificationManager.Notify(DateTime.Now.Millisecond, notification);
+                    notificationManager.Notify(Interlocked.Increment(ref _notificationIdCounter), notification);
                     _logger.LogInformation("Notification Android affichée avec succès");
                 }
                 else
@@ -209,6 +307,41 @@ namespace DonTroc.Services
             }
             
             return Task.CompletedTask;
+        }
+        
+        /// <summary>
+        /// Charge le logo couleur de l'app et l'ajoute comme LargeIcon à la notification.
+        /// Le LargeIcon apparaît comme icône ronde à droite de la notification.
+        /// Utilise logotroc.png (logo couleur) au lieu de ic_notification (monochrome).
+        /// </summary>
+        private void SetLargeAppIcon(Context context, NotificationCompat.Builder builder)
+        {
+            try
+            {
+                // Utiliser le logo couleur de l'app (logotroc.png compilé en drawable par MAUI)
+                var largeIcon = BitmapFactory.DecodeResource(context.Resources, Resource.Drawable.logotroc);
+                if (largeIcon != null)
+                {
+                    builder.SetLargeIcon(largeIcon);
+                }
+                else
+                {
+                    // Fallback : essayer l'icône mipmap générée par MAUI depuis appicon.svg
+                    var mipmapId = context.Resources?.GetIdentifier("appicon", "mipmap", context.PackageName) ?? 0;
+                    if (mipmapId != 0)
+                    {
+                        var fallbackIcon = BitmapFactory.DecodeResource(context.Resources, mipmapId);
+                        if (fallbackIcon != null)
+                        {
+                            builder.SetLargeIcon(fallbackIcon);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Impossible de charger le large icon pour la notification");
+            }
         }
 #endif
 
@@ -293,21 +426,25 @@ namespace DonTroc.Services
                 
                 var pendingIntent = PendingIntent.GetActivity(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-                var notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                var builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .SetContentTitle(title)
                     .SetContentText(content)
-                    .SetSmallIcon(Android.Resource.Drawable.IcDialogAlert) // Icône d'alerte pour les signalements
+                    .SetSmallIcon(Resource.Drawable.ic_notification)
                     .SetContentIntent(pendingIntent)
                     .SetAutoCancel(true)
                     .SetPriority(NotificationCompat.PriorityHigh) // Priorité élevée pour les signalements
-                    .Build();
+                    .SetColor(Android.Graphics.Color.ParseColor("#D98C6A").ToArgb());
+                
+                SetLargeAppIcon(context, builder);
+                
+                var notification = builder.Build();
 
                 var notificationManager = NotificationManagerCompat.From(context);
                 
                 // Vérifier les permissions de notification
                 if (ContextCompat.CheckSelfPermission(context, Android.Manifest.Permission.PostNotifications) == Permission.Granted)
                 {
-                    notificationManager.Notify(DateTime.Now.Millisecond, notification);
+                    notificationManager.Notify(Interlocked.Increment(ref _notificationIdCounter), notification);
                     _logger.LogInformation("Notification de signalement Android affichée avec succès");
                 }
                 else
@@ -384,6 +521,59 @@ namespace DonTroc.Services
         }
 
         /// <summary>
+        /// Affiche une notification de gamification (succès, niveau, défi).
+        /// Utilise un canal dédié avec priorité haute pour les événements de gamification.
+        /// </summary>
+        /// <param name="title">Titre (ex: "🏆 Succès débloqué !")</param>
+        /// <param name="message">Corps du message</param>
+        /// <param name="actionType">Type d'action (achievement, level_up, challenge)</param>
+        /// <param name="itemId">ID de l'élément concerné</param>
+        public async Task ShowGamificationNotificationAsync(string title, string message, string actionType, string itemId)
+        {
+            try
+            {
+#if ANDROID
+                await ShowAndroidGamificationNotification(title, message, actionType, itemId);
+#elif IOS
+                await ShowiOSGamificationNotification(title, message, actionType, itemId);
+#else
+                _logger.LogInformation("📱 Notification Gamification: {Title} - {Message}", title, message);
+                await Task.CompletedTask;
+#endif
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'affichage de la notification de gamification");
+            }
+        }
+
+        /// <summary>
+        /// Affiche une notification locale de proximité (nouvelle annonce à proximité).
+        /// Utilise un canal dédié pour les annonces géolocalisées.
+        /// </summary>
+        /// <param name="title">Titre (ex: "📍 Nouvelle annonce près de chez vous")</param>
+        /// <param name="message">Corps du message avec distance</param>
+        /// <param name="annonceId">ID de l'annonce</param>
+        public async Task ShowProximityNotificationAsync(string title, string message, string annonceId)
+        {
+            try
+            {
+#if ANDROID
+                await ShowAndroidProximityNotification(title, message, annonceId);
+#elif IOS
+                await ShowiOSProximityNotification(title, message, annonceId);
+#else
+                _logger.LogInformation("📱 Notification Proximité: {Title} - {Message}", title, message);
+                await Task.CompletedTask;
+#endif
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'affichage de la notification de proximité");
+            }
+        }
+
+        /// <summary>
         /// Planifie une notification de rappel pour le quiz quotidien.
         /// </summary>
         /// <param name="hour">Heure du rappel (0-23)</param>
@@ -434,6 +624,97 @@ namespace DonTroc.Services
         private const int QUIZ_NOTIFICATION_ID = 9001;
 
         /// <summary>
+        /// Affiche une notification native Android pour la gamification.
+        /// </summary>
+        private Task ShowAndroidGamificationNotification(string title, string content, string actionType, string itemId)
+        {
+            try
+            {
+                var context = Platform.CurrentActivity ?? Android.App.Application.Context;
+                
+                var intent = new Intent(context, typeof(MainActivity));
+                intent.PutExtra("notificationType", actionType);
+                intent.PutExtra("itemId", itemId);
+                intent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+                
+                var pendingIntent = PendingIntent.GetActivity(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+
+                var builder = new NotificationCompat.Builder(context, GAMIFICATION_CHANNEL_ID)
+                    .SetContentTitle(title)
+                    .SetContentText(content)
+                    .SetSmallIcon(Resource.Drawable.ic_notification)
+                    .SetContentIntent(pendingIntent)
+                    .SetAutoCancel(true)
+                    .SetPriority(NotificationCompat.PriorityHigh)
+                    .SetDefaults((int)NotificationDefaults.All)
+                    .SetColor(Android.Graphics.Color.ParseColor("#D98C6A").ToArgb());
+                
+                SetLargeAppIcon(context, builder);
+                
+                var notification = builder.Build();
+
+                var notificationManager = NotificationManagerCompat.From(context);
+                
+                if (ContextCompat.CheckSelfPermission(context, Android.Manifest.Permission.PostNotifications) == Permission.Granted)
+                {
+                    notificationManager.Notify(Interlocked.Increment(ref _notificationIdCounter), notification);
+                    _logger.LogInformation("Notification gamification Android affichée: {Type}", actionType);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'affichage de la notification gamification Android");
+            }
+            
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Affiche une notification native Android pour la proximité.
+        /// </summary>
+        private Task ShowAndroidProximityNotification(string title, string content, string annonceId)
+        {
+            try
+            {
+                var context = Platform.CurrentActivity ?? Android.App.Application.Context;
+                
+                var intent = new Intent(context, typeof(MainActivity));
+                intent.PutExtra("notificationType", "proximity_annonce");
+                intent.PutExtra("annonceId", annonceId);
+                intent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+                
+                var pendingIntent = PendingIntent.GetActivity(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+
+                var builder = new NotificationCompat.Builder(context, PROXIMITY_CHANNEL_ID)
+                    .SetContentTitle(title)
+                    .SetContentText(content)
+                    .SetSmallIcon(Resource.Drawable.ic_notification)
+                    .SetContentIntent(pendingIntent)
+                    .SetAutoCancel(true)
+                    .SetPriority(NotificationCompat.PriorityDefault)
+                    .SetColor(Android.Graphics.Color.ParseColor("#D98C6A").ToArgb());
+                
+                SetLargeAppIcon(context, builder);
+                
+                var notification = builder.Build();
+
+                var notificationManager = NotificationManagerCompat.From(context);
+                
+                if (ContextCompat.CheckSelfPermission(context, Android.Manifest.Permission.PostNotifications) == Permission.Granted)
+                {
+                    notificationManager.Notify(Interlocked.Increment(ref _notificationIdCounter), notification);
+                    _logger.LogInformation("Notification proximité Android affichée pour annonce {AnnonceId}", annonceId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'affichage de la notification proximité Android");
+            }
+            
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
         /// Affiche une notification native Android pour le quiz.
         /// </summary>
         private Task ShowAndroidQuizNotification(string title, string content)
@@ -449,15 +730,19 @@ namespace DonTroc.Services
                 var pendingIntent = PendingIntent.GetActivity(context, QUIZ_NOTIFICATION_ID, intent, 
                     PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-                var notification = new NotificationCompat.Builder(context, QUIZ_CHANNEL_ID)
+                var builder = new NotificationCompat.Builder(context, QUIZ_CHANNEL_ID)
                     .SetContentTitle(title)
                     .SetContentText(content)
-                    .SetSmallIcon(Android.Resource.Drawable.IcDialogInfo)
+                    .SetSmallIcon(Resource.Drawable.ic_notification)
                     .SetContentIntent(pendingIntent)
                     .SetAutoCancel(true)
                     .SetPriority(NotificationCompat.PriorityHigh)
                     .SetDefaults((int)NotificationDefaults.All)
-                    .Build();
+                    .SetColor(Android.Graphics.Color.ParseColor("#D98C6A").ToArgb());
+                
+                SetLargeAppIcon(context, builder);
+                
+                var notification = builder.Build();
 
                 var notificationManager = NotificationManagerCompat.From(context);
                 
@@ -652,6 +937,74 @@ namespace DonTroc.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors de la planification du rappel Quiz iOS");
+            }
+        }
+
+        /// <summary>
+        /// Affiche une notification native iOS pour la gamification.
+        /// </summary>
+        private async Task ShowiOSGamificationNotification(string title, string content, string actionType, string itemId)
+        {
+            try
+            {
+                var center = UNUserNotificationCenter.Current;
+                
+                var notificationContent = new UNMutableNotificationContent()
+                {
+                    Title = title,
+                    Body = content,
+                    Sound = UNNotificationSound.Default,
+                    Badge = 1,
+                    UserInfo = NSDictionary.FromObjectsAndKeys(
+                        new NSObject[] { new NSString(actionType), new NSString(itemId) },
+                        new NSObject[] { new NSString("notificationType"), new NSString("itemId") })
+                };
+
+                var request = UNNotificationRequest.FromIdentifier(
+                    Guid.NewGuid().ToString(),
+                    notificationContent,
+                    UNTimeIntervalNotificationTrigger.CreateTrigger(1, false)
+                );
+
+                await center.AddNotificationRequestAsync(request);
+                _logger.LogInformation("Notification gamification iOS affichée: {Type}", actionType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'affichage de la notification gamification iOS");
+            }
+        }
+
+        /// <summary>
+        /// Affiche une notification native iOS pour la proximité.
+        /// </summary>
+        private async Task ShowiOSProximityNotification(string title, string content, string annonceId)
+        {
+            try
+            {
+                var center = UNUserNotificationCenter.Current;
+                
+                var notificationContent = new UNMutableNotificationContent()
+                {
+                    Title = title,
+                    Body = content,
+                    Sound = UNNotificationSound.Default,
+                    UserInfo = NSDictionary.FromObjectAndKey(
+                        new NSString(annonceId), new NSString("annonceId"))
+                };
+
+                var request = UNNotificationRequest.FromIdentifier(
+                    Guid.NewGuid().ToString(),
+                    notificationContent,
+                    UNTimeIntervalNotificationTrigger.CreateTrigger(1, false)
+                );
+
+                await center.AddNotificationRequestAsync(request);
+                _logger.LogInformation("Notification proximité iOS affichée pour annonce {AnnonceId}", annonceId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'affichage de la notification proximité iOS");
             }
         }
 

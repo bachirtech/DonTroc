@@ -64,7 +64,7 @@
                                   HeightRequest="120"
                                   IndicatorView="previewIndicatorView">
                         <CarouselView.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="ImageSource">
                                 <Grid Margin="5">
                                     <!-- Frame contenant l'image -->
                                     <Frame CornerRadius="10" Padding="0" HasShadow="True">

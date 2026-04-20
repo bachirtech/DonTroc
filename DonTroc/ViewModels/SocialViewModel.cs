@@ -128,8 +128,14 @@ namespace DonTroc.ViewModels
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SocialVM] Erreur chargement données sociales: {ex.Message}");
+#if DEBUG
                 await Shell.Current.DisplayAlert("Erreur", 
                     $"Impossible de charger les données sociales : {ex.Message}", "OK");
+#else
+                await Shell.Current.DisplayAlert("Erreur", 
+                    "Impossible de charger les données sociales. Vérifiez votre connexion et réessayez.", "OK");
+#endif
             }
             finally
             {

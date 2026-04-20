@@ -82,6 +82,27 @@ public partial class AnnoncesView : ContentPage
         }
     }
 
+    /// <summary>
+    /// Navigue vers la page de détail quand l'utilisateur clique sur la carte d'une annonce.
+    /// </summary>
+    private void OnCardTapped(object? sender, TappedEventArgs e)
+    {
+        Annonce? annonce = null;
+        
+        if (sender is VisualElement element)
+        {
+            annonce = element.BindingContext as Annonce;
+        }
+        
+        if (annonce != null)
+        {
+            if (BindingContext is AnnoncesViewModel vm)
+            {
+                vm.NavigateToDetailCommand.Execute(annonce);
+            }
+        }
+    }
+
     private async void OnChatClicked(object? sender, EventArgs e)
     {
         if (sender is Button button)
@@ -121,9 +142,33 @@ public partial class AnnoncesView : ContentPage
     {
         if (sender is Button button && button.BindingContext is Annonce annonce)
         {
+            // Animation heart-pop style Instagram (avec haptic feedback)
+            _ = AnimationService.HeartPopAsync(button);
+
             if (BindingContext is AnnoncesViewModel vm)
                 vm.ToggleFavoriteCommand.Execute(annonce);
         }
+    }
+
+    /// <summary>
+    /// Cascade d'apparition des cartes d'annonces : slide-up + fade-in
+    /// avec un léger délai pour effet ondulant (style Instagram).
+    /// </summary>
+    private int _cardLoadIndex = 0;
+    private async void OnAnnonceCardLoaded(object? sender, EventArgs e)
+    {
+        if (sender is not VisualElement element) return;
+
+        // Délai cascade basé sur l'index courant (max 8 cartes pour pas trop attendre)
+        var index = System.Threading.Interlocked.Increment(ref _cardLoadIndex);
+        var delay = Math.Min(index, 8) * 60;
+
+        // Reset l'état initial
+        element.Opacity = 0;
+        element.TranslationY = 30;
+
+        await Task.Delay(delay);
+        await AnimationService.SlideUpFadeInAsync(element);
     }
 
     private void OnShareClicked(object? sender, EventArgs e)

@@ -97,6 +97,11 @@ public partial class AdminSetupPage : ContentPage
                     PromoteToAdminButton.IsVisible = false;
                     CreateProfileButton.IsVisible = false;
                     SecretKeyFrame.IsVisible = false; // Cacher le champ de clé
+                    
+                    // Afficher la config Cloudinary pour les admins
+                    CloudinaryFrame.IsVisible = true;
+                    LoadCloudinaryStatus();
+                    
                     StatusLabel.Text = "✅ Vous êtes déjà administrateur";
                     StatusLabel.TextColor = Colors.Green;
                 }
@@ -267,6 +272,62 @@ public partial class AdminSetupPage : ContentPage
     {
         _adminService.InvalidateAdminCache();
         await LoadCurrentUserInfo();
+    }
+
+    /// <summary>
+    /// Charge et affiche le statut actuel de la configuration Cloudinary
+    /// </summary>
+    private void LoadCloudinaryStatus()
+    {
+        var existingSecret = Preferences.Get("Cloudinary_ApiSecret", "");
+        if (!string.IsNullOrEmpty(existingSecret))
+        {
+            var masked = existingSecret.Length > 6 
+                ? existingSecret[..4] + "****" + existingSecret[^4..] 
+                : "****";
+            CloudinaryStatusLabel.Text = $"✅ API Secret configuré ({masked})";
+            CloudinaryStatusLabel.TextColor = Colors.Green;
+        }
+        else
+        {
+            CloudinaryStatusLabel.Text = "⚠️ API Secret non configuré — les uploads échoueront";
+            CloudinaryStatusLabel.TextColor = Colors.Red;
+        }
+    }
+
+    /// <summary>
+    /// Sauvegarde le secret Cloudinary dans les Preferences sécurisées
+    /// </summary>
+    private async void OnSaveCloudinaryClicked(object sender, EventArgs e)
+    {
+        var secret = CloudinarySecretEntry?.Text?.Trim();
+        if (string.IsNullOrEmpty(secret))
+        {
+            await DisplayAlert("Erreur", "Veuillez entrer le API Secret Cloudinary.", "OK");
+            return;
+        }
+
+        if (secret.Length < 10)
+        {
+            await DisplayAlert("Erreur", "Le API Secret semble trop court. Vérifiez la valeur.", "OK");
+            return;
+        }
+
+        var confirm = await DisplayAlert(
+            "Confirmation",
+            "Sauvegarder le nouveau API Secret Cloudinary ?\nL'ancien sera remplacé.",
+            "Sauvegarder", "Annuler");
+
+        if (!confirm) return;
+
+        Preferences.Set("Cloudinary_ApiSecret", secret);
+        CloudinarySecretEntry.Text = ""; // Effacer le champ
+
+        LoadCloudinaryStatus();
+
+        await DisplayAlert("✅ Succès", 
+            "API Secret Cloudinary sauvegardé.\nRedémarrez l'application pour appliquer les changements.", 
+            "OK");
     }
 }
 

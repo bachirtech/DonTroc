@@ -12,7 +12,7 @@ namespace DonTroc.ViewModels;
 public class QuizViewModel : INotifyPropertyChanged
 {
     private readonly IQuizService _quizService;
-    private readonly IAdMobService _adMobService;
+    private readonly AdMobService _adMobService;
     private readonly ILogger<QuizViewModel> _logger;
     private readonly AuthService _authService;
     
@@ -25,7 +25,7 @@ public class QuizViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public QuizViewModel(IQuizService quizService, IAdMobService adMobService, ILogger<QuizViewModel> logger, AuthService authService)
+    public QuizViewModel(IQuizService quizService, AdMobService adMobService, ILogger<QuizViewModel> logger, AuthService authService)
     {
         _quizService = quizService;
         _adMobService = adMobService;
@@ -46,8 +46,8 @@ public class QuizViewModel : INotifyPropertyChanged
         AddExtraTimeCommand = new AsyncRelayCommand(AddExtraTimeWithAdAsync);
         UnlockBonusQuizCommand = new AsyncRelayCommand(UnlockBonusQuizWithAdAsync);
         
-        // Précharger la publicité rewarded
-        _adMobService.LoadRewardedAd();
+        // Ne plus précharger ici — AdMobService (Singleton) gère le préchargement
+        // via AdMobNativeService.WaitForSdkAndPreloadAsync()
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -676,8 +676,8 @@ public class QuizViewModel : INotifyPropertyChanged
             BonusXpEarned = 0;
             CanDoubleXp = TotalXpEarned > 0; // On peut doubler seulement si on a gagné des XP
             
-            // Précharger la pub pour la prochaine fois
-            _adMobService.LoadRewardedAd();
+            // NOTE: Pas de LoadRewardedAd() ici — le préchargement initial suffit,
+            // et ShowRewardedAdWithRetryAsync chargera à la demande si nécessaire
             
             // Mettre à jour le profil
             var userId = await GetCurrentUserIdAsync();
@@ -745,6 +745,9 @@ public class QuizViewModel : INotifyPropertyChanged
                 }
             }
 
+            // ✨ PHASE 4 : teaser pré-pub
+            await Services.AnimationService.ShowPreRewardedTeaserAsync("Préparation du doublage XP...");
+
             // Afficher la pub
             var adWatched = await _adMobService.ShowRewardedAdAsync();
 
@@ -767,10 +770,12 @@ public class QuizViewModel : INotifyPropertyChanged
                 }
 
                 _logger.LogInformation("XP doublés ! Bonus: +{BonusXp}, Total: {TotalXp}", BonusXpEarned, TotalXpEarned);
-                
-                // Afficher une animation ou un message de succès
-                await ShowAlertAsync("🎉 XP Doublés !", 
-                    $"Félicitations ! Vous avez gagné +{BonusXpEarned} XP bonus !\nTotal : {TotalXpEarned} XP");
+
+                // 🎉 Animation post-pub : célébration + count-up des XP bonus
+                _ = Services.AnimationService.ShowRewardEarnedAsync(
+                    "XP Doublés !",
+                    BonusXpEarned,
+                    suffix: " XP bonus");
             }
             else
             {
@@ -785,8 +790,7 @@ public class QuizViewModel : INotifyPropertyChanged
         finally
         {
             IsLoadingAd = false;
-            // Recharger une pub pour la prochaine fois
-            _adMobService.LoadRewardedAd();
+            // NOTE: Pas de LoadRewardedAd() ici — OnAdDismissed le fait automatiquement
         }
     }
 
@@ -837,7 +841,7 @@ public class QuizViewModel : INotifyPropertyChanged
         finally
         {
             IsLoadingAd = false;
-            _adMobService.LoadRewardedAd();
+            // NOTE: Pas de LoadRewardedAd() ici — OnAdDismissed le fait automatiquement
         }
     }
 
@@ -880,7 +884,7 @@ public class QuizViewModel : INotifyPropertyChanged
         finally
         {
             IsLoadingAd = false;
-            _adMobService.LoadRewardedAd();
+            // NOTE: Pas de LoadRewardedAd() ici — OnAdDismissed le fait automatiquement
         }
     }
 
@@ -927,7 +931,7 @@ public class QuizViewModel : INotifyPropertyChanged
         finally
         {
             IsLoadingAd = false;
-            _adMobService.LoadRewardedAd();
+            // NOTE: Pas de LoadRewardedAd() ici — OnAdDismissed le fait automatiquement
         }
     }
 

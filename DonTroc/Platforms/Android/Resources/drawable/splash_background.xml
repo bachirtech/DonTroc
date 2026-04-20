@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Fond blanc -->
+    <!-- Fond beige DonTroc (même que maui_splash_color) -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@android:color/white" />
+            <solid android:color="@color/maui_splash_color" />
         </shape>
     </item>
 </layer-list>

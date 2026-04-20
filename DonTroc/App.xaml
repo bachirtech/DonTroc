@@ -29,6 +29,11 @@
             <converters:AllTrueConverter x:Key="AllTrueConverter" />
             <converters:DoubleNotZeroConverter x:Key="DoubleNotZeroConverter" />
 
+            <!-- Convertisseurs pour le Dashboard personnalisé -->
+            <converters:DateToIsNewConverter x:Key="DateToIsNewConverter" />
+            <converters:DistanceToTextConverter x:Key="DistanceToTextConverter" />
+            <converters:NullableDoubleHasValueConverter x:Key="NullableDoubleHasValueConverter" />
+
             <!-- Convertisseurs pour le thème -->
             <converters:ThemeToIconConverter x:Key="ThemeToIconConverter" />
             <converters:ThemeToDisplayNameConverter x:Key="ThemeToDisplayNameConverter" />
@@ -62,6 +67,11 @@
             <!-- Convertisseur pour les ombres des favoris -->
             <converters:BoolToShadowColorConverter x:Key="BoolToShadowColorConverter" />
             
+            <!-- Convertisseurs pour le sélecteur visuel de thème -->
+            <converters:BoolToThemeColorConverter x:Key="BoolToThemeColorConverter" />
+            <converters:BoolToThemeBgConverter x:Key="BoolToThemeBgConverter" />
+            <converters:BoolToFontAttrConverter x:Key="BoolToFontAttrConverter" />
+            
             <!-- Convertisseurs pour le quiz -->
             <converters:IndexToLetterConverter x:Key="IndexToLetterConverter" />
             <converters:IntToColorConverter x:Key="IntToColorConverter" />
@@ -76,6 +86,9 @@
             <!-- Convertisseurs pour le rappel quiz -->
             <converters:BoolToReminderTextConverter x:Key="BoolToReminderTextConverter" />
             <converters:BoolToReminderColorConverter x:Key="BoolToReminderColorConverter" />
+            
+            <!-- Convertisseur pourcentage vers progression (0-1) -->
+            <converters:PercentToProgressConverter x:Key="PercentToProgressConverter" />
             
             <!-- Convertisseurs pour le panneau d'administration -->
             <converters:BoolToSuspendTextConverter x:Key="BoolToSuspendTextConverter" />

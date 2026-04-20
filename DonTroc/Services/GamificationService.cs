@@ -35,6 +35,7 @@ public interface IGamificationService
     Task<Challenge?> UpdateChallengeProgressAsync(string userId, string actionType, int increment = 1);
     Task GenerateDailyChallengesAsync(string userId);
     Task GenerateWeeklyChallengesAsync(string userId);
+    Task GenerateMonthlyChallengesAsync(string userId);
     
     // Récompenses quotidiennes
     Task<List<DailyReward>> GetDailyRewardsStatusAsync(string userId);
@@ -333,6 +334,28 @@ public class GamificationService : IGamificationService
                     .Where(c => c.ExpiresAt > DateTime.UtcNow && !c.IsCompleted)
                     .ToList();
             }
+            
+            // Si pas de défis hebdomadaires, en générer
+            if (!activeChallenges.Any(c => c.Type == ChallengeType.Weekly))
+            {
+                await GenerateWeeklyChallengesAsync(userId);
+                challenges = await GetFromStorageAsync<List<Challenge>>($"{ChallengesKeyPrefix}{userId}") 
+                             ?? new List<Challenge>();
+                activeChallenges = challenges
+                    .Where(c => c.ExpiresAt > DateTime.UtcNow && !c.IsCompleted)
+                    .ToList();
+            }
+            
+            // Si pas de quête mensuelle, en générer
+            if (!activeChallenges.Any(c => c.Type == ChallengeType.Monthly))
+            {
+                await GenerateMonthlyChallengesAsync(userId);
+                challenges = await GetFromStorageAsync<List<Challenge>>($"{ChallengesKeyPrefix}{userId}") 
+                             ?? new List<Challenge>();
+                activeChallenges = challenges
+                    .Where(c => c.ExpiresAt > DateTime.UtcNow && !c.IsCompleted)
+                    .ToList();
+            }
 
             _challengesCache[userId] = challenges;
             return activeChallenges;
@@ -368,17 +391,32 @@ public class GamificationService : IGamificationService
                 // Si le défi est complété, donner les récompenses
                 if (matchingChallenge.IsCompleted)
                 {
-                    await AddXpAsync(userId, 
-                        matchingChallenge.Type == ChallengeType.Daily 
-                            ? "complete_daily_challenge" 
-                            : "complete_weekly_challenge",
-                        matchingChallenge.XpReward);
+                    var xpActionType = matchingChallenge.Type switch
+                    {
+                        ChallengeType.Daily => "complete_daily_challenge",
+                        ChallengeType.Weekly => "complete_weekly_challenge",
+                        ChallengeType.Monthly => "complete_monthly_challenge",
+                        _ => "complete_daily_challenge"
+                    };
+                    
+                    await AddXpAsync(userId, xpActionType, matchingChallenge.XpReward);
 
                     if (matchingChallenge.BoostCreditsReward > 0)
                     {
                         var profile = await GetUserProfileAsync(userId);
                         profile.BoostCredits += matchingChallenge.BoostCreditsReward;
                         await SaveProfileAsync(profile);
+                    }
+                    
+                    // Si la quête a un badge exclusif, le débloquer
+                    if (!string.IsNullOrEmpty(matchingChallenge.ExclusiveBadgeId))
+                    {
+                        var badge = GamificationConfig.AllBadges
+                            .FirstOrDefault(b => b.Id == matchingChallenge.ExclusiveBadgeId);
+                        if (badge != null)
+                        {
+                            await IncrementStatAsync(userId, badge.StatKey, 1);
+                        }
                     }
 
                     _logger.LogInformation("Défi {ChallengeId} complété par {UserId}", matchingChallenge.Id, userId);
@@ -479,6 +517,54 @@ public class GamificationService : IGamificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la génération des défis hebdomadaires pour {UserId}", userId);
+        }
+    }
+
+    public async Task GenerateMonthlyChallengesAsync(string userId)
+    {
+        try
+        {
+            var allChallenges = await GetFromStorageAsync<List<Challenge>>($"{ChallengesKeyPrefix}{userId}") 
+                                ?? new List<Challenge>();
+            
+            // Supprimer les anciennes quêtes mensuelles expirées
+            allChallenges.RemoveAll(c => c.Type == ChallengeType.Monthly && c.ExpiresAt < DateTime.UtcNow);
+
+            // Calculer la fin du mois courant
+            var now = DateTime.UtcNow;
+            var endOfMonth = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 23, 59, 59, DateTimeKind.Utc);
+
+            // Sélectionner 1 quête mensuelle aléatoire avec badge exclusif
+            var newChallenge = GamificationConfig.MonthlyChallengeTemplates
+                .OrderBy(_ => _random.Next())
+                .Take(1)
+                .Select(template => new Challenge
+                {
+                    Id = $"monthly_{template.Id}_{now:yyyyMM}",
+                    Title = template.Title,
+                    Description = template.Description,
+                    Icon = template.Icon,
+                    Type = ChallengeType.Monthly,
+                    Difficulty = template.Difficulty,
+                    ActionType = template.ActionType,
+                    RequiredCount = template.RequiredCount,
+                    CurrentProgress = 0,
+                    XpReward = template.XpReward,
+                    BoostCreditsReward = template.BoostCreditsReward,
+                    ExclusiveBadgeId = template.ExclusiveBadgeId,
+                    ExpiresAt = endOfMonth
+                })
+                .ToList();
+
+            allChallenges.AddRange(newChallenge);
+            await SaveToStorageAsync($"{ChallengesKeyPrefix}{userId}", allChallenges);
+            _challengesCache[userId] = allChallenges;
+
+            _logger.LogInformation("Quête mensuelle générée pour {UserId}", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la génération de la quête mensuelle pour {UserId}", userId);
         }
     }
 

@@ -6,429 +6,1169 @@
              xmlns:views="clr-namespace:DonTroc.Views"
              x:Class="DonTroc.Views.RewardsPage"
              x:DataType="viewmodels:RewardsViewModel"
-             Title="Rcompenses"
-             BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}">
+             Title="Récompenses"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
-    <Grid>
-    <ScrollView>
-        <VerticalStackLayout Spacing="15" Padding="15">
-            
-            <!-- Header Niveau et XP -->
-            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
-                    StrokeShape="RoundRectangle 15"
-                    Stroke="Transparent"
-                    Padding="20">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
-                    
-                    <!-- Niveau et Titre -->
-                    <StackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- HEADER GRADIENT                                        -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,32,32"
+                Padding="20,15,20,24">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#8B5A3A}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#6B4A32}" Offset="0.5" />
+                    <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#40000000" Offset="0,6" Radius="16" Opacity="0.3" />
+            </Border.Shadow>
+
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Bannière pub -->
+                <views:AdBannerView
+                    HeightRequest="50"
+                    MinimumHeightRequest="50"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent" />
+
+                <!-- Titre + Icône -->
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            StrokeThickness="0"
+                            BackgroundColor="#33FFFFFF"
+                            WidthRequest="52" HeightRequest="52"
+                            HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="🏆" FontSize="24"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Récompenses"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               FontFamily="PoppinsBold" />
                         <Label Text="{Binding LevelTitle}"
-                               FontSize="14"
-                               TextColor="White"
-                               Opacity="0.9"/>
-                        <Label FontSize="28"
-                               FontAttributes="Bold"
-                               TextColor="White">
-                            <Label.Text>
-                                <MultiBinding StringFormat="Niveau {0}">
-                                    <Binding Path="CurrentLevel"/>
-                                </MultiBinding>
-                            </Label.Text>
-                        </Label>
-                    </StackLayout>
-                    
-                    <!-- XP Total -->
-                    <StackLayout Grid.Row="0" Grid.Column="1" 
-                                 HorizontalOptions="End"
-                                 VerticalOptions="Center">
-                        <Label Text="{Binding TotalXp, StringFormat='{0} XP'}"
-                               FontSize="18"
-                               FontAttributes="Bold"
-                               TextColor="White"
-                               HorizontalOptions="End"/>
-                    </StackLayout>
-                    
-                    <!-- Barre de progression XP -->
-                    <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,15,0,5">
-                        <Border BackgroundColor="#40FFFFFF"
-                                StrokeShape="RoundRectangle 5"
-                                HeightRequest="12"/>
+                               FontSize="13"
+                               TextColor="#D0FFFFFF" />
+                    </VerticalStackLayout>
+                    <!-- Badge Niveau -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 14,14,14,14"
+                            StrokeThickness="0"
+                            BackgroundColor="#30FFFFFF"
+                            Padding="14,8"
+                            VerticalOptions="Center">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="1">
+                            <Label FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   HorizontalTextAlignment="Center">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="Nv. {0}">
+                                        <Binding Path="CurrentLevel" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                            <Label x:Name="TotalXpLabel"
+                                   Text="{Binding TotalXp, StringFormat='{0} XP'}"
+                                   FontSize="10"
+                                   TextColor="#C0FFFFFF"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Barre de progression XP -->
+                <VerticalStackLayout Spacing="6">
+                    <Grid>
+                        <Border BackgroundColor="#25FFFFFF"
+                                StrokeShape="RoundRectangle 6,6,6,6"
+                                StrokeThickness="0"
+                                HeightRequest="10" />
                         <Border BackgroundColor="White"
-                                StrokeShape="RoundRectangle 5"
-                                HeightRequest="12"
+                                StrokeShape="RoundRectangle 6,6,6,6"
+                                StrokeThickness="0"
+                                HeightRequest="10"
                                 HorizontalOptions="Start"
-                                WidthRequest="{Binding ProgressBarWidth}"/>
+                                WidthRequest="{Binding ProgressBarWidth}" />
                     </Grid>
-                    
-                    <!-- XP pour prochain niveau -->
-                    <Label Grid.Row="2" Grid.ColumnSpan="2"
-                           TextColor="White"
-                           Opacity="0.8"
-                           FontSize="12"
+                    <Label TextColor="#C0FFFFFF"
+                           FontSize="11"
                            HorizontalOptions="Center">
                         <Label.Text>
                             <MultiBinding StringFormat="{}{0} / {1} XP pour niveau {2}">
-                                <Binding Path="CurrentLevelXp"/>
-                                <Binding Path="XpForNextLevel"/>
-                                <Binding Path="NextLevel"/>
+                                <Binding Path="CurrentLevelXp" />
+                                <Binding Path="XpForNextLevel" />
+                                <Binding Path="NextLevel" />
                             </MultiBinding>
                         </Label.Text>
                     </Label>
-                    
+                </VerticalStackLayout>
+
+                <!-- Mini Stats en ligne : Streak + Badges + Boost -->
+                <Grid ColumnDefinitions="*,Auto,*,Auto,*" Margin="0,2,0,0">
                     <!-- Streak -->
-                    <Border Grid.Row="3" Grid.ColumnSpan="2"
-                            BackgroundColor="#40FFFFFF"
-                            StrokeShape="RoundRectangle 10"
-                            Padding="10,8"
-                            Margin="0,10,0,0"
-                            HorizontalOptions="Center">
-                        <HorizontalStackLayout Spacing="8">
-                            <Label Text="🔥" FontSize="18"/>
-                            <Label Text="{Binding DailyStreak, StringFormat='{0} jours de suite'}"
-                                   TextColor="White"
-                                   FontSize="14"
-                                   FontAttributes="Bold"
-                                   VerticalOptions="Center"/>
-                        </HorizontalStackLayout>
-                    </Border>
-                </Grid>
-            </Border>
-            
-            <!-- Boutons d'action rapide -->
-            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                
-                <!-- Quiz du Jour -->
-                <Border Grid.Column="0"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                        StrokeShape="RoundRectangle 12"
-                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                        Padding="15">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenQuizCommand}"/>
-                    </Border.GestureRecognizers>
-                    <StackLayout Spacing="5" HorizontalOptions="Center">
-                        <Label Text="🧠" FontSize="35" HorizontalOptions="Center"/>
-                        <Label Text="Quiz"
-                               FontSize="13"
+                    <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="2">
+                        <Label Text="{Binding DailyStreak}"
+                               FontSize="22"
                                FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
-                               HorizontalOptions="Center"/>
-                        <Label Text="Gagnez des XP"
-                               FontSize="10"
-                               TextColor="#4CAF50"
-                               HorizontalOptions="Center"/>
-                    </StackLayout>
-                </Border>
-                
-                <!-- Roue de la Fortune -->
-                <Border Grid.Column="1"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                        StrokeShape="RoundRectangle 12"
-                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                        Padding="15">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SpinWheelCommand}"/>
-                    </Border.GestureRecognizers>
-                    <StackLayout Spacing="5" HorizontalOptions="Center">
-                        <Label Text="🎡" FontSize="40" HorizontalOptions="Center"/>
-                        <Label Text="Roue Fortune"
-                               FontSize="14"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
-                               HorizontalOptions="Center"/>
-                        <Label Text="{Binding WheelStatus}"
+                               TextColor="White"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="🔥 Série"
                                FontSize="11"
-                               TextColor="{Binding WheelStatusColor}"
-                               HorizontalOptions="Center"/>
-                    </StackLayout>
-                </Border>
-                
-                <!-- Récompense Quotidienne -->
-                <Border Grid.Column="2"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                        StrokeShape="RoundRectangle 12"
-                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                        Padding="15">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ClaimDailyRewardCommand}"/>
-                    </Border.GestureRecognizers>
-                    <StackLayout Spacing="5" HorizontalOptions="Center">
-                        <Label Text="🎁" FontSize="40" HorizontalOptions="Center"/>
-                        <Label Text="Bonus Quotidien"
-                               FontSize="14"
+                               TextColor="#C0FFFFFF"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+
+                    <!-- Séparateur -->
+                    <BoxView Grid.Column="1"
+                             WidthRequest="1" HeightRequest="30"
+                             BackgroundColor="#40FFFFFF"
+                             VerticalOptions="Center" />
+
+                    <!-- Badges -->
+                    <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="2">
+                        <Label Text="{Binding BadgeCount}"
+                               FontSize="22"
                                FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"
-                               HorizontalOptions="Center"/>
-                        <Label Text="{Binding DailyRewardStatus}"
+                               TextColor="White"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="🏅 Badges"
                                FontSize="11"
-                               TextColor="{Binding DailyRewardStatusColor}"
-                               HorizontalOptions="Center"/>
-                    </StackLayout>
-                </Border>
-            </Grid>
-            
-            <!-- Section Défis -->
-            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="Transparent"
-                    Padding="15">
-                <StackLayout Spacing="12">
-                    <Label Text="🎯 Défis du Jour"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                    
-                    <CollectionView ItemsSource="{Binding DailyChallenges}"
-                                    SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:Challenge">
-                                <Border BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#2D2D2D}"
-                                        StrokeShape="RoundRectangle 10"
-                                        Stroke="Transparent"
-                                        Padding="12"
-                                        Margin="0,4">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
-                                        <!-- Icône -->
-                                        <Label Grid.Column="0" Grid.RowSpan="2"
-                                               Text="{Binding Icon}"
-                                               FontSize="30"
-                                               VerticalOptions="Center"
-                                               Margin="0,0,12,0"/>
-                                        
-                                        <!-- Titre et description -->
-                                        <Label Grid.Column="1" Grid.Row="0"
-                                               Text="{Binding Title}"
-                                               FontSize="14"
-                                               FontAttributes="Bold"
-                                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                                        <Label Grid.Column="1" Grid.Row="1"
-                                               Text="{Binding Description}"
-                                               FontSize="12"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
-                                        
-                                        <!-- Récompense et progression -->
-                                        <StackLayout Grid.Column="2" Grid.RowSpan="2"
-                                                     VerticalOptions="Center"
-                                                     HorizontalOptions="End">
-                                            <Label Text="{Binding XpReward, StringFormat='+{0} XP'}"
-                                                   FontSize="12"
-                                                   FontAttributes="Bold"
-                                                   TextColor="#4CAF50"
-                                                   HorizontalOptions="End"/>
-                                            <Label FontSize="11"
-                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                                                   HorizontalOptions="End">
-                                                <Label.Text>
-                                                    <MultiBinding StringFormat="{}{0}/{1}">
-                                                        <Binding Path="CurrentProgress"/>
-                                                        <Binding Path="RequiredCount"/>
-                                                    </MultiBinding>
-                                                </Label.Text>
-                                            </Label>
-                                        </StackLayout>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </StackLayout>
-            </Border>
-            
-            <!-- Section Badges -->
-            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="Transparent"
-                    Padding="15">
-                <StackLayout Spacing="12">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0"
-                               Text="🏆 Mes Badges"
-                               FontSize="18"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                        <Label Grid.Column="1"
-                               Text="{Binding BadgeCount, StringFormat='{0} débloqués'}"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                               VerticalOptions="Center"/>
-                    </Grid>
-                    
-                    <!-- Badges débloqués -->
-                    <FlexLayout Wrap="Wrap" 
-                                JustifyContent="Start"
-                                AlignItems="Center"
-                                BindableLayout.ItemsSource="{Binding UnlockedBadges}">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="viewmodels:BadgeDisplay">
-                                <Border BackgroundColor="{Binding RarityColor}"
-                                        StrokeShape="RoundRectangle 8"
-                                        Stroke="Transparent"
-                                        Padding="10,8"
-                                        Margin="4">
-                                    <StackLayout Orientation="Horizontal" Spacing="5">
-                                        <Label Text="{Binding Icon}" FontSize="16"/>
-                                        <Label Text="{Binding Name}" 
-                                               FontSize="12" 
-                                               TextColor="White"
-                                               VerticalOptions="Center"/>
-                                    </StackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </FlexLayout>
-                    
-                    <!-- Message si pas de badges -->
-                    <Label Text="Continuez à utiliser l'app pour débloquer des badges !"
-                           FontSize="12"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                           HorizontalOptions="Center"
-                           IsVisible="{Binding HasNoBadges}"/>
-                    
-                    <!-- Bouton voir tous les badges -->
-                    <Button Text="Voir tous les badges"
-                            BackgroundColor="Transparent"
-                            TextColor="{StaticResource DonTrocPrimary}"
-                            FontSize="14"
-                            Command="{Binding ViewAllBadgesCommand}"/>
-                </StackLayout>
-            </Border>
-            
-            <!-- Crédits Boost -->
-            <Border BackgroundColor="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="{AppThemeBinding Light=#FFE082, Dark=#5D4037}"
-                    Padding="15">
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <Label Grid.Column="0"
-                           Text="🚀"
-                           FontSize="35"
-                           VerticalOptions="Center"/>
-                    <StackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                        <Label Text="Crédits Boost"
-                               FontSize="16"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                        <Label Text="Utilisez-les pour mettre en avant vos annonces"
-                               FontSize="12"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
-                    </StackLayout>
-                    <Border Grid.Column="2"
-                            BackgroundColor="#FF9800"
-                            StrokeShape="RoundRectangle 20"
-                            Padding="15,8"
-                            VerticalOptions="Center">
+                               TextColor="#C0FFFFFF"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+
+                    <!-- Séparateur -->
+                    <BoxView Grid.Column="3"
+                             WidthRequest="1" HeightRequest="30"
+                             BackgroundColor="#40FFFFFF"
+                             VerticalOptions="Center" />
+
+                    <!-- Crédits Boost -->
+                    <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" Spacing="2">
                         <Label Text="{Binding BoostCredits}"
-                               FontSize="18"
+                               FontSize="22"
                                FontAttributes="Bold"
-                               TextColor="White"/>
-                    </Border>
+                               TextColor="White"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="🚀 Boosts"
+                               FontSize="11"
+                               TextColor="#C0FFFFFF"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
                 </Grid>
-            </Border>
-            
-            <!-- Section Rappel Quiz Quotidien -->
-            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="Transparent"
-                    Padding="15">
-                <StackLayout Spacing="12">
-                    <Label Text="🔔 Rappel Quiz Quotidien"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                    
-                    <Label Text="Activez les notifications pour ne jamais manquer votre défi quiz quotidien et accumuler plus de points !"
-                           FontSize="12"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                           LineBreakMode="WordWrap"/>
-                    
-                    <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto" Margin="0,5,0,0">
-                        <StackLayout Grid.Column="0" VerticalOptions="Center">
-                            <Label Text="Recevoir un rappel"
-                                   FontSize="14"
-                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                            <Label Text="{Binding QuizReminderTimeFormatted, StringFormat='Tous les jours à {0}'}"
-                                   FontSize="11"
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                                   IsVisible="{Binding IsQuizReminderEnabled}"/>
-                        </StackLayout>
-                        
-                        <!-- Bouton pour changer l'heure -->
-                        <Border Grid.Column="1"
-                                BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1E3A5F}"
-                                StrokeShape="RoundRectangle 8"
-                                Padding="10,6"
-                                Margin="0,0,10,0"
-                                IsVisible="{Binding IsQuizReminderEnabled}">
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding SetQuizReminderTimeCommand}"/>
-                            </Border.GestureRecognizers>
-                            <HorizontalStackLayout Spacing="5">
-                                <Label Text="⏰" FontSize="14"/>
-                                <Label Text="{Binding QuizReminderTimeFormatted}"
-                                       FontSize="13"
-                                       TextColor="{StaticResource DonTrocPrimary}"
-                                       VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
-                        </Border>
-                        
-                        <!-- Bouton pour activer/désactiver -->
-                        <Border Grid.Column="2"
-                                BackgroundColor="{Binding IsQuizReminderEnabled, Converter={StaticResource BoolToReminderColorConverter}}"
-                                StrokeShape="RoundRectangle 15"
-                                Padding="12,8"
-                                VerticalOptions="Center">
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding ToggleQuizReminderCommand}"/>
-                            </Border.GestureRecognizers>
-                            <Label Text="{Binding IsQuizReminderEnabled, Converter={StaticResource BoolToReminderTextConverter}}"
+
+                <!-- Indicateur de chargement -->
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   Color="White"
+                                   HeightRequest="24" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CONTENU SCROLLABLE                                     -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="18,0,18,24" Spacing="16" Margin="0,-14,0,0">
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- ACTIONS RAPIDES : Quiz / Roue / Bonus      -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+
+                    <!-- Quiz du Jour -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="12,16"
+                            HeightRequest="110">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,3" Radius="10" Opacity="0.5" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenQuizCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="🧠" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="Quiz"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Gagnez des XP"
+                                   FontSize="10"
+                                   TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Roue de la Fortune -->
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="12,16"
+                            HeightRequest="110">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,3" Radius="10" Opacity="0.5" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SpinWheelCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="🎡" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="Roue Fortune"
                                    FontSize="12"
                                    FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding WheelStatus}"
+                                   FontSize="10"
+                                   TextColor="{Binding WheelStatusColor}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Bonus Quotidien -->
+                    <Border Grid.Column="2"
+                            StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="12,16"
+                            HeightRequest="110">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,3" Radius="10" Opacity="0.5" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ClaimDailyRewardCommand}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFEDE3, Dark=#3D2E24}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="🎁" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="Bonus"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding DailyRewardStatus}"
+                                   FontSize="10"
+                                   TextColor="{Binding DailyRewardStatusColor}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Classement -->
+                    <Border Grid.Column="3"
+                            StrokeShape="RoundRectangle 18,18,18,18"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="12,16"
+                            HeightRequest="110">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                                   Offset="0,3" Radius="10" Opacity="0.5" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnLeaderboardTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFF8E1, Dark=#3D3520}"
+                                    WidthRequest="42" HeightRequest="42"
+                                    HorizontalOptions="Center">
+                                <Label Text="🏆" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="Classement"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Top joueurs"
+                                   FontSize="10"
+                                   TextColor="{AppThemeBinding Light=#DAA520, Dark=#C49800}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : CRÉDITS BOOST (mise en avant)    -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        Padding="16,14">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#FFECB3, Dark=#4E342E}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#30FF9800, Dark=#20000000}"
+                               Offset="0,4" Radius="14" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 14,14,14,14"
+                                StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light=#FFE082, Dark=#5D4037}"
+                                WidthRequest="46" HeightRequest="46"
+                                HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="🚀" FontSize="22"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Crédits Boost"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   FontFamily="PoppinsBold" />
+                            <Label Text="Mettez en avant vos annonces"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   Opacity="0.65" />
+                        </VerticalStackLayout>
+                        <Border Grid.Column="2"
+                                StrokeThickness="0"
+                                Padding="16,8"
+                                VerticalOptions="Center">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#FF9800" Offset="0.0" />
+                                    <GradientStop Color="#FFB74D" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="20" />
+                            </Border.StrokeShape>
+                            <Label Text="{Binding BoostCredits}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
                                    TextColor="White"
-                                   HorizontalOptions="Center"/>
+                                   HorizontalTextAlignment="Center" />
                         </Border>
                     </Grid>
-                </StackLayout>
-            </Border>
-            
-            <!-- Historique XP récent -->
-            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
-                    StrokeShape="RoundRectangle 12"
-                    Stroke="Transparent"
-                    Padding="15"
-                    IsVisible="{Binding HasXpHistory}">
-                <StackLayout Spacing="10">
-                    <Label Text="📊 Activité Récente"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                    
-                    <CollectionView ItemsSource="{Binding RecentXpTransactions}"
-                                    SelectionMode="None"
-                                    HeightRequest="150">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:XpTransaction">
-                                <Grid ColumnDefinitions="*,Auto" Padding="0,5">
-                                    <Label Grid.Column="0"
-                                           Text="{Binding Reason}"
-                                           FontSize="13"
-                                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
-                                    <Label Grid.Column="1"
-                                           Text="{Binding Amount, StringFormat='+{0} XP'}"
+                </Border>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : DÉFIS DU JOUR                    -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="18,16">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                               Offset="0,4" Radius="14" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="14">
+                        <!-- En-tête de section -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                    WidthRequest="40" HeightRequest="40"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label Text="🎯" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="Défis du Jour"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   VerticalTextAlignment="Center"
+                                   FontFamily="PoppinsBold" />
+                        </Grid>
+
+                        <!-- Séparateur subtil -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                 Margin="0,0,0,2" />
+
+                        <!-- Liste des défis (BindableLayout au lieu de CollectionView pour éviter le crash dans ScrollView) -->
+                        <VerticalStackLayout Spacing="8"
+                                             BindableLayout.ItemsSource="{Binding DailyChallenges}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:Challenge">
+                                    <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                            Padding="14,12">
+                                        <Border.Shadow>
+                                            <Shadow Brush="{AppThemeBinding Light=#10000000, Dark=#10000000}"
+                                                   Offset="0,2" Radius="8" Opacity="0.3" />
+                                        </Border.Shadow>
+
+                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+                                            <!-- Icône dans un cercle -->
+                                            <Border Grid.Column="0" Grid.RowSpan="2"
+                                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="{AppThemeBinding Light=#F0F4ED, Dark=#2D3328}"
+                                                    WidthRequest="40" HeightRequest="40"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding Icon}"
+                                                       FontSize="20"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center" />
+                                            </Border>
+
+                                            <!-- Titre -->
+                                            <Label Grid.Column="1" Grid.Row="0"
+                                                   Text="{Binding Title}"
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                                            <!-- Description -->
+                                            <Label Grid.Column="1" Grid.Row="1"
+                                                   Text="{Binding Description}"
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   Opacity="0.6" />
+
+                                            <!-- Récompense et progression -->
+                                            <VerticalStackLayout Grid.Column="2" Grid.RowSpan="2"
+                                                                 VerticalOptions="Center"
+                                                                 HorizontalOptions="End"
+                                                                 Spacing="2">
+                                                <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                                        StrokeThickness="0"
+                                                        Padding="8,3"
+                                                        HorizontalOptions="End">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="0.0" />
+                                                            <GradientStop Color="{AppThemeBinding Light=#B8D496, Dark=#6A8A4E}" Offset="1.0" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Label Text="{Binding XpReward, StringFormat='+{0} XP'}"
+                                                           FontSize="11"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White" />
+                                                </Border>
+                                                <Label FontSize="10"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                       Opacity="0.5"
+                                                       HorizontalOptions="End">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{}{0}/{1}">
+                                                            <Binding Path="CurrentProgress" />
+                                                            <Binding Path="RequiredCount" />
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : QUÊTES DE LA SEMAINE              -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="18,16"
+                        IsVisible="{Binding HasWeeklyChallenges}">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#202196F3, Dark=#20000000}"
+                               Offset="0,4" Radius="14" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="14">
+                        <!-- En-tête de section -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A3054}"
+                                    WidthRequest="40" HeightRequest="40"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label Text="📅" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                <Label Text="Quêtes de la Semaine"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       FontFamily="PoppinsBold" />
+                                <Label Text="{Binding WeeklyTimeRemaining}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#2196F3, Dark=#64B5F6}" />
+                            </VerticalStackLayout>
+                            <!-- Compteur progression -->
+                            <Border Grid.Column="2"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    Padding="10,4"
+                                    VerticalOptions="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{AppThemeBinding Light=#2196F3, Dark=#1565C0}" Offset="0.0" />
+                                        <GradientStop Color="{AppThemeBinding Light=#42A5F5, Dark=#1E88E5}" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Label Text="{Binding WeeklyProgress}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       HorizontalTextAlignment="Center" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Séparateur subtil -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                 Margin="0,0,0,2" />
+
+                        <!-- Liste des quêtes hebdomadaires -->
+                        <VerticalStackLayout Spacing="8"
+                                             BindableLayout.ItemsSource="{Binding WeeklyChallenges}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:Challenge">
+                                    <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light=#F5F9FF, Dark=#1E2A3A}"
+                                            Padding="14,12">
+                                        <Border.Shadow>
+                                            <Shadow Brush="{AppThemeBinding Light=#102196F3, Dark=#10000000}"
+                                                   Offset="0,2" Radius="8" Opacity="0.3" />
+                                        </Border.Shadow>
+
+                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="2">
+                                            <!-- Icône -->
+                                            <Border Grid.Column="0" Grid.RowSpan="3"
+                                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A3054}"
+                                                    WidthRequest="40" HeightRequest="40"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding Icon}"
+                                                       FontSize="20"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center" />
+                                            </Border>
+
+                                            <!-- Titre -->
+                                            <Label Grid.Column="1" Grid.Row="0"
+                                                   Text="{Binding Title}"
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                                            <!-- Description -->
+                                            <Label Grid.Column="1" Grid.Row="1"
+                                                   Text="{Binding Description}"
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   Opacity="0.6" />
+
+                                            <!-- Barre de progression -->
+                                            <Grid Grid.Column="1" Grid.Row="2" Margin="0,4,0,0">
+                                                <Border BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A3054}"
+                                                        StrokeShape="RoundRectangle 4,4,4,4"
+                                                        StrokeThickness="0"
+                                                        HeightRequest="6" />
+                                                <ProgressBar Progress="{Binding ProgressPercentage, Converter={StaticResource PercentToProgressConverter}}"
+                                                             ProgressColor="{AppThemeBinding Light=#2196F3, Dark=#64B5F6}"
+                                                             HeightRequest="6" />
+                                            </Grid>
+
+                                            <!-- Récompense -->
+                                            <VerticalStackLayout Grid.Column="2" Grid.RowSpan="3"
+                                                                 VerticalOptions="Center"
+                                                                 HorizontalOptions="End"
+                                                                 Spacing="2">
+                                                <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                                        StrokeThickness="0"
+                                                        Padding="8,3"
+                                                        HorizontalOptions="End">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="{AppThemeBinding Light=#2196F3, Dark=#1565C0}" Offset="0.0" />
+                                                            <GradientStop Color="{AppThemeBinding Light=#42A5F5, Dark=#1E88E5}" Offset="1.0" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Label Text="{Binding XpReward, StringFormat='+{0} XP'}"
+                                                           FontSize="11"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White" />
+                                                </Border>
+                                                <Label FontSize="10"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                       Opacity="0.5"
+                                                       HorizontalOptions="End">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{}{0}/{1}">
+                                                            <Binding Path="CurrentProgress" />
+                                                            <Binding Path="RequiredCount" />
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : QUÊTE DU MOIS (Premium style)    -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        Padding="18,16"
+                        IsVisible="{Binding HasMonthlyChallenges}">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{AppThemeBinding Light=#F3E5F5, Dark=#2D1E33}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#EDE7F6, Dark=#1A1A2E}" Offset="0.5" />
+                            <GradientStop Color="{AppThemeBinding Light=#FFF8E1, Dark=#2E2A1A}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#309C27B0, Dark=#20000000}"
+                               Offset="0,4" Radius="16" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="14">
+                        <!-- En-tête de section avec badge exclusif -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    WidthRequest="40" HeightRequest="40"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="{AppThemeBinding Light=#CE93D8, Dark=#7B1FA2}" Offset="0.0" />
+                                        <GradientStop Color="{AppThemeBinding Light=#FFD54F, Dark=#F9A825}" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Label Text="👑" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                <Label Text="Quête du Mois"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       FontFamily="PoppinsBold" />
+                                <Label Text="{Binding MonthlyTimeRemaining}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#9C27B0, Dark=#CE93D8}" />
+                            </VerticalStackLayout>
+                            <!-- Badge exclusif à gagner -->
+                            <Border Grid.Column="2"
+                                    StrokeShape="RoundRectangle 14,14,14,14"
+                                    StrokeThickness="1.5"
+                                    Stroke="{AppThemeBinding Light=#FFD54F, Dark=#F9A825}"
+                                    Padding="8,4"
+                                    VerticalOptions="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}" Offset="0.0" />
+                                        <GradientStop Color="{AppThemeBinding Light=#FFECB3, Dark=#4E342E}" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <HorizontalStackLayout Spacing="4">
+                                    <Label Text="{Binding MonthlyBadgeIcon}" FontSize="14" VerticalOptions="Center" />
+                                    <Label Text="Badge"
+                                           FontSize="10"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#F9A825, Dark=#FFD54F}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+                        </Grid>
+
+                        <!-- Séparateur subtil -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light=#15000000, Dark=#10FFFFFF}"
+                                 Margin="0,0,0,2" />
+
+                        <!-- Quête mensuelle -->
+                        <VerticalStackLayout Spacing="8"
+                                             BindableLayout.ItemsSource="{Binding MonthlyChallenges}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:Challenge">
+                                    <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light=#FDFAFF, Dark=#241E2E}"
+                                            Padding="14,14">
+                                        <Border.Shadow>
+                                            <Shadow Brush="{AppThemeBinding Light=#159C27B0, Dark=#10000000}"
+                                                   Offset="0,2" Radius="8" Opacity="0.3" />
+                                        </Border.Shadow>
+
+                                        <VerticalStackLayout Spacing="10">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                                <!-- Icône -->
+                                                <Border Grid.Column="0"
+                                                        StrokeShape="RoundRectangle 14,14,14,14"
+                                                        StrokeThickness="0"
+                                                        WidthRequest="46" HeightRequest="46"
+                                                        VerticalOptions="Center">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                            <GradientStop Color="{AppThemeBinding Light=#E1BEE7, Dark=#4A148C}" Offset="0.0" />
+                                                            <GradientStop Color="{AppThemeBinding Light=#FFE082, Dark=#FF8F00}" Offset="1.0" />
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <Label Text="{Binding Icon}"
+                                                           FontSize="22"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center" />
+                                                </Border>
+
+                                                <!-- Titre + Description -->
+                                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                                    <Label Text="{Binding Title}"
+                                                           FontSize="15"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                                    <Label Text="{Binding Description}"
+                                                           FontSize="11"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                           Opacity="0.6" />
+                                                </VerticalStackLayout>
+
+                                                <!-- Récompense XP + Boosts -->
+                                                <VerticalStackLayout Grid.Column="2"
+                                                                     VerticalOptions="Center"
+                                                                     HorizontalOptions="End"
+                                                                     Spacing="3">
+                                                    <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                                            StrokeThickness="0"
+                                                            Padding="8,3"
+                                                            HorizontalOptions="End">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="{AppThemeBinding Light=#9C27B0, Dark=#7B1FA2}" Offset="0.0" />
+                                                                <GradientStop Color="{AppThemeBinding Light=#AB47BC, Dark=#8E24AA}" Offset="1.0" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Label Text="{Binding XpReward, StringFormat='+{0} XP'}"
+                                                               FontSize="11"
+                                                               FontAttributes="Bold"
+                                                               TextColor="White" />
+                                                    </Border>
+                                                    <Label Text="{Binding BoostCreditsReward, StringFormat='+{0} 🚀'}"
+                                                           FontSize="10"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{AppThemeBinding Light=#FF9800, Dark=#FFB74D}"
+                                                           HorizontalOptions="End" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+
+                                            <!-- Barre de progression large -->
+                                            <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                                <Grid Grid.Row="0">
+                                                    <Border BackgroundColor="{AppThemeBinding Light=#E1BEE7, Dark=#311B3F}"
+                                                            StrokeShape="RoundRectangle 5,5,5,5"
+                                                            StrokeThickness="0"
+                                                            HeightRequest="8" />
+                                                    <ProgressBar Progress="{Binding ProgressPercentage, Converter={StaticResource PercentToProgressConverter}}"
+                                                                 ProgressColor="{AppThemeBinding Light=#9C27B0, Dark=#CE93D8}"
+                                                                 HeightRequest="8" />
+                                                </Grid>
+                                                <Label Grid.Row="1"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                       Opacity="0.6"
+                                                       HorizontalOptions="End">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{}{0}/{1}">
+                                                            <Binding Path="CurrentProgress" />
+                                                            <Binding Path="RequiredCount" />
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Info badge exclusif -->
+                        <Border StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light=#FFD54F, Dark=#F9A825}"
+                                BackgroundColor="{AppThemeBinding Light=#FFFDF5, Dark=#2E2A1A}"
+                                Padding="12,10">
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="{Binding MonthlyBadgeIcon}" FontSize="16" VerticalOptions="Center" />
+                                <Label FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       VerticalOptions="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="Complétez pour débloquer le badge &quot;{0}&quot;">
+                                            <Binding Path="MonthlyBadgeName" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : MES BADGES                       -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="18,16">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                               Offset="0,4" Radius="14" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="14">
+                        <!-- En-tête de section -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFEDE3, Dark=#3D2E24}"
+                                    WidthRequest="40" HeightRequest="40"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label Text="🏅" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="Mes Badges"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   VerticalTextAlignment="Center"
+                                   FontFamily="PoppinsBold" />
+                            <!-- Compteur -->
+                            <Border Grid.Column="2"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    Padding="10,4"
+                                    VerticalOptions="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                        <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Label Text="{Binding BadgeCount, StringFormat='{0}'}"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       HorizontalTextAlignment="Center" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Séparateur subtil -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                 Margin="0,0,0,2" />
+
+                        <!-- Badges débloqués -->
+                        <FlexLayout Wrap="Wrap"
+                                    JustifyContent="Start"
+                                    AlignItems="Center"
+                                    BindableLayout.ItemsSource="{Binding UnlockedBadges}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:BadgeDisplay">
+                                    <Border BackgroundColor="{Binding RarityColor}"
+                                            StrokeShape="RoundRectangle 12,12,12,12"
+                                            StrokeThickness="0"
+                                            Padding="12,8"
+                                            Margin="4">
+                                        <Border.Shadow>
+                                            <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#15000000}"
+                                                   Offset="0,2" Radius="6" Opacity="0.3" />
+                                        </Border.Shadow>
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Label Text="{Binding Icon}" FontSize="16"
+                                                   VerticalOptions="Center" />
+                                            <Label Text="{Binding Name}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <!-- Message si pas de badges -->
+                        <Border StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                Padding="16,12"
+                                IsVisible="{Binding HasNoBadges}"
+                                HorizontalOptions="Fill">
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Label Text="✨" FontSize="18" VerticalOptions="Center" />
+                                <Label Text="Continuez pour débloquer des badges !"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       Opacity="0.65"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </Border>
+
+                        <!-- Bouton voir tous les badges -->
+                        <Border StrokeShape="RoundRectangle 14,14,14,14"
+                                StrokeThickness="1.5"
+                                Stroke="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                                BackgroundColor="Transparent"
+                                Padding="0"
+                                HeightRequest="40"
+                                HorizontalOptions="Fill">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ViewAllBadgesCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="Voir tous les badges"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : RAPPEL QUIZ QUOTIDIEN            -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="18,16">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                               Offset="0,4" Radius="14" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="14">
+                        <!-- En-tête de section -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1E3A5F}"
+                                    WidthRequest="40" HeightRequest="40"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label Text="🔔" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="Rappel Quiz"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       FontFamily="PoppinsBold" />
+                                <Label Text="Ne manquez jamais votre défi quotidien"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       Opacity="0.6" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Séparateur subtil -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                 Margin="0,0,0,2" />
+
+                        <!-- Contrôles -->
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                <Label Text="Recevoir un rappel"
+                                       FontSize="14"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                <Label Text="{Binding QuizReminderTimeFormatted, StringFormat='Tous les jours à {0}'}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       Opacity="0.5"
+                                       IsVisible="{Binding IsQuizReminderEnabled}" />
+                            </VerticalStackLayout>
+
+                            <!-- Bouton heure -->
+                            <Border Grid.Column="1"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1E3A5F}"
+                                    Padding="12,8"
+                                    IsVisible="{Binding IsQuizReminderEnabled}"
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SetQuizReminderTimeCommand}" />
+                                </Border.GestureRecognizers>
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="⏰" FontSize="14" VerticalOptions="Center" />
+                                    <Label Text="{Binding QuizReminderTimeFormatted}"
                                            FontSize="13"
                                            FontAttributes="Bold"
-                                           TextColor="#4CAF50"/>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </StackLayout>
-            </Border>
-            
-        </VerticalStackLayout>
-    </ScrollView>
-    
-    <!-- Overlay pour les conseils -->
-    <views:TipOverlayView x:Name="TipOverlay" />
+                                           TextColor="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Toggle -->
+                            <Border Grid.Column="2"
+                                    BackgroundColor="{Binding IsQuizReminderEnabled, Converter={StaticResource BoolToReminderColorConverter}}"
+                                    StrokeShape="RoundRectangle 16,16,16,16"
+                                    StrokeThickness="0"
+                                    Padding="14,8"
+                                    VerticalOptions="Center">
+                                <Border.Shadow>
+                                    <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#10000000}"
+                                           Offset="0,2" Radius="6" Opacity="0.3" />
+                                </Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleQuizReminderCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding IsQuizReminderEnabled, Converter={StaticResource BoolToReminderTextConverter}}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       HorizontalOptions="Center" />
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- SECTION : ACTIVITÉ RÉCENTE                 -->
+                <!-- ═══════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="18,16"
+                        IsVisible="{Binding HasXpHistory}">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light=#20D98C6A, Dark=#20000000}"
+                               Offset="0,4" Radius="14" Opacity="0.4" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="14">
+                        <!-- En-tête de section -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light=#F3E5F5, Dark=#2D1E33}"
+                                    WidthRequest="40" HeightRequest="40"
+                                    HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label Text="📊" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="Activité Récente"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   VerticalTextAlignment="Center"
+                                   FontFamily="PoppinsBold" />
+                        </Grid>
+
+                        <!-- Séparateur subtil -->
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}"
+                                 Margin="0,0,0,2" />
+
+                        <!-- Liste des transactions XP (BindableLayout au lieu de CollectionView pour éviter le crash dans ScrollView) -->
+                        <VerticalStackLayout Spacing="4"
+                                             BindableLayout.ItemsSource="{Binding RecentXpTransactions}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:XpTransaction">
+                                    <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                            Padding="12,10">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding Reason}"
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   VerticalTextAlignment="Center" />
+                                            <Border Grid.Column="1"
+                                                    StrokeShape="RoundRectangle 8,8,8,8"
+                                                    StrokeThickness="0"
+                                                    Padding="8,3"
+                                                    VerticalOptions="Center">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="0.0" />
+                                                        <GradientStop Color="{AppThemeBinding Light=#B8D496, Dark=#6A8A4E}" Offset="1.0" />
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                                <Label Text="{Binding Amount, StringFormat='+{0} XP'}"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="White" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Overlay pour les conseils -->
+        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="2" />
     </Grid>
+
 </ContentPage>
 

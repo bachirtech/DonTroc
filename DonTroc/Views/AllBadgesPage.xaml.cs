@@ -18,8 +18,15 @@ public partial class AllBadgesPage : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        await _viewModel.LoadDataAsync();
+        try
+        {
+            base.OnAppearing();
+            await _viewModel.LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AllBadgesPage] Erreur OnAppearing: {ex.Message}");
+        }
     }
 }
 

@@ -154,6 +154,43 @@
                 </VerticalStackLayout>
             </Frame>
 
+            <!-- Configuration Cloudinary (visible uniquement pour les admins) -->
+            <Frame x:Name="CloudinaryFrame"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                   CornerRadius="15"
+                   Padding="20"
+                   HasShadow="True"
+                   IsVisible="False">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="☁️ Configuration Cloudinary"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+
+                    <Label x:Name="CloudinaryStatusLabel"
+                           Text="Statut: Vérification..."
+                           FontSize="12"
+                           TextColor="{StaticResource Ardoise}"/>
+
+                    <Label Text="API Secret :"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+
+                    <Entry x:Name="CloudinarySecretEntry"
+                           Placeholder="Entrez le API Secret Cloudinary..."
+                           IsPassword="True"
+                           BackgroundColor="{AppThemeBinding Light=White, Dark=#2C2C2C}"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+
+                    <Button x:Name="SaveCloudinaryButton"
+                            Text="💾 Sauvegarder le Secret Cloudinary"
+                            BackgroundColor="{StaticResource Terracotta}"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Clicked="OnSaveCloudinaryClicked"/>
+                </VerticalStackLayout>
+            </Frame>
+
             <!-- Message de statut -->
             <Label x:Name="StatusLabel"
                    Text=""

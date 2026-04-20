@@ -38,6 +38,11 @@ public static class GamificationConfig
         // Défis
         { "complete_daily_challenge", 25 },
         { "complete_weekly_challenge", 100 },
+        { "complete_monthly_challenge", 500 },
+
+        // Propositions de troc structurées
+        { "propose_trade", 10 },       // XP pour envoyer une proposition
+        { "accept_trade", 25 },        // XP pour accepter une proposition
     };
     
     // ============================================================================
@@ -418,6 +423,60 @@ public static class GamificationConfig
             XpReward = 1000,
             IsSecret = true
         },
+        
+        // === BADGES MENSUELS EXCLUSIFS ===
+        new Badge
+        {
+            Id = "monthly_trader",
+            Name = "Troqueur du Mois",
+            Description = "Complétez la quête mensuelle de transactions",
+            Icon = "🏅",
+            Rarity = BadgeRarity.Epic,
+            Category = BadgeCategory.Special,
+            RequiredValue = 1,
+            StatKey = "monthly_quest_trader",
+            XpReward = 0, // XP déjà donnés via le challenge
+            IsSecret = false
+        },
+        new Badge
+        {
+            Id = "monthly_publisher",
+            Name = "Éditeur du Mois",
+            Description = "Complétez la quête mensuelle de publications",
+            Icon = "📰",
+            Rarity = BadgeRarity.Epic,
+            Category = BadgeCategory.Special,
+            RequiredValue = 1,
+            StatKey = "monthly_quest_publisher",
+            XpReward = 0,
+            IsSecret = false
+        },
+        new Badge
+        {
+            Id = "monthly_social",
+            Name = "Star Sociale du Mois",
+            Description = "Complétez la quête mensuelle sociale",
+            Icon = "🌟",
+            Rarity = BadgeRarity.Epic,
+            Category = BadgeCategory.Special,
+            RequiredValue = 1,
+            StatKey = "monthly_quest_social",
+            XpReward = 0,
+            IsSecret = false
+        },
+        new Badge
+        {
+            Id = "monthly_explorer",
+            Name = "Explorateur du Mois",
+            Description = "Complétez la quête mensuelle d'exploration",
+            Icon = "🗺️",
+            Rarity = BadgeRarity.Legendary,
+            Category = BadgeCategory.Special,
+            RequiredValue = 1,
+            StatKey = "monthly_quest_explorer",
+            XpReward = 0,
+            IsSecret = false
+        },
     };
     
     // ============================================================================
@@ -594,6 +653,70 @@ public static class GamificationConfig
             RequiredCount = 3,
             XpReward = 75,
             BoostCreditsReward = 0
+        },
+    };
+    
+    // ============================================================================
+    // QUÊTES MENSUELLES TEMPLATES
+    // ============================================================================
+    
+    public static readonly List<Challenge> MonthlyChallengeTemplates = new()
+    {
+        new Challenge
+        {
+            Id = "monthly_transactions",
+            Title = "Maître du Troc",
+            Description = "Complétez 10 transactions ce mois",
+            Icon = "🤝",
+            Type = ChallengeType.Monthly,
+            Difficulty = ChallengeDifficulty.Hard,
+            ActionType = "complete_transaction",
+            RequiredCount = 10,
+            XpReward = 500,
+            BoostCreditsReward = 3,
+            ExclusiveBadgeId = "monthly_trader"
+        },
+        new Challenge
+        {
+            Id = "monthly_annonces",
+            Title = "Éditeur Prolifique",
+            Description = "Publiez 15 annonces ce mois",
+            Icon = "📢",
+            Type = ChallengeType.Monthly,
+            Difficulty = ChallengeDifficulty.Hard,
+            ActionType = "create_annonce",
+            RequiredCount = 15,
+            XpReward = 400,
+            BoostCreditsReward = 2,
+            ExclusiveBadgeId = "monthly_publisher"
+        },
+        new Challenge
+        {
+            Id = "monthly_social",
+            Title = "Ambassadeur Social",
+            Description = "Envoyez 100 messages ce mois",
+            Icon = "💬",
+            Type = ChallengeType.Monthly,
+            Difficulty = ChallengeDifficulty.Medium,
+            ActionType = "send_message",
+            RequiredCount = 100,
+            XpReward = 350,
+            BoostCreditsReward = 2,
+            ExclusiveBadgeId = "monthly_social"
+        },
+        new Challenge
+        {
+            Id = "monthly_explorer",
+            Title = "Grand Explorateur",
+            Description = "Consultez 50 annonces ce mois",
+            Icon = "🔍",
+            Type = ChallengeType.Monthly,
+            Difficulty = ChallengeDifficulty.Medium,
+            ActionType = "view_annonce",
+            RequiredCount = 50,
+            XpReward = 300,
+            BoostCreditsReward = 1,
+            ExclusiveBadgeId = "monthly_explorer"
         },
     };
 }

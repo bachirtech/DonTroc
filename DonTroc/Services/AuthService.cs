@@ -96,14 +96,41 @@ public class AuthService : ObservableObject
                 return false;
             }
 
+            // Validation renforcée du domaine email avant de créer le compte
+            if (!IsEmailDomainValid(email))
+            {
+                _logger.LogWarning("Échec inscription pour {Email} - Domaine email invalide", email);
+                await ShowGenericErrorAlert(
+                    "L'adresse e-mail semble invalide.\n\n" +
+                    "Veuillez utiliser une adresse e-mail réelle (Gmail, Outlook, Yahoo, etc.).");
+                return false;
+            }
+
             await _client.CreateUserAsync(email, password);
+
+            // Envoyer un email de vérification AVANT de sauvegarder les identifiants
+            try
+            {
+                if (CurrentUser != null)
+                {
+                    await CurrentUser.SendEmailVerificationAsync();
+                    _logger.LogInformation("Email de vérification envoyé à: {Email}", email);
+                }
+            }
+            catch (Exception verifyEx)
+            {
+                _logger.LogWarning(verifyEx, "Impossible d'envoyer l'email de vérification à {Email}", email);
+            }
 
             // Sauvegarder les identifiants pour "Se souvenir de moi" après inscription
             await SecureStorage.SetAsync(EmailKey, email);
             await SecureStorage.SetAsync(PasswordKey, password);
             await SecureStorage.SetAsync(RememberMeKey, "true");
 
-            _logger.LogInformation("Inscription réussie pour: {Email}", email);
+            // Déconnecter l'utilisateur après inscription pour forcer la vérification
+            await _client.SignOutAsync();
+
+            _logger.LogInformation("Inscription réussie pour: {Email} — en attente de vérification email", email);
             return true;
         }
         catch (Exception ex)
@@ -120,6 +147,45 @@ public class AuthService : ObservableObject
         {
             _logger.LogInformation("Tentative de connexion pour: {Email}", email);
             var authResult = await _client.SignInWithEmailAndPasswordAsync(email, password);
+
+            // ── Vérification de l'email ──────────────────────────────────
+            // Si l'email n'a pas été vérifié, on bloque la connexion
+            if (authResult != null && !authResult.IsEmailVerified)
+            {
+                _logger.LogWarning("Connexion refusée pour {Email} — email non vérifié", email);
+                
+                // Proposer de renvoyer l'email de vérification
+                var resend = await ShowConfirmAlert(
+                    "Email non vérifié ✉️",
+                    "Vous devez vérifier votre adresse e-mail avant de pouvoir vous connecter.\n\n" +
+                    "Un e-mail de vérification vous a été envoyé lors de votre inscription.\n\n" +
+                    "Voulez-vous recevoir un nouvel e-mail de vérification ?",
+                    "Renvoyer", "Annuler");
+
+                if (resend)
+                {
+                    try
+                    {
+                        await authResult.SendEmailVerificationAsync();
+                        await ShowGenericInfoAlert(
+                            "Email envoyé ✉️",
+                            $"Un nouvel e-mail de vérification a été envoyé à :\n{email}\n\n" +
+                            "📬 Vérifiez votre boîte de réception (et le dossier spam).\n" +
+                            "Cliquez sur le lien dans l'e-mail, puis reconnectez-vous.");
+                    }
+                    catch (Exception resendEx)
+                    {
+                        _logger.LogError(resendEx, "Erreur renvoi email vérification pour {Email}", email);
+                        await ShowGenericErrorAlert(
+                            "Impossible de renvoyer l'e-mail de vérification.\n" +
+                            "Veuillez réessayer dans quelques minutes.");
+                    }
+                }
+
+                // Déconnecter l'utilisateur non vérifié
+                await _client.SignOutAsync();
+                return null;
+            }
 
             if (rememberMe)
             {
@@ -152,10 +218,10 @@ public class AuthService : ObservableObject
         }
     }
 
-    public void SignOut()
+    public async Task SignOutAsync()
     {
         _logger.LogInformation("Déconnexion de l'utilisateur.");
-        _client.SignOutAsync();
+        await _client.SignOutAsync();
         SecureStorage.Remove(EmailKey);
         SecureStorage.Remove(PasswordKey);
         SecureStorage.Remove(RememberMeKey);
@@ -275,6 +341,13 @@ public class AuthService : ObservableObject
         {
             if (IsSignedIn)
             {
+                // Vérifier que l'email est vérifié même pour les sessions existantes
+                if (CurrentUser != null && !CurrentUser.IsEmailVerified)
+                {
+                    _logger.LogWarning("Auto-login bloqué — email non vérifié pour: {Email}", CurrentUser.Email);
+                    await _client.SignOutAsync();
+                    return false;
+                }
                 _logger.LogInformation("Utilisateur déjà connecté.");
                 return true;
             }
@@ -290,6 +363,14 @@ public class AuthService : ObservableObject
 
             _logger.LogInformation("Tentative de connexion automatique avec l'email: {Email}", email);
             var authResult = await _client.SignInWithEmailAndPasswordAsync(email, password);
+
+            // Bloquer l'auto-login si l'email n'est pas vérifié
+            if (authResult != null && !authResult.IsEmailVerified)
+            {
+                _logger.LogWarning("Auto-login bloqué — email non vérifié pour: {Email}", email);
+                await _client.SignOutAsync();
+                return false;
+            }
 
             var success = authResult != null;
             _logger.LogInformation("Connexion automatique {Status}", success ? "réussie" : "échouée");
@@ -485,6 +566,120 @@ public class AuthService : ObservableObject
             await MainThread.InvokeOnMainThreadAsync(() =>
                 Application.Current.MainPage.DisplayAlert("Erreur", message, "OK"));
         }
+    }
+
+    /// <summary>
+    /// Affiche une alerte d'information (titre personnalisable)
+    /// </summary>
+    private async Task ShowGenericInfoAlert(string title, string message)
+    {
+        if (Application.Current?.MainPage != null)
+        {
+            await MainThread.InvokeOnMainThreadAsync(() =>
+                Application.Current.MainPage.DisplayAlert(title, message, "OK"));
+        }
+    }
+
+    /// <summary>
+    /// Affiche une alerte de confirmation avec deux boutons
+    /// </summary>
+    private async Task<bool> ShowConfirmAlert(string title, string message, string accept, string cancel)
+    {
+        if (Application.Current?.MainPage != null)
+        {
+            return await MainThread.InvokeOnMainThreadAsync(() =>
+                Application.Current.MainPage.DisplayAlert(title, message, accept, cancel));
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Valide que le domaine de l'email est plausible (filtre les domaines fantaisistes)
+    /// </summary>
+    private static bool IsEmailDomainValid(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+            return false;
+
+        var parts = email.Split('@');
+        if (parts.Length != 2)
+            return false;
+
+        var domain = parts[1].Trim().ToLowerInvariant();
+
+        // Le domaine doit contenir au moins un point
+        if (!domain.Contains('.'))
+            return false;
+
+        var domainParts = domain.Split('.');
+        
+        // Le TLD doit avoir au moins 2 caractères
+        var tld = domainParts[^1];
+        if (tld.Length < 2)
+            return false;
+
+        // Chaque partie du domaine doit avoir au moins 1 caractère et être alphanumérique
+        foreach (var part in domainParts)
+        {
+            if (string.IsNullOrEmpty(part))
+                return false;
+            if (!part.All(c => char.IsLetterOrDigit(c) || c == '-'))
+                return false;
+        }
+
+        // Liste noire de domaines clairement faux / jetables connus
+        var blacklistedDomains = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "xemple.com", "exemple.com", "example.com", "test.com", "fake.com",
+            "aaa.com", "bbb.com", "abc.com", "123.com", "zzz.com",
+            "mailinator.com", "guerrillamail.com", "tempmail.com", "throwaway.email",
+            "yopmail.com", "trashmail.com", "sharklasers.com", "guerrillamailblock.com",
+            "dispostable.com", "maildrop.cc", "temp-mail.org", "fakeinbox.com",
+            "mailnesia.com", "tempail.com"
+        };
+
+        if (blacklistedDomains.Contains(domain))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Renvoie l'email de vérification pour l'utilisateur actuellement connecté
+    /// </summary>
+    public async Task<bool> ResendEmailVerificationAsync()
+    {
+        try
+        {
+            if (CurrentUser == null)
+            {
+                _logger.LogWarning("Aucun utilisateur connecté pour renvoyer la vérification.");
+                return false;
+            }
+
+            if (CurrentUser.IsEmailVerified)
+            {
+                _logger.LogInformation("L'email est déjà vérifié.");
+                return true;
+            }
+
+            await CurrentUser.SendEmailVerificationAsync();
+            _logger.LogInformation("Email de vérification renvoyé à: {Email}", CurrentUser.Email);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du renvoi de l'email de vérification");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Vérifie si l'email de l'utilisateur actuel est vérifié
+    /// </summary>
+    public bool IsCurrentUserEmailVerified()
+    {
+        return CurrentUser?.IsEmailVerified ?? false;
     }
 
     public async Task<bool> DeleteAccountAsync() // Méthode pour supprimer le compte

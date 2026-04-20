@@ -158,9 +158,23 @@ namespace DonTroc.Views
             }
         }
         
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
+            try
+            {
+                // 🎬 Hero animation : zoom-in + fade depuis le centre (sensation iOS Photos)
+                if (ImagesCarousel != null)
+                {
+                    ImagesCarousel.Opacity = 0;
+                    ImagesCarousel.Scale = 0.7;
+                    await Task.WhenAll(
+                        ImagesCarousel.FadeTo(1, 280, Easing.CubicOut),
+                        ImagesCarousel.ScaleTo(1, 380, Easing.SpringOut)
+                    );
+                }
+            }
+            catch { /* anim non critique */ }
         }
 
         protected override void OnDisappearing()

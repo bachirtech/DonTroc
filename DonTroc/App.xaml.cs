@@ -19,11 +19,15 @@ public partial class App : Application
     private readonly FileLoggerService _fileLogger;
     private readonly NotificationService _notificationService;
     private readonly SmartNotificationService _smartNotificationService;
+    private readonly RetentionNotificationService _retentionNotificationService;
     private readonly AppRatingService _appRatingService;
     private readonly GlobalNotificationService _globalNotificationService;
     private readonly ProximityNotificationService _proximityNotificationService;
+    
+    // Timer périodique pour les vérifications de rétention (toutes les 2h)
+    private CancellationTokenSource? _retentionTimerCts;
 
-    public App(AuthService authService, GlobalNotificationService globalNotificationService, UnreadMessageService unreadMessageService, AdMobService adMobService, IServiceProvider serviceProvider, FileLoggerService fileLogger, NotificationService notificationService, SmartNotificationService smartNotificationService, AppRatingService appRatingService, ProximityNotificationService proximityNotificationService)
+    public App(AuthService authService, GlobalNotificationService globalNotificationService, UnreadMessageService unreadMessageService, AdMobService adMobService, IServiceProvider serviceProvider, FileLoggerService fileLogger, NotificationService notificationService, SmartNotificationService smartNotificationService, AppRatingService appRatingService, ProximityNotificationService proximityNotificationService, RetentionNotificationService retentionNotificationService)
     {
         InitializeComponent();
 
@@ -33,6 +37,7 @@ public partial class App : Application
         _fileLogger = fileLogger ?? new FileLoggerService();
         _notificationService = notificationService;
         _smartNotificationService = smartNotificationService;
+        _retentionNotificationService = retentionNotificationService;
         _appRatingService = appRatingService;
         _globalNotificationService = globalNotificationService;
         _proximityNotificationService = proximityNotificationService;
@@ -60,7 +65,11 @@ public partial class App : Application
         
         MainThread.BeginInvokeOnMainThread(() =>
         {
+#if DEBUG
             ShowErrorPage($"Erreur critique: {ex?.Message ?? "Exception inconnue"}");
+#else
+            ShowErrorPage("Une erreur inattendue s'est produite. Veuillez redémarrer l'application.");
+#endif
         });
     }
 
@@ -70,7 +79,11 @@ public partial class App : Application
         
         MainThread.BeginInvokeOnMainThread(() =>
         {
+#if DEBUG
             ShowErrorPage($"Erreur critique asynchrone: {args?.Exception?.Message}");
+#else
+            ShowErrorPage("Une erreur inattendue s'est produite. Veuillez redémarrer l'application.");
+#endif
         });
         
         args?.SetObserved();
@@ -80,63 +93,83 @@ public partial class App : Application
     {
         try
         {
-            var logPath = _fileLogger?.LogFilePath ?? "(chemin du journal inconnu)";
+            var children = new List<IView>
+            {
+                new Label 
+                { 
+                    Text = "Une erreur est survenue 😔",
+                    FontSize = 20,
+                    FontAttributes = FontAttributes.Bold,
+                    HorizontalTextAlignment = TextAlignment.Center
+                },
+                new Label 
+                { 
+                    Text = message,
+                    FontSize = 14,
+                    HorizontalTextAlignment = TextAlignment.Center
+                },
+            };
+
+#if DEBUG
+            // En debug, afficher les outils de diagnostic
+            var logPath = _fileLogger?.LogFilePath ?? "(chemin inconnu)";
+            children.Add(new Label
+            {
+                Text = $"Journal: {logPath}",
+                FontSize = 12,
+                HorizontalTextAlignment = TextAlignment.Center,
+                Opacity = 0.6
+            });
+            children.Add(new Button
+            {
+                Text = "Voir le journal (Debug)",
+                Command = new Command(() =>
+                {
+                    var logs = _fileLogger?.ReadAllLogs() ?? "(aucun journal)";
+                    MainPage = new ContentPage
+                    {
+                        Content = new StackLayout
+                        {
+                            Padding = 12,
+                            Children =
+                            {
+                                new ScrollView
+                                {
+                                    Content = new Label { Text = logs, FontSize = 11 }
+                                },
+                                new Button
+                                {
+                                    Text = "Redémarrer l'application",
+                                    Command = new Command(() => InitializeApp())
+                                }
+                            }
+                        }
+                    };
+                })
+            });
+#endif
+
+            children.Add(new Button
+            {
+                Text = "Redémarrer l'application",
+                Command = new Command(() => InitializeApp())
+            });
 
             MainPage = new ContentPage 
             { 
                 Content = new StackLayout
                 {
                     Padding = 20,
+                    Spacing = 12,
                     VerticalOptions = LayoutOptions.Center,
-                    Children =
-                    {
-                        new Label 
-                        { 
-                            Text = message,
-                            FontSize = 16,
-                            HorizontalTextAlignment = TextAlignment.Center
-                        },
-                        new Label
-                        {
-                            Text = $"Journal: {logPath}",
-                            FontSize = 12,
-                            HorizontalTextAlignment = TextAlignment.Center
-                        },
-                        new Button
-                        {
-                            Text = "Voir le journal",
-                            Command = new Command(() =>
-                            {
-                                var logs = _fileLogger?.ReadAllLogs() ?? "(aucun journal)";
-                                MainPage = new ContentPage
-                                {
-                                    Content = new StackLayout
-                                    {
-                                        Padding = 12,
-                                        Children =
-                                        {
-                                            new ScrollView
-                                            {
-                                                Content = new Label { Text = logs }
-                                            },
-                                            new Button
-                                            {
-                                                Text = "Redémarrer l'application",
-                                                Command = new Command(() => InitializeApp())
-                                            }
-                                        }
-                                    }
-                                };
-                            })
-                        },
-                        new Button
-                        {
-                            Text = "Redémarrer l'application",
-                            Command = new Command(() => InitializeApp())
-                        }
-                    }
+                    Children = { }
                 }
             };
+
+            // Ajouter les enfants
+            var layout = (StackLayout)((ContentPage)MainPage).Content;
+            foreach (var child in children)
+                layout.Children.Add(child);
         }
         catch (Exception ex)
         {
@@ -150,7 +183,7 @@ public partial class App : Application
         {
             MainPage = new ContentPage
             {
-                BackgroundColor = Color.FromArgb("#F5F5DC"),
+                BackgroundColor = Color.FromArgb("#F6F1EB"),
                 Content = new StackLayout
                 {
                     VerticalOptions = LayoutOptions.Center,
@@ -181,7 +214,14 @@ public partial class App : Application
                 }
             };
 
-            _ = InitializeAuthAsync();
+            _ = InitializeAuthAsync().ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    _fileLogger.LogException(t.Exception?.GetBaseException());
+                    Debug.WriteLine($"[App] Erreur InitializeAuthAsync: {t.Exception?.GetBaseException()?.Message}");
+                }
+            }, TaskScheduler.Default);
         }
         catch (Exception ex)
         {
@@ -194,14 +234,32 @@ public partial class App : Application
     {
         try
         {
+            // ÉTAPE 1 : Vérifier l'onboarding AVANT l'authentification
+            // L'onboarding est un écran d'introduction → il passe AVANT le login
+            var onboardingService = _serviceProvider.GetRequiredService<OnboardingService>();
+            if (!onboardingService.IsOnboardingCompleted)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    var onboardingView = _serviceProvider.GetRequiredService<OnboardingView>();
+                    MainPage = new NavigationPage(onboardingView);
+                });
+                return; // L'onboarding redirigera vers LoginView une fois terminé
+            }
+
+            // ÉTAPE 2 : Onboarding déjà fait → vérifier l'authentification
             bool isAuthenticated = _authService.IsSignedIn || await _authService.TryAutoSignInAsync();
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
                 if (isAuthenticated)
+                {
                     MainPage = new AppShell(_unreadMessageService);
+                }
                 else
+                {
                     MainPage = new NavigationPage(_serviceProvider.GetRequiredService<LoginView>());
+                }
             });
 
             if (isAuthenticated)
@@ -217,6 +275,22 @@ public partial class App : Application
                 }
                 catch { }
             }
+
+            // Vérification des mises à jour de l'app (popup soft/force).
+            // Fire-and-forget, délai de 3s pour ne pas perturber le premier affichage.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(3));
+                    var appUpdateService = _serviceProvider.GetRequiredService<AppUpdateService>();
+                    await appUpdateService.CheckForUpdateAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[App] Erreur AppUpdate check: {ex.Message}");
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -236,10 +310,21 @@ public partial class App : Application
             base.OnStart();
 
 #if ANDROID
-            _ = InitializePushNotificationsAsync();
+            _ = InitializePushNotificationsAsync().ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                    Debug.WriteLine($"[App] Erreur push init: {t.Exception?.GetBaseException()?.Message}");
+            }, TaskScheduler.Default);
 #endif
 
             RunBackgroundTasks();
+            
+            // Tracker l'activité pour les rappels push serveur
+            _ = UpdateLastActiveAsync().ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                    Debug.WriteLine($"[App] Erreur UpdateLastActive: {t.Exception?.GetBaseException()?.Message}");
+            }, TaskScheduler.Default);
         }
         catch (Exception ex)
         {
@@ -259,26 +344,72 @@ public partial class App : Application
             var fcmService = _serviceProvider.GetRequiredService<FcmService>();
             await fcmService.OnTokenChanged(token);
         }
+
+        // Abonner l'utilisateur au topic "all_users" pour recevoir les annonces
+        // globales (nouvelle version, événements, etc.). Conforme Google Play.
+        try
+        {
+            await CrossFirebaseCloudMessaging.Current.SubscribeToTopicAsync("all_users");
+            Debug.WriteLine("[App] Abonné au topic FCM 'all_users'");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[App] Erreur subscribe topic: {ex.Message}");
+        }
     }
 #endif
 
     private void RunBackgroundTasks()
     {
+        // Annuler un éventuel timer précédent
+        _retentionTimerCts?.Cancel();
+        _retentionTimerCts = new CancellationTokenSource();
+        var ct = _retentionTimerCts.Token;
+
         Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(30));
-
-            var userId = _authService.GetUserId();
-            if (!string.IsNullOrEmpty(userId))
+            try
             {
-                await _smartNotificationService.SendPersonalizedSuggestionsAsync(userId);
+                // Premier lancement après 30s (laisser l'app s'initialiser)
+                await Task.Delay(TimeSpan.FromSeconds(30), ct);
+
+                while (!ct.IsCancellationRequested)
+                {
+                    var userId = _authService.GetUserId();
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        // Suggestions personnalisées (existant)
+                        try { await _smartNotificationService.SendPersonalizedSuggestionsAsync(userId); }
+                        catch { /* ignoré */ }
+
+                        // Vérifications de rétention (nouveau)
+                        try { await _retentionNotificationService.RunAllChecksAsync(userId); }
+                        catch { /* ignoré */ }
+                    }
+
+                    // Attendre 2h avant le prochain cycle
+                    await Task.Delay(TimeSpan.FromHours(2), ct);
+                }
             }
-        });
+            catch (OperationCanceledException)
+            {
+                // Timer annulé normalement (OnSleep ou Dispose)
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[App] Erreur background tasks: {ex.Message}");
+            }
+        }, ct);
     }
 
     protected override void OnSleep()
     {
-        try { base.OnSleep(); }
+        try
+        {
+            base.OnSleep();
+            // Arrêter le timer de rétention quand l'app passe en arrière-plan
+            _retentionTimerCts?.Cancel();
+        }
         catch (Exception ex) { _fileLogger.LogException(ex); }
     }
 
@@ -290,16 +421,47 @@ public partial class App : Application
             
             if (_authService.IsSignedIn)
             {
+                // Relancer les tâches de fond (inclut le timer de rétention)
+                RunBackgroundTasks();
+                
                 _ = Task.Run(async () =>
                 {
                     try { await _proximityNotificationService.UpdateUserLocationAsync(); }
-                    catch { }
+                    catch (Exception ex) { Debug.WriteLine($"[App] Erreur UpdateLocation: {ex.Message}"); }
                 });
+                
+                // Tracker l'activité pour les rappels push serveur
+                _ = UpdateLastActiveAsync().ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                        Debug.WriteLine($"[App] Erreur UpdateLastActive (resume): {t.Exception?.GetBaseException()?.Message}");
+                }, TaskScheduler.Default);
             }
         }
         catch (Exception ex)
         {
             _fileLogger.LogException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Met à jour le timestamp LastActiveAt dans Firebase pour le tracking de rétention serveur.
+    /// Fire-and-forget, ne bloque pas l'UI.
+    /// </summary>
+    private async Task UpdateLastActiveAsync()
+    {
+        try
+        {
+            var userId = _authService.GetUserId();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var firebaseService = _serviceProvider.GetRequiredService<FirebaseService>();
+                await firebaseService.UpdateLastActiveAsync(userId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[App] Erreur UpdateLastActive: {ex.Message}");
         }
     }
 }

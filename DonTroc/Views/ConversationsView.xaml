@@ -97,7 +97,7 @@
                 <!-- Vue affichée lorsque la liste des conversations est vide -->
                 <CollectionView.EmptyView>
                     <StackLayout Padding="50" VerticalOptions="Center">
-                        <Label Text="📱" FontSize="48" HorizontalOptions="Center" />
+                        <Label x:Name="EmptyConversationIcon" Text="📱" FontSize="48" HorizontalOptions="Center" />
                         <Label Text="Aucune conversation" 
                                FontSize="18" 
                                HorizontalOptions="Center" 

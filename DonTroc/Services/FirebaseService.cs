@@ -145,6 +145,15 @@ namespace DonTroc.Services
                 return null;
             }).Where(a => a != null).Cast<Annonce>().ToList() ?? new List<Annonce>();
 
+            // ⚠️ Alerte performance : si on dépasse 3000 annonces, il faudra paginer
+            if (result.Count > 3000)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[Firebase] ⚠️ PERFORMANCE: {result.Count} annonces chargées ! " +
+                    $"Seuil de pagination recommandé dépassé (3000). " +
+                    $"Envisager LimitToLast + pagination curseur.");
+            }
+
             return result;
         }
 
@@ -1543,11 +1552,15 @@ namespace DonTroc.Services
         {
             try
             {
+                // Calculer le GeoHash pour l'indexation spatiale
+                var geoHash = Helpers.GeoHashHelper.Encode(latitude, longitude, 6);
+                
                 var updates = new Dictionary<string, object>
                 {
                     { "LastLatitude", latitude },
                     { "LastLongitude", longitude },
-                    { "LastLocationUpdate", DateTime.UtcNow.ToString("o") }
+                    { "LastLocationUpdate", DateTime.UtcNow.ToString("o") },
+                    { "GeoHash", geoHash }
                 };
 
                 await _firebaseClient
@@ -1565,6 +1578,7 @@ namespace DonTroc.Services
                         profile.LastLatitude = latitude;
                         profile.LastLongitude = longitude;
                         profile.LastLocationUpdate = DateTime.UtcNow;
+                        profile.GeoHash = Helpers.GeoHashHelper.Encode(latitude, longitude, 6);
                         await SaveUserProfileAsync(profile);
                     }
                     else
@@ -1577,6 +1591,7 @@ namespace DonTroc.Services
                             LastLatitude = latitude,
                             LastLongitude = longitude,
                             LastLocationUpdate = DateTime.UtcNow,
+                            GeoHash = Helpers.GeoHashHelper.Encode(latitude, longitude, 6),
                             DateInscription = DateTime.UtcNow
                         };
                         await SaveUserProfileAsync(newProfile);
@@ -1636,7 +1651,49 @@ namespace DonTroc.Services
         }
 
         /// <summary>
+        /// Récupère les profils utilisateurs dont le GeoHash correspond à un préfixe donné.
+        /// Beaucoup plus efficace que GetAllUserProfilesAsync car Firebase filtre côté serveur.
+        /// </summary>
+        /// <param name="geoHashPrefix">Préfixe GeoHash à chercher (ex: "eznr")</param>
+        /// <returns>Liste des profils correspondant au préfixe</returns>
+        public async Task<List<UserProfile>> GetUsersByGeoHashPrefixAsync(string geoHashPrefix)
+        {
+            try
+            {
+                var currentUser = await _authService.GetCurrentUserAsync();
+                if (currentUser == null)
+                    return new List<UserProfile>();
+
+                // Requête Firebase avec OrderByChild + StartAt/EndAt sur le GeoHash
+                // "\uf8ff" est le plus grand caractère UTF-8 → sélectionne tout ce qui commence par le préfixe
+                var profiles = await _firebaseClient
+                    .Child("UserProfiles")
+                    .OrderBy("GeoHash")
+                    .StartAt(geoHashPrefix)
+                    .EndAt(geoHashPrefix + "\uf8ff")
+                    .OnceAsync<UserProfile>();
+
+                return profiles?.Select(item =>
+                {
+                    var profile = item.Object;
+                    if (profile != null)
+                    {
+                        profile.Id = item.Key;
+                    }
+                    return profile;
+                }).Where(p => p != null).Cast<UserProfile>().ToList() ?? new List<UserProfile>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[GeoHash] Erreur requête préfixe '{geoHashPrefix}': {ex.Message}");
+                return new List<UserProfile>();
+            }
+        }
+
+        /// <summary>
         /// Récupère tous les profils utilisateurs (pour les notifications de proximité)
+        /// DÉPRÉCIÉ: Utiliser GetUsersByGeoHashPrefixAsync pour les requêtes spatiales.
+        /// Conservé comme fallback pour les utilisateurs sans GeoHash.
         /// </summary>
         public async Task<List<UserProfile>> GetAllUserProfilesAsync()
         {
@@ -1684,6 +1741,48 @@ namespace DonTroc.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"Erreur lors de la sauvegarde des stats de notification: {ex.Message}");
+            }
+        }
+
+        // === TRACKING ACTIVITÉ POUR RAPPELS PUSH SERVEUR ===
+
+        /// <summary>
+        /// Met à jour le timestamp LastActiveAt de l'utilisateur dans Firebase.
+        /// Appelé à chaque OnStart/OnResume pour tracker l'activité.
+        /// </summary>
+        public async Task UpdateLastActiveAsync(string userId)
+        {
+            try
+            {
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                await _firebaseClient
+                    .Child("UserProfiles")
+                    .Child(userId)
+                    .Child("LastActiveAt")
+                    .PutAsync(now);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[FirebaseService] Erreur mise à jour LastActiveAt: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Met à jour les préférences de notification push de rétention.
+        /// </summary>
+        public async Task UpdateNotificationPreferencesAsync(string userId, Dictionary<string, bool> preferences)
+        {
+            try
+            {
+                await _firebaseClient
+                    .Child("UserProfiles")
+                    .Child(userId)
+                    .Child("NotificationPreferences")
+                    .PutAsync(preferences);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[FirebaseService] Erreur mise à jour NotificationPreferences: {ex.Message}");
             }
         }
     }

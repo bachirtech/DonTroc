@@ -17,7 +17,7 @@ public class TransactionService
     {
         _authService = authService;
         _firebaseClient = new FirebaseClient(
-            "https://dontroc-55570-default-rtdb.europe-west1.firebasedatabase.app/",
+            ConfigurationService.FirebaseUrl,
             new FirebaseOptions
             {
                 AuthTokenAsyncFactory = async () => await _authService.GetAuthTokenAsync() ?? ""
@@ -98,6 +98,9 @@ public class TransactionService
             utilisateurActuel?.Uid != transaction.DemandeurId)
             return false;
 
+        // Sauvegarder l'ancien statut AVANT modification pour le check de remise en disponible
+        var ancienStatut = transaction.Statut;
+        
         transaction.Statut = StatutTransaction.Annulee;
         transaction.Notes = motif;
 
@@ -106,8 +109,8 @@ public class TransactionService
             .Child(transactionId)
             .PutAsync(transaction);
 
-        // Remettre l'annonce en disponible si elle était réservée
-        if (transaction.Statut == StatutTransaction.Confirmee)
+        // Remettre l'annonce en disponible si elle était réservée (confirmée)
+        if (ancienStatut == StatutTransaction.Confirmee)
         {
             await MettreAJourStatutAnnonceAsync(transaction.AnnonceId, StatutAnnonce.Disponible);
         }
@@ -295,7 +298,7 @@ public class TransactionService
         }
 
         await _firebaseClient
-            .Child("annonces")
+            .Child("Annonces")
             .Child(annonceId)
             .PatchAsync(updates);
     }

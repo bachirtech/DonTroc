@@ -4,6 +4,13 @@
   <!-- PROTECTION DES ASSEMBLIES CONTRE LE TRIMMING (ILLinker)      -->
   <!-- preserve="all" = conserver TOUS les types et membres          -->
   <!-- ============================================================ -->
+  <!-- FIX CRASH RELEASE: Ajout de protections pour les assemblies   -->
+  <!-- utilisées par réflexion (DI, XAML bindings, Shell routing).   -->
+  <!-- Sans ces protections, le trimmer (même en mode partial)       -->
+  <!-- supprime du code dans les assemblies marquées IsTrimmable,    -->
+  <!-- causant des crashs lors de la navigation vers les pages       -->
+  <!-- Map, Transactions, Récompenses.                               -->
+  <!-- ============================================================ -->
 
   <!-- === Assembly principale de l'application === -->
   <assembly fullname="DonTroc" preserve="all">
@@ -16,6 +23,7 @@
     <type fullname="DonTroc.Behaviors.*" preserve="all" />
     <type fullname="DonTroc.Configuration.*" preserve="all" />
     <type fullname="DonTroc.Extensions.*" preserve="all" />
+    <type fullname="DonTroc.Helpers.*" preserve="all" />
     <!-- Protéger les types platform-specific (AdMob callbacks, handlers, etc.) -->
     <type fullname="DonTroc.Platforms.Android.*" preserve="all" />
     <type fullname="DonTroc.Platforms.iOS.*" preserve="all" />
@@ -27,17 +35,26 @@
   <assembly fullname="Microsoft.Maui.Controls.Compatibility" preserve="all" />
   <assembly fullname="Microsoft.Maui.Essentials" preserve="all" />
   <assembly fullname="Microsoft.Maui.Graphics" preserve="all" />
+  <!-- FIX: Protéger Maps qui est nécessaire pour MapView -->
   <assembly fullname="Microsoft.Maui.Controls.Maps" preserve="all" />
+  <assembly fullname="Microsoft.Maui.Maps" preserve="all" />
 
   <!-- === CommunityToolkit (MVVM + MAUI) === -->
   <assembly fullname="CommunityToolkit.Mvvm" preserve="all" />
   <assembly fullname="CommunityToolkit.Maui" preserve="all" />
+  <assembly fullname="CommunityToolkit.Maui.Core" preserve="all" />
   <assembly fullname="CommunityToolkit.Maui.MediaElement" preserve="all" />
 
   <!-- === Firebase === -->
   <assembly fullname="Plugin.Firebase" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Auth" preserve="all" />
+  <assembly fullname="Plugin.Firebase.CloudMessaging" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Crashlytics" preserve="all" />
   <assembly fullname="Firebase" preserve="all" />
   <assembly fullname="Firebase.Auth" preserve="all" />
+  <assembly fullname="Firebase.Database" preserve="all" />
+  <assembly fullname="FirebaseDatabase.net" preserve="all" />
+  <assembly fullname="FirebaseAuthentication.net" preserve="all" />
 
   <!-- === JSON et sérialisation === -->
   <assembly fullname="Newtonsoft.Json" preserve="all" />
@@ -61,6 +78,20 @@
   <assembly fullname="Xamarin.AndroidX.RecyclerView" preserve="all" />
   <assembly fullname="Xamarin.AndroidX.Fragment" preserve="all" />
   <assembly fullname="Xamarin.AndroidX.Activity" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.Navigation.Common" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.Navigation.Runtime" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.Navigation.Fragment" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.Lifecycle.Common" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.Lifecycle.Runtime" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.Lifecycle.ViewModel" preserve="all" />
+  <assembly fullname="Xamarin.AndroidX.SavedState" preserve="all" />
+  
+  <!-- === Google Play Services (Maps, Auth, Ads) === -->
+  <assembly fullname="Xamarin.GooglePlayServices.Maps" preserve="all" />
+  <assembly fullname="Xamarin.GooglePlayServices.Base" preserve="all" />
+  <assembly fullname="Xamarin.GooglePlayServices.Basement" preserve="all" />
+  <assembly fullname="Xamarin.GooglePlayServices.Auth" preserve="all" />
+  <assembly fullname="Xamarin.GooglePlayServices.Ads" preserve="all" />
 
   <!-- === Types système critiques pour la réflexion === -->
   <assembly fullname="System.ObjectModel" preserve="all">
@@ -69,9 +100,18 @@
     <type fullname="System.ComponentModel.PropertyChangedEventArgs" preserve="all" />
   </assembly>
 
-  <!-- === Microsoft.Extensions (DI, Caching, Http) === -->
+  <!-- === Microsoft.Extensions (DI, Caching, Http, Logging) === -->
+  <!-- FIX CRASH: Ces assemblies sont marquées IsTrimmable dans .NET 9 -->
+  <!-- Le trimmer en mode partial les trimmait, supprimant les generics -->
+  <!-- ILogger<T> et la résolution DI des constructeurs par réflexion   -->
   <assembly fullname="Microsoft.Extensions.DependencyInjection" preserve="all" />
   <assembly fullname="Microsoft.Extensions.DependencyInjection.Abstractions" preserve="all" />
   <assembly fullname="Microsoft.Extensions.Caching.Memory" preserve="all" />
   <assembly fullname="Microsoft.Extensions.Http" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Logging" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Logging.Abstractions" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Options" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Primitives" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Configuration" preserve="all" />
+  <assembly fullname="Microsoft.Extensions.Configuration.Abstractions" preserve="all" />
 </linker>

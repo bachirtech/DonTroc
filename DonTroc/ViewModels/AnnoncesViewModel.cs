@@ -33,6 +33,54 @@ public class AnnoncesViewModel : BaseViewModel
     private Location? _userLocation; // Stocke la position de l'utilisateur
     private string _searchText = string.Empty; // Initialiser pour éviter les warnings
     private string? _currentUserId; // ID de l'utilisateur connecté pour filtrage
+
+    // ── Premium : pub récompensée pour voir plus d'annonces ──
+    /// <summary>Nombre d'annonces visibles gratuitement avant le mur publicitaire</summary>
+    private const int FreeAnnonceLimit = 6;
+    
+    private bool _hasUnlockedPremiumAnnonces;
+    /// <summary>Indique si l'utilisateur a débloqué les annonces premium (via rewarded ad)</summary>
+    public bool HasUnlockedPremiumAnnonces
+    {
+        get => _hasUnlockedPremiumAnnonces;
+        set
+        {
+            if (SetProperty(ref _hasUnlockedPremiumAnnonces, value))
+            {
+                OnPropertyChanged(nameof(ShowPremiumBanner));
+                OnPropertyChanged(nameof(HiddenAnnoncesCount));
+            }
+        }
+    }
+    
+    private int _totalFilteredCount;
+    /// <summary>Nombre total d'annonces filtrées (avant limitation)</summary>
+    public int TotalFilteredCount
+    {
+        get => _totalFilteredCount;
+        set
+        {
+            if (SetProperty(ref _totalFilteredCount, value))
+            {
+                OnPropertyChanged(nameof(ShowPremiumBanner));
+                OnPropertyChanged(nameof(HiddenAnnoncesCount));
+            }
+        }
+    }
+    
+    /// <summary>Nombre d'annonces cachées derrière le mur publicitaire</summary>
+    public int HiddenAnnoncesCount => Math.Max(0, TotalFilteredCount - FreeAnnonceLimit);
+    
+    /// <summary>Afficher le bandeau premium si il y a plus d'annonces et pas encore débloqué</summary>
+    public bool ShowPremiumBanner => !HasUnlockedPremiumAnnonces && TotalFilteredCount > FreeAnnonceLimit;
+    
+    private bool _isRewardedAdReady;
+    /// <summary>Indique si la pub récompensée est prête (pour l'état du bouton)</summary>
+    public bool IsRewardedAdReady
+    {
+        get => _isRewardedAdReady;
+        set => SetProperty(ref _isRewardedAdReady, value);
+    }
  
     
     
@@ -133,6 +181,12 @@ public class AnnoncesViewModel : BaseViewModel
 
     // Commande pour signaler une annonce
     public ICommand ReportAnnonceCommand { get; }
+    
+    // Commande pour débloquer les annonces premium via pub récompensée
+    public ICommand UnlockPremiumAnnoncesCommand { get; }
+    
+    // Commande pour naviguer vers le détail d'une annonce
+    public ICommand NavigateToDetailCommand { get; }
 
     // Constructeur avec injection des services
     public AnnoncesViewModel(FirebaseService firebaseService, GeolocationService geolocationService, AuthService authService, TransactionService transactionService, AdMobService adMobService, FavoritesService favoritesService, SocialService socialService, GamificationService gamificationService, SmartNotificationService smartNotificationService, ReportService reportService, GlobalNotificationService globalNotificationService, ILogger<AnnoncesViewModel> logger)
@@ -159,6 +213,8 @@ public class AnnoncesViewModel : BaseViewModel
         ToggleFavoriteCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteToggleFavoriteCommand(annonce)));
         ShareAnnonceCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteShareAnnonceCommand(annonce)));
         ReportAnnonceCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteReportAnnonceCommand(annonce)));
+        UnlockPremiumAnnoncesCommand = new Command(() => SafeExecuteAsync(ExecuteUnlockPremiumAnnoncesAsync));
+        NavigateToDetailCommand = new Command<Annonce>((annonce) => SafeExecuteAsync(() => ExecuteNavigateToDetailAsync(annonce)));
 
         // Initialiser les filtres
         _selectedType = "Tous";
@@ -187,7 +243,65 @@ public class AnnoncesViewModel : BaseViewModel
 
     public void OnAppearing()
     {
+        // Réinitialiser le déblocage premium à chaque visite de la page
+        HasUnlockedPremiumAnnonces = false;
         SafeExecuteAsync(ExecuteLoadAnnoncesCommand);
+    }
+
+    /// <summary>
+    /// Affiche une pub récompensée pour débloquer toutes les annonces premium.
+    /// </summary>
+    private async Task ExecuteUnlockPremiumAnnoncesAsync()
+    {
+        try
+        {
+            if (!_adMobService.IsRewardedAdReady())
+            {
+                await Shell.Current.DisplayAlert(
+                    "Publicité non disponible",
+                    "La publicité n'est pas encore prête. Veuillez patienter quelques secondes et réessayer.",
+                    "OK");
+                    
+                // Recharger la pub en arrière-plan
+                _adMobService.LoadRewardedAd();
+                return;
+            }
+
+            Debug.WriteLine("[Premium] 🎬 Lancement pub récompensée pour débloquer les annonces");
+
+            // ✨ PHASE 4 : teaser pré-pub (augmente le completion rate)
+            await Services.AnimationService.ShowPreRewardedTeaserAsync("Préparation de votre déblocage...");
+
+            var result = await _adMobService.ShowRewardedAdAsync();
+            
+            if (result)
+            {
+                // L'utilisateur a regardé la pub entièrement → débloquer
+                HasUnlockedPremiumAnnonces = true;
+                ApplyFilters(); // Réappliquer les filtres pour afficher toutes les annonces
+                
+                Debug.WriteLine($"[Premium] ✅ Annonces premium débloquées ! {HiddenAnnoncesCount} annonces supplémentaires");
+
+                // 🎉 Animation post-pub : célébration + count-up des annonces débloquées
+                _ = Services.AnimationService.ShowRewardEarnedAsync(
+                    "Annonces débloquées !",
+                    TotalFilteredCount,
+                    suffix: " annonces");
+            }
+            else
+            {
+                Debug.WriteLine("[Premium] ❌ Pub récompensée non complétée");
+                await Shell.Current.DisplayAlert(
+                    "Publicité non complétée",
+                    "Vous devez regarder la publicité en entier pour débloquer les annonces supplémentaires.",
+                    "Compris");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[Premium] Erreur: {ex.Message}");
+            await Shell.Current.DisplayAlert("Erreur", "Impossible d'afficher la publicité. Veuillez réessayer.", "OK");
+        }
     }
 
     private void ApplyFilters() // Méthode pour appliquer les filtres sur la liste des annonces
@@ -230,12 +344,19 @@ public class AnnoncesViewModel : BaseViewModel
 
         Annonces.Clear();
         var finalList = sorted.ToList();
-        Debug.WriteLine($"[ApplyFilters] {_allAnnonces.Count} → {finalList.Count} résultats");
+        TotalFilteredCount = finalList.Count;
+        Debug.WriteLine($"[ApplyFilters] {_allAnnonces.Count} → {finalList.Count} résultats (Premium: {HasUnlockedPremiumAnnonces})");
         
-        foreach (var annonce in finalList)
+        // Limiter les annonces visibles si l'utilisateur n'a pas débloqué le premium
+        var visibleList = HasUnlockedPremiumAnnonces ? finalList : finalList.Take(FreeAnnonceLimit).ToList();
+        
+        foreach (var annonce in visibleList)
         {
             Annonces.Add(annonce);
         }
+        
+        // Mettre à jour l'état de la pub récompensée
+        IsRewardedAdReady = _adMobService.IsRewardedAdReady();
     }
 
     /// <summary>
@@ -349,6 +470,26 @@ public class AnnoncesViewModel : BaseViewModel
             }
         }
 
+        // 🌍 Vérification du rayon local (50 km max) — empêche les contacts longue distance
+        // (ex: utilisateur Maroc ↔ annonce France). Garantit des échanges locaux.
+        if (annonce.Latitude.HasValue && annonce.Longitude.HasValue && _userLocation != null)
+        {
+            var distanceKm = _geolocationService.CalculateDistance(
+                _userLocation.Latitude, _userLocation.Longitude,
+                annonce.Latitude.Value, annonce.Longitude.Value);
+
+            if (distanceKm > Services.RecommendationService.MAX_LOCAL_RADIUS_KM)
+            {
+                await Shell.Current.DisplayAlert("📍 Annonce trop éloignée",
+                    $"Cette annonce se trouve à environ {distanceKm:0} km de vous.\n\n" +
+                    $"DonTroc limite les contacts aux annonces situées dans un rayon de " +
+                    $"{Services.RecommendationService.MAX_LOCAL_RADIUS_KM:0} km pour favoriser " +
+                    "des échanges locaux et sécurisés.",
+                    "Compris");
+                return;
+            }
+        }
+
         if (IsBusy)
         {
             return;
@@ -357,6 +498,10 @@ public class AnnoncesViewModel : BaseViewModel
         try
         {
             IsBusy = true;
+
+            // Afficher un interstitiel AVANT la navigation vers le chat
+            // L'utilisateur voit la pub puis est redirigé vers la conversation
+            await _adMobService.ShowInterstitialAfterActionAsync("ChatContact");
 
             // Crée ou récupère la conversation
             var conversation = await _firebaseService.GetOrCreateConversationAsync(annonce.Id);
@@ -377,9 +522,6 @@ public class AnnoncesViewModel : BaseViewModel
             // Navigue vers la page de chat en passant l'identifiant de la conversation
             var encodedConversationId = Uri.EscapeDataString(conversation.Id);
             await Shell.Current.GoToAsync($"ChatView?conversationId={encodedConversationId}");
-
-            // Tenter un interstitiel après navigation (respecte cooldown/limites)
-            await _adMobService.TryShowInterstitialOnNavigationAsync("ChatFromAnnonce");
         }
         catch (Exception ex)
         {
@@ -608,17 +750,19 @@ public class AnnoncesViewModel : BaseViewModel
             {
                 await _favoritesService.AddToFavoritesAsync(annonce);
                 await _gamificationService.OnUserActionAsync(userId, "add_favorite");
+                _ = Services.AnimationService.ShowToastAsync("Ajouté à vos favoris ❤️", Services.AnimationService.ToastType.Success, 1800);
             }
             else
             {
                 await _favoritesService.RemoveFavoriteAsync(userId, annonce.Id);
+                _ = Services.AnimationService.ShowToastAsync("Retiré de vos favoris", Services.AnimationService.ToastType.Info, 1500);
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[Favoris] Erreur: {ex.Message}");
             annonce.IsFavorite = !annonce.IsFavorite;
-            await Shell.Current.DisplayAlert("Erreur", "Impossible de mettre à jour vos favoris.", "OK");
+            _ = Services.AnimationService.ShowToastAsync("Impossible de mettre à jour vos favoris", Services.AnimationService.ToastType.Error);
         }
     }
 
@@ -641,6 +785,24 @@ public class AnnoncesViewModel : BaseViewModel
         {
             Debug.WriteLine($"[Partage] Erreur: {ex.Message}");
             await Shell.Current.DisplayAlert("Erreur", "Impossible de partager cette annonce.", "OK");
+        }
+    }
+
+    /// <summary>
+    /// Navigue vers la page de détail d'une annonce.
+    /// </summary>
+    private async Task ExecuteNavigateToDetailAsync(Annonce annonce)
+    {
+        if (annonce == null) return;
+
+        try
+        {
+            await Shell.Current.GoToAsync($"AnnonceDetailView?annonceId={annonce.Id}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[NavigateToDetail] Erreur: {ex.Message}");
+            await Shell.Current.DisplayAlert("Erreur", "Impossible d'ouvrir le détail de l'annonce.", "OK");
         }
     }
     

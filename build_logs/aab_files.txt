@@ -1,0 +1,4 @@
+DonTroc/bin/Release/net9.0-android/com.bachirdev.dontroc-Signed.aab
+DonTroc/bin/Release/net9.0-android/publish/com.bachirdev.dontroc-Signed.aab
+DonTroc/bin/Release/net9.0-android/publish/com.bachirdev.dontroc.aab
+DonTroc/bin/Release/net9.0-android/com.bachirdev.dontroc.aab

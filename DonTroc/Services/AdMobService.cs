@@ -33,10 +33,11 @@ namespace DonTroc.Services
         private DateTime _lastInterstitialTime = DateTime.MinValue;
 
         /// <summary>Nombre minimum de navigations entre deux interstitiels (garde-fou en plus du cooldown)</summary>
+        /// <remarks>Optimisé à 2 pour maximiser les impressions tout en restant non-intrusif</remarks>
         private const int InterstitialFrequency = 2;
 
-        /// <summary>Délai minimum (secondes) entre deux interstitiels — Google recommande ≥ 60s, on met 120s</summary>
-        private const int MinInterstitialCooldownSeconds = 120;
+        /// <summary>Délai minimum (secondes) entre deux interstitiels — Google recommande ≥ 60s, on met 80s (safe)</summary>
+        private const int MinInterstitialCooldownSeconds = 80;
 
         /// <summary>Maximum d'interstitiels par session pour ne pas saturer l'utilisateur</summary>
         private const int MaxInterstitialsPerSession = 5;
@@ -47,14 +48,24 @@ namespace DonTroc.Services
         /// <summary>Délai minimum (secondes) entre deux rewarded — éviter le spam même volontaire</summary>
         private const int MinRewardedCooldownSeconds = 30;
 
+        /// <summary>
+        /// Constructeur — SINGLETON : une seule instance pour toute la session.
+        /// Les compteurs (_navigationCount, _sessionInterstitialCount, _lastInterstitialTime)
+        /// persistent entre les navigations, garantissant le respect des limites anti-spam.
+        /// </summary>
         public AdMobService(IAdMobService platformService)
         {
             _platformService = platformService ?? throw new ArgumentNullException(nameof(platformService));
             
             if (AdMobConfiguration.ADS_ENABLED)
             {
+                // Initialize() ne fait QUE marquer le service comme prêt
+                // Le préchargement des pubs est géré par WaitForSdkAndPreloadAsync()
+                // dans AdMobNativeService — PAS de double chargement ici.
                 _platformService.Initialize();
             }
+            
+            System.Diagnostics.Debug.WriteLine("[AdMob] ✅ AdMobService créé (Singleton) — limites anti-spam actives");
         }
 
         /// <summary>
@@ -167,6 +178,71 @@ namespace DonTroc.Services
         }
 
         /// <summary>
+        /// Affiche un interstitiel après une action utilisateur significative (ex: publication d'annonce).
+        /// Respecte les limites anti-suspension (Ad-Free, cooldown, limite session)
+        /// mais ne dépend PAS du compteur de navigation — le moment d'action est un point naturel.
+        /// </summary>
+        public async Task ShowInterstitialAfterActionAsync(string actionName = "")
+        {
+            try
+            {
+                if (!AdMobConfiguration.ADS_ENABLED) return;
+
+                // Respecter le mode Ad-Free
+                if (IsAdFreeActive())
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] ⏭️ Ad-Free actif — interstitiel action '{actionName}' ignoré");
+                    return;
+                }
+
+                // Vérifier le limite par session
+                if (_sessionInterstitialCount >= MaxInterstitialsPerSession)
+                {
+                    System.Diagnostics.Debug.WriteLine("[AdMob] 🛑 Limite session atteinte — interstitiel action ignoré");
+                    return;
+                }
+
+                // Vérifier le cooldown temporel (120 secondes minimum)
+                var elapsed = (DateTime.Now - _lastInterstitialTime).TotalSeconds;
+                if (elapsed < MinInterstitialCooldownSeconds)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] ⏳ Cooldown actif ({elapsed:F0}s/{MinInterstitialCooldownSeconds}s) — interstitiel action ignoré");
+                    return;
+                }
+
+                // Vérifier si une pub est prête
+                if (!IsInterstitialAdReady())
+                {
+                    // Pour les ACTIONS (rares, haute valeur), on tente un rechargement + attente brève.
+                    // C'est acceptable car les actions comme "publier une annonce" sont rares (1-2/jour)
+                    // contrairement aux navigations d'onglet (fréquentes).
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] ⚠️ Interstitiel non prêt pour action '{actionName}' — chargement + attente 3s");
+                    _platformService?.LoadInterstitialAd();
+                    await Task.Delay(3000);
+                    
+                    if (!IsInterstitialAdReady())
+                    {
+                        System.Diagnostics.Debug.WriteLine("[AdMob] ⚠️ Interstitiel toujours non prêt après 3s — abandon");
+                        return;
+                    }
+                }
+
+                // Afficher l'interstitiel
+                System.Diagnostics.Debug.WriteLine($"[AdMob] 🎬 Affichage interstitiel après action '{actionName}'");
+                await ShowInterstitialAdInternalAsync();
+
+                // Réinitialiser aussi le compteur de navigation pour éviter un double interstitiel rapide
+                _navigationCount = 0;
+
+                _platformService?.LogApiLimitation();
+            }
+            catch
+            {
+                // Ne jamais bloquer le flux utilisateur
+            }
+        }
+
+        /// <summary>
         /// Charge manuellement les publicités
         /// </summary>
         public void LoadAds()
@@ -218,23 +294,50 @@ namespace DonTroc.Services
                 if (IsAdFreeActive()) return;
 
                 _navigationCount++;
+                
+                System.Diagnostics.Debug.WriteLine($"[AdMob] Navigation #{_navigationCount} → {pageName} | Session: {_sessionInterstitialCount}/{MaxInterstitialsPerSession} interstitiels");
 
                 // Vérifier la fréquence de navigation
-                if (_navigationCount < InterstitialFrequency) return;
+                if (_navigationCount < InterstitialFrequency)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] ⏭️ Pas encore ({_navigationCount}/{InterstitialFrequency} navigations)");
+                    return;
+                }
 
                 // Vérifier le limite par session
-                if (_sessionInterstitialCount >= MaxInterstitialsPerSession) return;
+                if (_sessionInterstitialCount >= MaxInterstitialsPerSession)
+                {
+                    System.Diagnostics.Debug.WriteLine("[AdMob] 🛑 Limite session atteinte");
+                    return;
+                }
 
                 // Vérifier le cooldown temporel (120 secondes minimum)
                 var elapsed = (DateTime.Now - _lastInterstitialTime).TotalSeconds;
-                if (elapsed < MinInterstitialCooldownSeconds) return;
+                if (elapsed < MinInterstitialCooldownSeconds)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AdMob] ⏳ Cooldown actif ({elapsed:F0}s/{MinInterstitialCooldownSeconds}s)");
+                    return;
+                }
 
                 // Vérifier si une pub est prête
-                if (!IsInterstitialAdReady()) return;
+                if (!IsInterstitialAdReady())
+                {
+                    System.Diagnostics.Debug.WriteLine("[AdMob] ⚠️ Interstitiel non prêt — rechargement unique (sera tenté à la prochaine navigation)");
+                    // Recharger UNE SEULE FOIS quand toutes les conditions sont remplies
+                    // (fréquence + cooldown OK) mais la pub n'est pas chargée.
+                    // Cela couvre le cas où le premier chargement + retries ont tous échoué.
+                    // On ne remet PAS _navigationCount à 0 : on réessaiera dès la prochaine navigation.
+                    _platformService?.LoadInterstitialAd();
+                    return;
+                }
 
                 // Toutes les conditions sont remplies — afficher
+                System.Diagnostics.Debug.WriteLine($"[AdMob] 🎬 Affichage interstitiel sur {pageName}");
                 _navigationCount = 0;
                 await ShowInterstitialAdInternalAsync();
+                
+                // Logger les métriques après affichage
+                _platformService?.LogApiLimitation();
             }
             catch
             {

@@ -62,6 +62,11 @@
 -keeppackagenames com.google.android.gms.internal.measurement
 -keeppackagenames com.google.firebase.analytics
 
+# ===== Google Maps =====
+-keep class com.google.android.gms.maps.** { *; }
+-keep interface com.google.android.gms.maps.** { *; }
+-dontwarn com.google.android.gms.maps.**
+
 # ===== Kotlin (utilisé par les SDK modernes) =====
 -keep class kotlin.** { *; }
 -keep class kotlinx.** { *; }
@@ -77,4 +82,14 @@
 # ===== Protobuf =====
 -keep class com.google.protobuf.** { *; }
 -dontwarn com.google.protobuf.**
+
+# ===== InMobi SDK =====
+-keep class com.inmobi.** { *; }
+-dontwarn com.inmobi.**
+-keep class com.iab.omid.library.inmobi.** { *; }
+-dontwarn com.iab.omid.library.inmobi.**
+
+# ===== Picasso (requis par InMobi) =====
+-keep class com.squareup.picasso.** { *; }
+-dontwarn com.squareup.picasso.**
 

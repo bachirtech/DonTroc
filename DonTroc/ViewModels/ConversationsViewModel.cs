@@ -163,5 +163,11 @@ namespace DonTroc.ViewModels
                 await Shell.Current.DisplayAlert("Erreur", "Impossible de supprimer la conversation.", "OK");
             }
         }
+
+        public override void Dispose()
+        {
+            _unreadMessageService.PropertyChanged -= OnUnreadMessageServicePropertyChanged;
+            base.Dispose();
+        }
     }
 }

@@ -112,6 +112,7 @@ public class Challenge
     public int CurrentProgress { get; set; }
     public int XpReward { get; set; }
     public int BoostCreditsReward { get; set; }
+    public string? ExclusiveBadgeId { get; set; }
     public DateTime ExpiresAt { get; set; }
     public bool IsCompleted => CurrentProgress >= RequiredCount;
     public double ProgressPercentage => Math.Min(100, (double)CurrentProgress / RequiredCount * 100);
@@ -121,6 +122,7 @@ public enum ChallengeType
 {
     Daily,
     Weekly,
+    Monthly,
     Special
 }
 

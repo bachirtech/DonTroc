@@ -22,7 +22,7 @@
     },
 
     "UserProfiles": {
-      ".indexOn": ["Role", "DateInscription", "IsSuspended"],
+      ".indexOn": ["Role", "DateInscription", "IsSuspended", "GeoHash", "LastActiveAt"],
       ".read": "auth != null",
       "$userId": {
         ".write": "auth != null && (auth.uid == $userId || root.child('UserProfiles/' + auth.uid + '/Role').val() == 2)",
@@ -30,8 +30,15 @@
         "LastLatitude": { ".validate": "newData.isNumber()" },
         "LastLongitude": { ".validate": "newData.isNumber()" },
         "LastLocationUpdate": { ".validate": "newData.isString()" },
+        "GeoHash": { ".validate": "newData.isString() && newData.val().length <= 12" },
         "ProximityNotificationsEnabled": { ".validate": "newData.isBoolean()" },
         "NotificationRadius": { ".validate": "newData.isNumber()" },
+        "LastActiveAt": { ".validate": "newData.isNumber()" },
+        "NotificationPreferences": {
+          "$prefKey": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
         "Role": {
           ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() == 2"
         },
@@ -69,8 +76,8 @@
     
     "Conversations": {
       ".indexOn": ["BuyerId", "SellerId", "LastMessageTimestamp", "AnnonceId"],
-      ".read": "auth != null",
       "$conversationId": {
+        ".read": "auth != null && (data.child('ParticipantIds').child(auth.uid).val() === true || data.child('BuyerId').val() == auth.uid || data.child('SellerId').val() == auth.uid)",
         ".write": "auth != null && (!data.exists() || data.child('ParticipantIds').child(auth.uid).val() === true || data.child('BuyerId').val() == auth.uid || data.child('SellerId').val() == auth.uid)",
         ".validate": "newData.hasChildren(['AnnonceId', 'LastMessageTimestamp']) && (newData.child('ParticipantIds').hasChild(auth.uid) || newData.child('BuyerId').val() == auth.uid || newData.child('SellerId').val() == auth.uid)"
       }
@@ -78,9 +85,9 @@
 
     "Messages": {
       ".indexOn": ["SenderId", "Timestamp"],
-      ".read": "auth != null",
       "$conversationId": {
         ".indexOn": ["Timestamp"],
+        ".read": "auth != null && (root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).val() === true || root.child('Conversations/' + $conversationId + '/BuyerId').val() == auth.uid || root.child('Conversations/' + $conversationId + '/SellerId').val() == auth.uid)",
         ".write": "auth != null && (root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).val() === true || root.child('Conversations/' + $conversationId + '/BuyerId').val() == auth.uid || root.child('Conversations/' + $conversationId + '/SellerId').val() == auth.uid)",
         "$messageId": {
           ".validate": "(newData.hasChildren(['SenderId', 'Timestamp']) && newData.child('SenderId').val() == auth.uid) || (data.exists() && (newData.child('IsRead').exists() || newData.child('Status').exists() || newData.child('ReadAt').exists()))"
@@ -90,17 +97,26 @@
     
     "transactions": {
       ".indexOn": ["ProprietaireId", "DemandeurId", "DateCreation", "Statut"],
-      ".read": "auth != null",
       "$transactionId": {
+        ".read": "auth != null && (data.child('ProprietaireId').val() == auth.uid || data.child('DemandeurId').val() == auth.uid)",
         ".write": "auth != null && (!data.exists() || data.child('ProprietaireId').val() == auth.uid || data.child('DemandeurId').val() == auth.uid)",
         ".validate": "newData.hasChildren(['AnnonceId', 'ProprietaireId', 'DemandeurId'])"
+      }
+    },
+
+    "tradeProposals": {
+      ".indexOn": ["OwnerId", "ProposerId", "AnnonceCibleId", "OfferedAnnonceId", "Statut", "DateCreationTimestamp"],
+      "$proposalId": {
+        ".read": "auth != null && (data.child('OwnerId').val() == auth.uid || data.child('ProposerId').val() == auth.uid)",
+        ".write": "auth != null && ((!data.exists() && newData.child('ProposerId').val() == auth.uid) || data.child('OwnerId').val() == auth.uid || data.child('ProposerId').val() == auth.uid)",
+        ".validate": "newData.hasChildren(['AnnonceCibleId', 'OfferedAnnonceId', 'ProposerId', 'OwnerId', 'DateCreationTimestamp']) && newData.child('ProposerId').val() != newData.child('OwnerId').val()"
       }
     },
     
     "favorites": {
       ".indexOn": ["UserId", "AnnonceId"],
-      ".read": "auth != null",
       "$favoriteId": {
+        ".read": "auth != null && data.child('UserId').val() == auth.uid",
         ".write": "auth != null && (data.child('UserId').val() == auth.uid || (!data.exists() && newData.child('UserId').val() == auth.uid))",
         ".validate": "newData.hasChildren(['UserId', 'AnnonceId']) && newData.child('UserId').val() == auth.uid"
       }
@@ -108,8 +124,8 @@
     
     "favoriteLists": {
       ".indexOn": ["UserId"],
-      ".read": "auth != null",
       "$listId": {
+        ".read": "auth != null && data.child('UserId').val() == auth.uid",
         ".write": "auth != null && (data.child('UserId').val() == auth.uid || (!data.exists() && newData.child('UserId').val() == auth.uid))",
         ".validate": "newData.hasChildren(['UserId', 'Name']) && newData.child('UserId').val() == auth.uid && newData.child('Name').isString() && newData.child('Name').val().length <= 50"
       }
@@ -117,8 +133,8 @@
     
     "annonceAlerts": {
       ".indexOn": ["UserId"],
-      ".read": "auth != null",
       "$alertId": {
+        ".read": "auth != null && data.child('UserId').val() == auth.uid",
         ".write": "auth != null && (data.child('UserId').val() == auth.uid || (!data.exists() && newData.child('UserId').val() == auth.uid))",
         ".validate": "newData.hasChildren(['UserId', 'Name']) && newData.child('UserId').val() == auth.uid"
       }
@@ -187,11 +203,11 @@
     },
     
     "TypingIndicators": {
-      ".read": "auth != null",
-      ".write": "auth != null",
       "$conversationId": {
+        ".read": "auth != null && (root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).val() === true || root.child('Conversations/' + $conversationId + '/BuyerId').val() == auth.uid || root.child('Conversations/' + $conversationId + '/SellerId').val() == auth.uid)",
+        ".write": "auth != null && (root.child('Conversations/' + $conversationId + '/ParticipantIds/' + auth.uid).val() === true || root.child('Conversations/' + $conversationId + '/BuyerId').val() == auth.uid || root.child('Conversations/' + $conversationId + '/SellerId').val() == auth.uid)",
         "$userId": {
-          ".validate": "newData.isNumber()"
+          ".validate": "newData.isNumber() && $userId == auth.uid"
         }
       }
     },
@@ -200,8 +216,8 @@
       ".indexOn": ["UserId", "Code"],
       ".read": "auth != null",
       "$codeId": {
-        ".write": "auth != null && (!data.exists() && newData.child('UserId').val() == auth.uid || data.child('UserId').val() == auth.uid)",
-        ".validate": "newData.hasChildren(['UserId', 'Code', 'DateCreation']) && newData.child('UserId').val() == auth.uid && newData.child('Code').isString()"
+        ".write": "auth != null && (!data.exists() && newData.child('UserId').val() == auth.uid || data.exists())",
+        ".validate": "newData.hasChildren(['UserId', 'Code', 'DateCreation']) && newData.child('Code').isString() && (!data.exists() || (newData.child('UserId').val() == data.child('UserId').val() && newData.child('Code').val() == data.child('Code').val()))"
       }
     },
     
@@ -228,7 +244,25 @@
       ".read": "auth != null",
       "$activityId": {
         ".write": "auth != null && newData.child('UserId').val() == auth.uid",
-        ".validate": "newData.hasChildren(['UserId', 'TypeActivite', 'DateActivite']) && newData.child('UserId').val() == auth.uid"
+        ".validate": "newData.hasChildren(['UserId', 'Type', 'DateActivite']) && newData.child('UserId').val() == auth.uid"
+      }
+    },
+    
+    "RemindersSent": {
+      ".read": false,
+      ".write": false,
+      "$userId": {
+        "$reminderType": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+
+    "app_config": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() == 2",
+      "$platform": {
+        ".validate": "$platform == 'android' || $platform == 'ios'"
       }
     }
   }

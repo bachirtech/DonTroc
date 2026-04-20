@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Collections.Generic;
@@ -84,6 +85,7 @@ namespace DonTroc.ViewModels
         public ICommand RefreshCommand { get; }
         public ICommand BackCommand { get; }
 
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(MapViewModel))]
         public MapViewModel(GeolocationService geolocationService, 
                           FirebaseService firebaseService, 
                           AuthService authService)

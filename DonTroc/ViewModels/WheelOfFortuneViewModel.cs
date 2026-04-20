@@ -11,7 +11,7 @@ public class WheelOfFortuneViewModel : INotifyPropertyChanged
 {
     private readonly IGamificationService _gamificationService;
     private readonly AuthService _authService;
-    private readonly IAdMobService _adMobService;
+    private readonly AdMobService _adMobService;
     private readonly ILogger<WheelOfFortuneViewModel> _logger;
 
     // Indique si l'utilisateur a utilisé sa seconde chance aujourd'hui
@@ -25,7 +25,7 @@ public class WheelOfFortuneViewModel : INotifyPropertyChanged
     public WheelOfFortuneViewModel(
         IGamificationService gamificationService,
         AuthService authService,
-        IAdMobService adMobService,
+        AdMobService adMobService,
         ILogger<WheelOfFortuneViewModel> logger)
     {
         _gamificationService = gamificationService;
@@ -147,8 +147,8 @@ public class WheelOfFortuneViewModel : INotifyPropertyChanged
                 return;
             }
 
-            // Charger les pubs récompensées
-            _adMobService.LoadRewardedAd();
+            // Charger les pubs récompensées — NON, le préchargement initial suffit
+            // OnAdDismissed rechargera automatiquement après chaque usage
 
             CanSpin = await _gamificationService.CanSpinWheelAsync(userId);
             
@@ -237,12 +237,7 @@ public class WheelOfFortuneViewModel : INotifyPropertyChanged
             
             // Afficher l'option de seconde chance si pas encore utilisée
             CanWatchAdForSecondChance = !_hasUsedSecondChance;
-            
-            // Précharger une pub pour la seconde chance
-            if (!_hasUsedSecondChance)
-            {
-                _adMobService.LoadRewardedAd();
-            }
+            // NOTE: Pas de LoadRewardedAd() — OnAdDismissed/le préchargement initial s'en chargent
 
             _logger.LogInformation("Roue tournée, récompense: {RewardName}", reward.Name);
         }
@@ -275,6 +270,9 @@ public class WheelOfFortuneViewModel : INotifyPropertyChanged
                 await Task.Delay(2000); // Attendre un peu le chargement
             }
 
+            // ✨ PHASE 4 : teaser pré-pub
+            await Services.AnimationService.ShowPreRewardedTeaserAsync("Préparation de votre seconde chance...");
+
             // Afficher la pub récompensée
             var adWatched = await _adMobService.ShowRewardedAdAsync();
 
@@ -290,8 +288,11 @@ public class WheelOfFortuneViewModel : INotifyPropertyChanged
                 CanSpin = true;
                 SpinButtonText = "🎰 Tour Bonus !";
                 ShowResult = false;
-                
-                await ShowAlertAsync("🎉 Seconde Chance", "Vous avez gagné un tour bonus ! Tournez la roue !");
+
+                _ = Services.AnimationService.ShowRewardEarnedAsync(
+                    "Seconde chance débloquée !",
+                    1,
+                    suffix: " tour bonus");
             }
             else
             {

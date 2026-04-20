@@ -11,7 +11,7 @@
             <retention>user_controlled</retention>
             <description>Photos d'objets pour créer des annonces sur la plateforme de dons et échanges</description>
         </data-type>
-        
+
         <!-- Position approximative -->
         <data-type category="location">
             <purpose>app_functionality</purpose>
@@ -20,12 +20,44 @@
             <retention>account_deletion</retention>
             <description>Position approximative pour localiser les objets disponibles dans votre région</description>
         </data-type>
+
+        <!-- Identifiant publicitaire (AD_ID) - AdMob / InMobi via UMP -->
+        <data-type category="device_or_other_ids">
+            <subtype>advertising_id</subtype>
+            <purpose>advertising_or_marketing</purpose>
+            <purpose>analytics</purpose>
+            <collection-method>automatic</collection-method>
+            <sharing>third_party</sharing>
+            <retention>account_deletion</retention>
+            <user-consent>required_eea_uk</user-consent>
+            <description>Identifiant publicitaire Android (AAID) utilisé par Google AdMob et InMobi pour la diffusion d'annonces et la mesure d'audience. Soumis au consentement TCF v2.2 via Google UMP en EEA/UK.</description>
+        </data-type>
+
+        <!-- Token de notification push (Firebase Cloud Messaging) -->
+        <data-type category="device_or_other_ids">
+            <subtype>fcm_token</subtype>
+            <purpose>app_functionality</purpose>
+            <collection-method>automatic</collection-method>
+            <sharing>none</sharing>
+            <retention>account_deletion</retention>
+            <description>Jeton FCM (Firebase Cloud Messaging) utilisé pour envoyer les notifications push (nouveaux messages, alertes d'annonces, propositions de troc, mises à jour). Stocké dans Firestore et lié au compte utilisateur.</description>
+        </data-type>
+
+        <!-- Informations financières - dons volontaires via tiers (PayPal / Ko-fi) -->
+        <data-type category="financial_info">
+            <subtype>purchase_history</subtype>
+            <purpose>app_functionality</purpose>
+            <collection-method>user_initiated</collection-method>
+            <sharing>handled_by_third_party</sharing>
+            <retention>not_collected_by_app</retention>
+            <description>Les dons volontaires sont traités intégralement par PayPal et Ko-fi via des liens externes. DonTroc ne collecte, ne stocke ni ne traite aucune information de paiement (carte bancaire, compte PayPal, montant). Voir politiques de confidentialité de PayPal et Ko-fi.</description>
+        </data-type>
     </data-collection>
     
     <security-practices>
         <data-encryption>in_transit_and_at_rest</data-encryption>
         <data-deletion>user_can_request</data-deletion>
-        <privacy-policy-url>https://dontroc.com/privacy-policy</privacy-policy-url>
+        <privacy-policy-url>https://bachirtech.github.io/DonTroc/privacy-policy.html</privacy-policy-url>
     </security-practices>
 </data-safety>
 

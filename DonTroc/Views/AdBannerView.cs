@@ -55,11 +55,11 @@ namespace DonTroc.Views
 
             _bannerContainer = new Border
             {
-                BackgroundColor = Color.FromArgb("#F5F5F5"),
+                BackgroundColor = Colors.Transparent,
                 HeightRequest = 50,
                 WidthRequest = 320,
-                StrokeThickness = 1,
-                Stroke = Color.FromArgb("#E0E0E0"),
+                StrokeThickness = 0,
+                Stroke = Colors.Transparent,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
                 Content = _bannerLabel,

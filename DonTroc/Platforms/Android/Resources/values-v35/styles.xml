@@ -9,6 +9,11 @@
         <item name="android:windowBackground">@color/maui_splash_color</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
+        <!-- Couleurs Material3 alignées sur DonTroc (évite le flash violet par défaut) -->
+        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">@color/maui_splash_color</item>
         <!-- Edge-to-Edge est activé par défaut sur Android 15 -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <!-- Désactiver le contraste automatique pour un contrôle total -->
@@ -22,6 +27,11 @@
     <style name="Maui.MainTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
+        <!-- Couleurs Material3 alignées sur DonTroc (évite le flash violet par défaut) -->
+        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">@color/colorPrimary</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:enforceNavigationBarContrast">false</item>
         <item name="android:enforceStatusBarContrast">false</item>

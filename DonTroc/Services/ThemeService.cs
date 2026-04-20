@@ -154,10 +154,28 @@ namespace DonTroc.Services
         {
             return CurrentTheme switch
             {
-                AppTheme.Light => "sun_icon.png",
-                AppTheme.Dark => "moon_icon.png",
-                AppTheme.System => "auto_icon.png",
-                _ => "auto_icon.png"
+                AppTheme.Light => "☀️",
+                AppTheme.Dark => "🌙",
+                AppTheme.System => "🔄",
+                _ => "🔄"
+            };
+        }
+
+        /// <summary>
+        /// Obtient l'emoji décoratif (grande taille) du thème actuel
+        /// </summary>
+        public string GetThemeEmoji()
+        {
+            if (CurrentTheme == AppTheme.System)
+            {
+                // En mode système, afficher l'icône qui correspond au thème réellement actif
+                return IsDarkMode ? "🌜" : "🌤️";
+            }
+            return CurrentTheme switch
+            {
+                AppTheme.Light => "🌞",
+                AppTheme.Dark => "🌜",
+                _ => "🌤️"
             };
         }
 

@@ -23,6 +23,7 @@ public class ProfilViewModel : BaseViewModel
     private readonly PremiumFeaturesViewModel _premiumFeaturesViewModel; // Service pour les fonctionnalités premium
     private readonly IServiceProvider _serviceProvider;
     private readonly ThemeService _themeService; // Service de gestion des thèmes
+    private readonly IConsentService? _consentService; // RGPD / UMP — peut être null si non enregistré
 
     private string _userEmail;
 
@@ -40,6 +41,8 @@ public class ProfilViewModel : BaseViewModel
         _themeService = themeService; // Injection du service de gestion des thèmes
         _logger = logger;
         _serviceProvider = serviceProvider;
+        // Récupération optionnelle du service de consentement (UMP) — peut être null en tests/iOS
+        _consentService = serviceProvider.GetService<IConsentService>();
 
         // Initialisation avec des valeurs par défaut
         _userEmail = string.Empty;
@@ -52,7 +55,7 @@ public class ProfilViewModel : BaseViewModel
 
         MesAnnonces = new ObservableCollection<Annonce>();
 
-        SignOutCommand = new Command(OnSignOut);
+        SignOutCommand = new Command(async void () => await OnSignOutAsync());
         LoadMesAnnoncesCommand = new Command(async void () => await ExecuteLoadMesAnnoncesCommand());
         // Initialisation des commandes renommées
         DeleteAnnonceCommand = new Command<Annonce>(async void (annonce) => await OnSupprimerAnnonce(annonce));
@@ -65,10 +68,15 @@ public class ProfilViewModel : BaseViewModel
         BoostAnnonceCommand = new Command<Annonce>(async void (annonce) => await OnBoostAnnonce(annonce));
         // Initialisation de la commande pour changer le thème
         ChangeThemeCommand = new Command<string>(OnChangeTheme);
+        // Initialisation de la commande pour sélectionner un thème directement
+        SelectThemeCommand = new Command<string>(OnSelectTheme);
         // Initialisation des nouvelles commandes pour l'accès rapide
         NavigateToMapCommand = new Command(async void () => await OnNavigateToMap());
         NavigateToTransactionsCommand = new Command(async void () => await OnNavigateToTransactions());
         NavigateToRewardsCommand = new Command(async void () => await OnNavigateToRewards());
+        NavigateToSocialCommand = new Command(async void () => await OnNavigateToSocial());
+        // Initialisation de la commande pour accéder aux propositions de troc
+        NavigateToTradeProposalsCommand = new Command(async void () => await OnNavigateToTradeProposals());
         // Initialisation de la commande pour supprimer le compte
         DeleteAccountCommand = new Command(async void () => await OnDeleteAccount());
         // Initialisation de la commande pour faire un don au développeur
@@ -77,6 +85,14 @@ public class ProfilViewModel : BaseViewModel
         NavigateToAdminCommand = new Command(async void () => await OnNavigateToAdmin());
         // Initialisation de la commande pour accéder à la configuration admin
         NavigateToAdminSetupCommand = new Command(async void () => await OnNavigateToAdminSetup());
+        // Initialisation de la commande pour ouvrir une URL
+        OpenUrlCommand = new Command<string>(async void (url) => await OnOpenUrl(url));
+
+        // Initialisation de la commande pour rouvrir le formulaire de consentement publicitaire (RGPD/UMP)
+        ManagePrivacyConsentCommand = new Command(async void () => await OnManagePrivacyConsentAsync());
+
+        // 🛠 DEBUG : commande pour réinitialiser le consentement RGPD (visible admin uniquement)
+        ResetConsentDebugCommand = new Command(async void () => await OnResetConsentDebugAsync());
 
         _ = LoadUserProfile();
         // Exécute la commande pour charger les annonces au démarrage du ViewModel
@@ -131,14 +147,25 @@ public class ProfilViewModel : BaseViewModel
     public ICommand NavigateToMapCommand { get; }
     public ICommand NavigateToTransactionsCommand { get; }
     public ICommand NavigateToRewardsCommand { get; }
+    public ICommand NavigateToSocialCommand { get; }
+    public ICommand NavigateToTradeProposalsCommand { get; }
 
     // Propriétés pour le sélecteur de thème
     public string CurrentThemeName => _themeService.GetThemeDisplayName();
     public string CurrentThemeIcon => _themeService.GetThemeIcon();
+    public string CurrentThemeEmoji => _themeService.GetThemeEmoji();
     public List<string> AvailableThemes { get; } = new List<string> { "Mode clair", "Mode sombre", "Automatique" };
+    
+    // Propriétés réactives pour le sélecteur visuel de thème
+    public bool IsLightThemeSelected => _themeService.CurrentTheme == ThemeService.AppTheme.Light;
+    public bool IsDarkThemeSelected => _themeService.CurrentTheme == ThemeService.AppTheme.Dark;
+    public bool IsSystemThemeSelected => _themeService.CurrentTheme == ThemeService.AppTheme.System;
 
     // Commande pour changer le thème
     public ICommand ChangeThemeCommand { get; }
+    
+    // Commande directe pour sélectionner un thème via paramètre
+    public ICommand SelectThemeCommand { get; }
 
     // Commande pour supprimer le compte utilisateur
     public ICommand DeleteAccountCommand { get; }
@@ -152,6 +179,23 @@ public class ProfilViewModel : BaseViewModel
     // Commande pour accéder à la configuration admin
     public ICommand NavigateToAdminSetupCommand { get; }
     
+    // Commande pour ouvrir une URL dans le navigateur
+    public ICommand OpenUrlCommand { get; }
+
+    // Commande pour rouvrir le formulaire de consentement publicitaire (RGPD / UMP)
+    public ICommand ManagePrivacyConsentCommand { get; }
+
+    // 🛠 DEBUG : commande pour réinitialiser le consentement RGPD (visible admin uniquement)
+    public ICommand ResetConsentDebugCommand { get; }
+
+    // Visibilité du bouton "Confidentialité publicitaire" — visible uniquement pour les utilisateurs
+    // dans une zone géo où le RGPD/CMP s'applique (EEE, UK, Suisse, Brésil...).
+    // Pour les autres (Maroc inclus), le bouton est masqué pour ne pas polluer l'UI.
+    public bool ShowPrivacyOptionsEntry => _consentService?.IsPrivacyOptionsRequired() ?? false;
+    
+    // Version de l'application
+    public string AppVersion => $"v{AppInfo.Current.VersionString} ({AppInfo.Current.BuildString})";
+    
     // Propriété pour vérifier si l'utilisateur est admin ou modérateur
     public bool IsAdminOrModerator => UserProfile?.CanAccessAdminPanel ?? false;
     
@@ -162,55 +206,61 @@ public class ProfilViewModel : BaseViewModel
     {
         if (annonce == null) return;
 
-        var confirm = await Shell.Current.DisplayAlert(
-            "Booster l'annonce",
-            $"Voulez-vous utiliser 1 crédit pour mettre en avant \"{annonce.Titre}\" pendant 24 heures ?",
-            "Oui, booster !",
-            "Annuler"
-        );
-
-
-        if (!confirm) return;
-
-        // Vérifier si l'utilisateur a des crédits et en utiliser un
-        if (_premiumFeaturesViewModel.CanUseBoostCredit())
+        try
         {
-            try
-            {
-                IsBusy = true;
-
-                // Utiliser un crédit de boost
-                _premiumFeaturesViewModel.UseBoostCredit();
-
-                // Appeler le service pour mettre à jour l'annonce dans Firebase
-                await _firebaseService.BoostAnnonceAsync(annonce.Id);
-                await Shell.Current.DisplayAlert("Succès !", "Votre annonce a été boostée et sera mise en avant.",
-                    "Génial !");
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlert("Erreur", $"Une erreur est survenue : {ex.Message}", "OK");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-        else
-        {
-            // Si l'utilisateur n'a pas de crédits
-            var goToDashboard = await Shell.Current.DisplayAlert(
-                "Crédits insuffisants",
-                "Vous n'avez plus de crédits de boost. Voulez-vous en obtenir plus en regardant une publicité ?",
-                "Obtenir des crédits",
-                "Non merci"
+            var confirm = await Shell.Current.DisplayAlert(
+                "Booster l'annonce",
+                $"Voulez-vous utiliser 1 crédit pour mettre en avant \"{annonce.Titre}\" pendant 24 heures ?",
+                "Oui, booster !",
+                "Annuler"
             );
 
-            if (goToDashboard)
+            if (!confirm) return;
+
+            // Vérifier si l'utilisateur a des crédits et en utiliser un
+            if (_premiumFeaturesViewModel.CanUseBoostCredit())
             {
-                // Rediriger vers le tableau de bord pour obtenir des crédits
-                await Shell.Current.GoToAsync("//DashboardView");
+                try
+                {
+                    IsBusy = true;
+
+                    // Utiliser un crédit de boost
+                    _premiumFeaturesViewModel.UseBoostCredit();
+
+                    // Appeler le service pour mettre à jour l'annonce dans Firebase
+                    await _firebaseService.BoostAnnonceAsync(annonce.Id);
+                    await Shell.Current.DisplayAlert("Succès !", "Votre annonce a été boostée et sera mise en avant.",
+                        "Génial !");
+                }
+                catch (Exception ex)
+                {
+                    await Shell.Current.DisplayAlert("Erreur", $"Une erreur est survenue : {ex.Message}", "OK");
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
             }
+            else
+            {
+                // Si l'utilisateur n'a pas de crédits
+                var goToDashboard = await Shell.Current.DisplayAlert(
+                    "Crédits insuffisants",
+                    "Vous n'avez plus de crédits de boost. Voulez-vous en obtenir plus en regardant une publicité ?",
+                    "Obtenir des crédits",
+                    "Non merci"
+                );
+
+                if (goToDashboard)
+                {
+                    // Rediriger vers le tableau de bord pour obtenir des crédits
+                    await Shell.Current.GoToAsync("//DashboardView");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du boost de l'annonce");
         }
     }
 
@@ -266,22 +316,23 @@ public class ProfilViewModel : BaseViewModel
     {
         if (annonce == null!) return;
 
-        bool confirm = await Application.Current?.MainPage?.DisplayAlert("Confirmer",
-            $"Êtes-vous sûr de vouloir supprimer l'annonce \"{annonce.Titre}\" ?", "Oui", "Non")!;
-
-        if (confirm)
+        try
         {
-            try
+            bool confirm = await Shell.Current.DisplayAlert("Confirmer",
+                $"Êtes-vous sûr de vouloir supprimer l'annonce \"{annonce.Titre}\" ?", "Oui", "Non");
+
+            if (confirm)
             {
                 await _firebaseService.DeleteAnnonceAsync(annonce.Id);
                 MesAnnonces.Remove(annonce);
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[Profil] Erreur suppression: {ex.Message}");
-                await Application.Current.MainPage.DisplayAlert("Erreur",
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la suppression de l'annonce");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur",
                     "Une erreur est survenue lors de la suppression.", "OK");
-            }
         }
     }
 
@@ -289,12 +340,21 @@ public class ProfilViewModel : BaseViewModel
     {
         if (annonce == null) return;
 
-        var navigationParameters = new Dictionary<string, object>
+        try
         {
-            { "annonce", JsonSerializer.Serialize(annonce) }
-        };
+            var navigationParameters = new Dictionary<string, object>
+            {
+                { "annonce", JsonSerializer.Serialize(annonce) }
+            };
 
-        await Shell.Current.GoToAsync(nameof(EditAnnonceView), navigationParameters);
+            await Shell.Current.GoToAsync(nameof(EditAnnonceView), navigationParameters);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers la modification d'annonce");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible de modifier l'annonce.", "OK");
+        }
     }
 
     private async Task OnGoToConversations() // Méthode pour naviguer vers la page des conversations
@@ -307,76 +367,100 @@ public class ProfilViewModel : BaseViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la navigation vers les conversations");
-            await Application.Current.MainPage.DisplayAlert("Erreur", "Impossible d'accéder aux conversations.", "OK");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder aux conversations.", "OK");
         }
     }
 
     private async Task OnEditProfile() // Méthode pour naviguer vers la page de modification du profil
     {
-        await Shell.Current.GoToAsync(nameof(EditProfileView));
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(EditProfileView));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers la modification du profil");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder à la modification du profil.", "OK");
+        }
     }
 
     public async Task LoadUserProfile() // Méthode pour charger le profil utilisateur
     {
-        var userId = _authService.GetUserId();
-        if (!string.IsNullOrEmpty(userId))
+        try
         {
-            var userProfile = await _firebaseService.GetUserProfileAsync(userId);
-            if (userProfile != null)
+            var userId = _authService.GetUserId();
+            if (!string.IsNullOrEmpty(userId))
             {
-                // Charger les dernières évaluations via le RatingService
-                try
+                var userProfile = await _firebaseService.GetUserProfileAsync(userId);
+                if (userProfile != null)
                 {
-                    var ratingService = _serviceProvider.GetService<RatingService>();
-                    if (ratingService != null)
+                    // Charger les dernières évaluations via le RatingService
+                    try
                     {
-                        var evaluations = await ratingService.GetEvaluationsUtilisateurAsync(userId, 5);
-                        userProfile.DernieresEvaluations = evaluations;
-                        
-                        // Recalculer les stats à jour si besoin
-                        var (noteMoyenne, nombreEvaluations) = await ratingService.CalculerStatistiquesAsync(userId);
-                        if (nombreEvaluations > 0)
+                        var ratingService = _serviceProvider.GetService<RatingService>();
+                        if (ratingService != null)
                         {
-                            userProfile.NoteMoyenne = noteMoyenne;
-                            userProfile.NombreEvaluations = nombreEvaluations;
-                            userProfile.CalculerBadgeConfiance();
+                            var evaluations = await ratingService.GetEvaluationsUtilisateurAsync(userId, 5);
+                            userProfile.DernieresEvaluations = evaluations;
+                            
+                            // Recalculer les stats à jour si besoin
+                            var (noteMoyenne, nombreEvaluations) = await ratingService.CalculerStatistiquesAsync(userId);
+                            if (nombreEvaluations > 0)
+                            {
+                                userProfile.NoteMoyenne = noteMoyenne;
+                                userProfile.NombreEvaluations = nombreEvaluations;
+                                userProfile.CalculerBadgeConfiance();
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Impossible de charger les évaluations");
+                    }
+                    
+                    UserProfile = userProfile;
+                    UserEmail = userProfile.Email; // Récupérer l'email depuis le profil
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogWarning(ex, "Impossible de charger les évaluations");
+                    // Si aucun profil n'est trouvé, initialiser avec des valeurs par défaut sans sauvegarder dans Firebase.
+                    UserProfile = new UserProfile
+                    {
+                        Id = userId,
+                        Name = "Utilisateur",
+                        Email = await _authService.GetUserEmailAsync(),
+                        ProfilePictureUrl = "default_profile_icon.png"
+                    };
+                    UserEmail = UserProfile.Email;
                 }
-                
-                UserProfile = userProfile;
-                UserEmail = userProfile.Email; // Récupérer l'email depuis le profil
             }
             else
             {
-                // Si aucun profil n'est trouvé, initialiser avec des valeurs par défaut sans sauvegarder dans Firebase.
                 UserProfile = new UserProfile
-                {
-                    Id = userId,
-                    Name = "Utilisateur",
-                    Email = await _authService.GetUserEmailAsync(),
-                    ProfilePictureUrl = "default_profile_icon.png"
-                };
-                UserEmail = UserProfile.Email;
+                    { Name = "Utilisateur inconnu", ProfilePictureUrl = "default_profile_icon.png" };
+                UserEmail = string.Empty;
             }
         }
-        else
+        catch (Exception ex)
         {
-            UserProfile = new UserProfile
-                { Name = "Utilisateur inconnu", ProfilePictureUrl = "default_profile_icon.png" };
-            UserEmail = string.Empty;
+            _logger.LogError(ex, "Erreur lors du chargement du profil utilisateur");
         }
     }
 
     // Logique de déconnexion
-    private void OnSignOut()
+    private async Task OnSignOutAsync()
     {
-        // Appelle la méthode de déconnexion du service
-        _authService.SignOut();
+        try
+        {
+            // Appelle la méthode de déconnexion du service
+            await _authService.SignOutAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la déconnexion");
+        }
 
         // S'assure que la navigation est exécutée sur le thread principal de l'interface utilisateur pour éviter les exceptions
         MainThread.BeginInvokeOnMainThread(() =>
@@ -400,9 +484,37 @@ public class ProfilViewModel : BaseViewModel
         // Change le thème via le service de thème
         _themeService.SetTheme(theme);
 
-        // Notifie que les propriétés ont changé pour mettre à jour l'interface utilisateur
+        NotifyThemePropertiesChanged();
+    }
+    
+    /// <summary>
+    /// Sélectionne un thème directement via son identifiant (light/dark/system)
+    /// </summary>
+    private void OnSelectTheme(string themeId)
+    {
+        var theme = themeId switch
+        {
+            "light" => ThemeService.AppTheme.Light,
+            "dark" => ThemeService.AppTheme.Dark,
+            "system" => ThemeService.AppTheme.System,
+            _ => ThemeService.AppTheme.System
+        };
+
+        _themeService.SetTheme(theme);
+        NotifyThemePropertiesChanged();
+    }
+    
+    /// <summary>
+    /// Notifie l'UI de tous les changements de propriétés liées au thème
+    /// </summary>
+    private void NotifyThemePropertiesChanged()
+    {
         OnPropertyChanged(nameof(CurrentThemeName));
         OnPropertyChanged(nameof(CurrentThemeIcon));
+        OnPropertyChanged(nameof(CurrentThemeEmoji));
+        OnPropertyChanged(nameof(IsLightThemeSelected));
+        OnPropertyChanged(nameof(IsDarkThemeSelected));
+        OnPropertyChanged(nameof(IsSystemThemeSelected));
     }
 
     private async Task OnNavigateToMap() // Méthode pour naviguer vers la carte
@@ -414,7 +526,8 @@ public class ProfilViewModel : BaseViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la navigation vers la carte");
-            await Application.Current.MainPage.DisplayAlert("Erreur", "Impossible d'accéder à la carte.", "OK");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder à la carte.", "OK");
         }
     }
 
@@ -427,7 +540,8 @@ public class ProfilViewModel : BaseViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la navigation vers les transactions");
-            await Application.Current.MainPage.DisplayAlert("Erreur", "Impossible d'accéder aux transactions.", "OK");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder aux transactions.", "OK");
         }
     }
 
@@ -440,7 +554,36 @@ public class ProfilViewModel : BaseViewModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la navigation vers les récompenses");
-            await Application.Current.MainPage.DisplayAlert("Erreur", "Impossible d'accéder aux récompenses.", "OK");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder aux récompenses.", "OK");
+        }
+    }
+
+    private async Task OnNavigateToSocial() // Méthode pour naviguer vers la page sociale (amis, parrainage)
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(SocialView));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers la page sociale");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder à la page sociale.", "OK");
+        }
+    }
+
+    private async Task OnNavigateToTradeProposals() // Naviguer vers la page des propositions de troc
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(TradeProposalsListPage));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la navigation vers les propositions de troc");
+            if (Shell.Current != null)
+                await Shell.Current.DisplayAlert("Erreur", "Impossible d'accéder aux propositions de troc.", "OK");
         }
     }
 
@@ -595,4 +738,104 @@ public class ProfilViewModel : BaseViewModel
                 "Impossible d'accéder à la configuration admin.", "OK");
         }
     }
+    
+    /// <summary>
+    /// Ouvre une URL dans le navigateur par défaut
+    /// </summary>
+    private async Task OnOpenUrl(string url)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(url))
+            {
+                await Browser.Default.OpenAsync(new Uri(url), BrowserLaunchMode.SystemPreferred);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de l'ouverture de l'URL: {Url}", url);
+            await Shell.Current.DisplayAlert("Erreur", 
+                "Impossible d'ouvrir cette page. Vérifiez votre connexion internet.", "OK");
+        }
+    }
+
+    /// <summary>
+    /// Ouvre le formulaire de gestion du consentement publicitaire (RGPD/UMP).
+    /// Obligatoire d'après les exigences Google : l'utilisateur doit pouvoir retirer
+    /// ou modifier son consentement à tout moment depuis l'app.
+    /// </summary>
+    private async Task OnManagePrivacyConsentAsync()
+    {
+        try
+        {
+            if (_consentService == null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Indisponible",
+                    "La gestion du consentement publicitaire n'est pas disponible sur cette plateforme.",
+                    "OK");
+                return;
+            }
+
+            await _consentService.ShowPrivacyOptionsFormAsync();
+
+            // Refresh visibility (au cas où le statut a changé)
+            OnPropertyChanged(nameof(ShowPrivacyOptionsEntry));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur ouverture formulaire consentement RGPD");
+            await Shell.Current.DisplayAlert(
+                "Erreur",
+                "Impossible d'afficher les préférences de confidentialité. Réessayez plus tard.",
+                "OK");
+        }
+    }
+
+    /// <summary>
+    /// 🛠 DEBUG ONLY : réinitialise le consentement RGPD/UMP pour retester le flow.
+    /// Au prochain démarrage de l'app, le formulaire de consentement sera ré-affiché.
+    /// Visible uniquement pour les utilisateurs admin.
+    /// </summary>
+    private async Task OnResetConsentDebugAsync()
+    {
+        try
+        {
+            if (_consentService == null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Indisponible",
+                    "Le service de consentement n'est pas disponible sur cette plateforme.",
+                    "OK");
+                return;
+            }
+
+            var confirm = await Shell.Current.DisplayAlert(
+                "🛠 Reset Consentement",
+                "Réinitialiser le consentement RGPD ?\n\n" +
+                "Le formulaire UMP sera ré-affiché au prochain redémarrage de l'application.\n\n" +
+                "(Outil de test uniquement.)",
+                "Réinitialiser",
+                "Annuler");
+
+            if (!confirm) return;
+
+            _consentService.ResetConsent();
+
+            await Shell.Current.DisplayAlert(
+                "✅ Réinitialisé",
+                "Le consentement a été réinitialisé.\n" +
+                "Fermez complètement l'application puis rouvrez-la pour voir le formulaire.",
+                "OK");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur réinitialisation consentement RGPD");
+            await Shell.Current.DisplayAlert(
+                "Erreur",
+                "Impossible de réinitialiser le consentement.",
+                "OK");
+        }
+    }
 }
+

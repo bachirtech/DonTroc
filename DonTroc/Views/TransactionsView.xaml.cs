@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using DonTroc.Services;
 using DonTroc.ViewModels;
 using Microsoft.Maui.Controls;
@@ -10,6 +11,8 @@ public partial class TransactionsView : ContentPage
     private readonly ITipsService _tipsService;
     private bool _tipsShown = false;
 
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TransactionsView))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TransactionsViewModel))]
     public TransactionsView(TransactionsViewModel viewModel, AdMobService adMobService, ITipsService tipsService)
     {
         InitializeComponent();
@@ -20,21 +23,28 @@ public partial class TransactionsView : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        
-        // Tenter d'afficher un interstitiel (avec limitation de fréquence)
-        await _adMobService.TryShowInterstitialOnNavigationAsync("Transactions");
-        
-        if (BindingContext is TransactionsViewModel viewModel)
+        try
         {
-            await viewModel.InitializeAsync();
-        }
+            base.OnAppearing();
+            
+            // Tenter d'afficher un interstitiel (avec limitation de fréquence)
+            await _adMobService.TryShowInterstitialOnNavigationAsync("Transactions");
+            
+            if (BindingContext is TransactionsViewModel viewModel)
+            {
+                await viewModel.InitializeAsync();
+            }
 
-        // Afficher les conseils pour la première utilisation
-        if (!_tipsShown)
+            // Afficher les conseils pour la première utilisation
+            if (!_tipsShown)
+            {
+                _tipsShown = true;
+                await ShowTipsAsync();
+            }
+        }
+        catch (Exception ex)
         {
-            _tipsShown = true;
-            await ShowTipsAsync();
+            System.Diagnostics.Debug.WriteLine($"[TransactionsView] Erreur OnAppearing: {ex.Message}");
         }
     }
 

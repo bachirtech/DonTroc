@@ -8,53 +8,158 @@
              x:Class="DonTroc.Views.FavoritesView"
              x:DataType="viewModels:FavoritesViewModel"
              x:Name="ThisPage"
-             Title="Favoris">
+             Title="Favoris"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
-    <Grid RowDefinitions="Auto,Auto,*">
-        <!-- Bannière publicitaire en haut -->
-        <views:AdBannerView Grid.Row="0"
-                            HeightRequest="50"
-                            MinimumHeightRequest="50"
-                            HorizontalOptions="Fill"
-                            BackgroundColor="Transparent" />
+    <Grid RowDefinitions="Auto,*">
 
-        <!-- Onglets -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,*" Padding="10" ColumnSpacing="10">
-            <Button x:Name="FavoritesTabButton"
-                    Text="⭐ Favoris"
-                    Clicked="OnFavoritesTabClicked"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"
-                    CornerRadius="12"
-                    Padding="20,10" />
-            <Button x:Name="AlertsTabButton"
-                    Grid.Column="1"
-                    Text="🔔 Alertes"
-                    Clicked="OnAlertsTabClicked"
-                    BackgroundColor="LightGray"
-                    TextColor="Black"
-                    CornerRadius="12"
-                    Padding="20,10" />
-        </Grid>
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- HEADER GRADIENT                                 -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Border Grid.Row="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,28,28"
+                Padding="20,15,20,18">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#8B5A3A}" Offset="0.0" />
+                    <GradientStop Color="{AppThemeBinding Light=#C47A58, Dark=#6B4A32}" Offset="0.5" />
+                    <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#40000000" Offset="0,6" Radius="16" Opacity="0.3" />
+            </Border.Shadow>
 
-        <!-- Contenu -->
-        <Grid Grid.Row="2">
-            <!-- Vue Favoris -->
-            <Grid x:Name="FavoritesContent" RowDefinitions="Auto,Auto,*" IsVisible="True" Padding="10" RowSpacing="10">
-                <!-- Entête + création de liste -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                    <Label Text="Mes favoris" FontAttributes="Bold" FontSize="18" VerticalOptions="Center" />
-                    <Button Grid.Column="1" Text="+ Liste" Command="{Binding ShowCreateListCommand}"
-                            BackgroundColor="{StaticResource Primary}" TextColor="White" />
+            <VerticalStackLayout Spacing="12">
+                <!-- Bannière pub -->
+                <views:AdBannerView
+                    HeightRequest="50"
+                    MinimumHeightRequest="50"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent" />
+
+                <!-- Titre + Icône -->
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 16,16,16,16"
+                            StrokeThickness="0"
+                            BackgroundColor="#33FFFFFF"
+                            WidthRequest="52" HeightRequest="52"
+                            HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="❤️" FontSize="26"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Favoris &amp; Alertes"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               FontFamily="PoppinsBold" />
+                        <Label Text="Vos coups de cœur et notifications"
+                               FontSize="13"
+                               TextColor="#D0FFFFFF" />
+                    </VerticalStackLayout>
                 </Grid>
 
-                <!-- Sélection de la liste -->
-                <Border Grid.Row="1" Style="{StaticResource InputContainer}">
-                    <Picker Title="Choisir une liste"
-                            ItemsSource="{Binding UserLists}"
-                            ItemDisplayBinding="{Binding Name}"
-                            SelectedItem="{Binding SelectedList}" x:DataType="viewModels:FavoritesViewModel" />
-                </Border>
+                <!-- Onglets stylisés -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Border Grid.Column="0"
+                            x:Name="FavoritesTabBorder"
+                            StrokeShape="RoundRectangle 12,12,12,12"
+                            StrokeThickness="0"
+                            BackgroundColor="#50FFFFFF"
+                            Padding="0"
+                            HeightRequest="40">
+                        <Button x:Name="FavoritesTabButton"
+                                Text="⭐ Favoris"
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                Padding="0"
+                                Clicked="OnFavoritesTabClicked" />
+                    </Border>
+                    <Border Grid.Column="1"
+                            x:Name="AlertsTabBorder"
+                            StrokeShape="RoundRectangle 12,12,12,12"
+                            StrokeThickness="0"
+                            BackgroundColor="#20FFFFFF"
+                            Padding="0"
+                            HeightRequest="40">
+                        <Button x:Name="AlertsTabButton"
+                                Text="🔔 Alertes"
+                                BackgroundColor="Transparent"
+                                TextColor="#D0FFFFFF"
+                                FontSize="14"
+                                CornerRadius="12"
+                                Padding="0"
+                                Clicked="OnAlertsTabClicked" />
+                    </Border>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- CONTENU                                         -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Grid Grid.Row="1">
+
+            <!-- ═══════════════════════════════════════ -->
+            <!-- VUE FAVORIS                             -->
+            <!-- ═══════════════════════════════════════ -->
+            <Grid x:Name="FavoritesContent" RowDefinitions="Auto,Auto,*" IsVisible="True"
+                  Padding="16,0,16,16" RowSpacing="12" Margin="0,-6,0,0">
+
+                <!-- Header + Création de liste -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,8,0,0">
+                    <!-- Sélection de la liste -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 12,12,12,12"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="4,0">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light=#10000000, Dark=#10000000}"
+                                   Offset="0,2" Radius="6" Opacity="0.2" />
+                        </Border.Shadow>
+                        <Picker Title="Choisir une liste"
+                                TitleColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                ItemsSource="{Binding UserLists}"
+                                ItemDisplayBinding="{Binding Name}"
+                                SelectedItem="{Binding SelectedList}"
+                                TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                BackgroundColor="Transparent"
+                                FontSize="14" />
+                    </Border>
+
+                    <!-- Bouton + Liste -->
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 12,12,12,12"
+                            StrokeThickness="0"
+                            Padding="0"
+                            HeightRequest="42"
+                            WidthRequest="90">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Shadow>
+                            <Shadow Brush="#30D98C6A" Offset="0,2" Radius="6" Opacity="0.3" />
+                        </Border.Shadow>
+                        <Button Text="+ Liste"
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                Padding="0"
+                                Command="{Binding ShowCreateListCommand}" />
+                    </Border>
+                </Grid>
 
                 <!-- Liste des favoris -->
                 <RefreshView Grid.Row="2" Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsBusy}">
@@ -63,68 +168,125 @@
                             <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
                         </CollectionView.ItemsLayout>
 
+                        <!-- État vide élégant -->
                         <CollectionView.EmptyView>
-                            <StackLayout Padding="50" VerticalOptions="CenterAndExpand" Spacing="10">
-                                <Label Text="☆" FontSize="48" HorizontalOptions="Center" />
-                                <Label Text="Aucun favori" FontSize="18" FontAttributes="Bold"
-                                       HorizontalOptions="Center" />
-                                <Label Text="Ajoutez des annonces à vos listes personnalisées" FontSize="14"
-                                       TextColor="Gray" HorizontalOptions="Center" />
-                            </StackLayout>
+                            <Border StrokeShape="RoundRectangle 18,18,18,18"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                    Padding="28,36"
+                                    Margin="0,20">
+                                <Border.Shadow>
+                                    <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#10000000}"
+                                           Offset="0,3" Radius="12" Opacity="0.3" />
+                                </Border.Shadow>
+                                <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                                    <Label x:Name="EmptyFavoriteIcon"
+                                           Text="🤍"
+                                           FontSize="48"
+                                           HorizontalTextAlignment="Center" />
+                                    <Label Text="Aucun favori"
+                                           FontSize="17"
+                                           FontAttributes="Bold"
+                                           HorizontalTextAlignment="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                    <Label Text="Ajoutez des annonces à vos listes personnalisées depuis la page d'annonces."
+                                           FontSize="13"
+                                           HorizontalTextAlignment="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                           Opacity="0.6"
+                                           MaxLines="3"
+                                           LineBreakMode="WordWrap" />
+                                </VerticalStackLayout>
+                            </Border>
                         </CollectionView.EmptyView>
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Favorite">
-                                <Border BackgroundColor="White" StrokeThickness="0" Padding="12" Margin="0,0,0,4"
+                                <Border StrokeShape="RoundRectangle 16,16,16,16"
+                                        StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                        Padding="12"
                                         BindingContext="{Binding .}">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="12" />
-                                    </Border.StrokeShape>
                                     <Border.Shadow>
-                                        <Shadow Brush="Black" Offset="0,2" Radius="4" Opacity="0.08" />
+                                        <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#10000000}"
+                                               Offset="0,2" Radius="10" Opacity="0.3" />
                                     </Border.Shadow>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnFavoriteTapped" />
+                                    </Border.GestureRecognizers>
 
                                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                        <!-- Image -->
-                                        <Border WidthRequest="70" HeightRequest="70" StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="8" />
-                                            </Border.StrokeShape>
+                                        <!-- Image arrondie -->
+                                        <Border Grid.Column="0"
+                                                StrokeShape="RoundRectangle 12,12,12,12"
+                                                StrokeThickness="0"
+                                                WidthRequest="72" HeightRequest="72"
+                                                BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
                                             <Image Source="{Binding AnnonceImageUrl}" Aspect="AspectFill" />
                                         </Border>
 
                                         <!-- Infos -->
-                                        <StackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
-                                            <Label Text="{Binding AnnonceTitle}" FontSize="16" FontAttributes="Bold"
-                                                   LineBreakMode="TailTruncation" MaxLines="1" />
-                                            <Label Text="{Binding AnnonceLocation}" FontSize="13" TextColor="Gray"
-                                                   LineBreakMode="TailTruncation" MaxLines="1" />
-                                            <Label Text="{Binding AnnonceAuthorName}" FontSize="12"
-                                                   TextColor="{StaticResource Primary}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <Label Text="{Binding AnnonceTitle}"
+                                                   FontSize="15"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1" />
+                                            <Label Text="{Binding AnnonceLocation}"
+                                                   FontSize="12"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   Opacity="0.6"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1" />
+                                            <Label Text="{Binding AnnonceAuthorName}"
+                                                   FontSize="12"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                                                   FontAttributes="Bold" />
                                             <Label Text="{Binding DateAdded, StringFormat='Ajouté le {0:dd/MM/yyyy}'}"
-                                                   FontSize="11" TextColor="Gray" />
-                                        </StackLayout>
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   Opacity="0.5" />
+                                        </VerticalStackLayout>
 
                                         <!-- Actions -->
-                                        <StackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
-                                            <Button Text="Voir"
-                                                    Clicked="OnViewFavoriteClicked"
-                                                    BindingContext="{Binding .}"
-                                                    BackgroundColor="{StaticResource Primary}" TextColor="White"
-                                                    FontSize="12" CornerRadius="6" Padding="10,6" />
-                                            <Button Text="❌"
-                                                    Padding="10,6"
-                                                    Clicked="OnDeleteFavoriteClicked"
-                                                    BindingContext="{Binding .}"
-                                                    BackgroundColor="Transparent" TextColor="Red" FontSize="14"
-                                                    CornerRadius="15" WidthRequest="34" HeightRequest="34" />
-                                        </StackLayout>
+                                        <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                                            <!-- Voir -->
+                                            <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                                    StrokeThickness="0"
+                                                    Padding="0"
+                                                    HeightRequest="34">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                                        <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                                <Button Text="Voir"
+                                                        BackgroundColor="Transparent"
+                                                        TextColor="White"
+                                                        FontSize="12"
+                                                        FontAttributes="Bold"
+                                                        CornerRadius="10"
+                                                        Padding="14,0"
+                                                        Clicked="OnViewFavoriteClicked"
+                                                        BindingContext="{Binding .}" />
+                                            </Border>
+                                            <!-- Supprimer -->
+                                            <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="{AppThemeBinding Light=#FFF0F0, Dark=#3D2222}"
+                                                    WidthRequest="34" HeightRequest="34"
+                                                    HorizontalOptions="Center">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnDeleteFavoriteClicked" />
+                                                </Border.GestureRecognizers>
+                                                <Label Text="🗑️" FontSize="16"
+                                                       HorizontalOptions="Center" VerticalOptions="Center"
+                                                       BindingContext="{Binding .}" />
+                                            </Border>
+                                        </VerticalStackLayout>
                                     </Grid>
-
-                                    <!-- Tap global pour naviguer -->
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnFavoriteTapped" />
-                                    </Border.GestureRecognizers>
                                 </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -132,44 +294,266 @@
                 </RefreshView>
             </Grid>
 
-            <!-- Vue Alertes -->
-            <Grid x:Name="AlertsContent" IsVisible="False" RowDefinitions="Auto,*" Padding="10" RowSpacing="10">
-                <Button Grid.Row="0" Text="+ Créer une alerte" Command="{Binding ShowCreateAlertCommand}"
-                        BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                <CollectionView Grid.Row="1" ItemsSource="{Binding UserAlerts}" BackgroundColor="Transparent"
-                                SelectionMode="None">
+            <!-- ═══════════════════════════════════════ -->
+            <!-- VUE ALERTES                             -->
+            <!-- ═══════════════════════════════════════ -->
+            <Grid x:Name="AlertsContent" IsVisible="False" RowDefinitions="Auto,*"
+                  Padding="16,0,16,16" RowSpacing="12" Margin="0,-6,0,0">
+
+                <!-- Bouton créer une alerte -->
+                <Border Grid.Row="0"
+                        StrokeShape="RoundRectangle 14,14,14,14"
+                        StrokeThickness="0"
+                        Padding="0"
+                        HeightRequest="44"
+                        HorizontalOptions="Fill"
+                        Margin="0,8,0,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                            <GradientStop Color="{AppThemeBinding Light=#A8C686, Dark=#5A7A3E}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="#30D98C6A" Offset="0,2" Radius="8" Opacity="0.3" />
+                    </Border.Shadow>
+                    <Button Text="🔔 Créer une alerte"
+                            BackgroundColor="Transparent"
+                            TextColor="White"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            CornerRadius="14"
+                            Padding="0"
+                            Command="{Binding ShowCreateAlertCommand}" />
+                </Border>
+
+                <!-- Liste des alertes -->
+                <CollectionView Grid.Row="1" ItemsSource="{Binding UserAlerts}"
+                                BackgroundColor="Transparent" SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+
                     <CollectionView.EmptyView>
-                        <StackLayout Padding="50" VerticalOptions="CenterAndExpand" Spacing="10">
-                            <Label Text="🔔" FontSize="48" HorizontalOptions="Center" />
-                            <Label Text="Aucune alerte" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" />
-                            <Label
-                                Text="Créez des alertes pour être notifié quand des annonces correspondantes sont publiées"
-                                FontSize="14" TextColor="Gray" HorizontalTextAlignment="Center" />
-                        </StackLayout>
+                        <Border StrokeShape="RoundRectangle 18,18,18,18"
+                                StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                Padding="28,36"
+                                Margin="0,20">
+                            <Border.Shadow>
+                                <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#10000000}"
+                                       Offset="0,3" Radius="12" Opacity="0.3" />
+                            </Border.Shadow>
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                                <Label Text="🔔"
+                                       FontSize="48"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="Aucune alerte"
+                                       FontSize="17"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                <Label Text="Créez des alertes pour être notifié quand des annonces correspondantes sont publiées."
+                                       FontSize="13"
+                                       HorizontalTextAlignment="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                       Opacity="0.6"
+                                       MaxLines="3"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Border>
                     </CollectionView.EmptyView>
+
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:AnnonceAlert">
-                            <Border BackgroundColor="White" StrokeThickness="0" Padding="15" Margin="0,0,0,4">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="12" />
-                                </Border.StrokeShape>
+                            <Border StrokeShape="RoundRectangle 16,16,16,16"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                    Padding="14,12">
                                 <Border.Shadow>
-                                    <Shadow Brush="Black" Offset="0,2" Radius="4" Opacity="0.08" />
+                                    <Shadow Brush="{AppThemeBinding Light=#15000000, Dark=#10000000}"
+                                           Offset="0,2" Radius="10" Opacity="0.3" />
                                 </Border.Shadow>
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                    <StackLayout Grid.Column="0" Spacing="4">
-                                        <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
-                                        <Label Text="{Binding TriggerCount, StringFormat='Déclenchée {0} fois'}"
-                                               FontSize="12" TextColor="Green" />
-                                        <Label Text="{Binding IsActive, StringFormat='Statut: {0}'}" FontSize="12"
-                                               TextColor="{StaticResource Primary}" />
-                                    </StackLayout>
-                                    <Button Grid.Column="1" Text="❌"
-                                            Clicked="OnDeleteAlertClicked"
-                                            BindingContext="{Binding .}"
-                                            BackgroundColor="Transparent" TextColor="Red" FontSize="14"
-                                            CornerRadius="15" WidthRequest="34" HeightRequest="34" />
-                                </Grid>
+
+                                <VerticalStackLayout Spacing="10">
+                                    <!-- Ligne 1 : Icône + Nom + Actions -->
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                                        <!-- Icône avec indicateur d'état -->
+                                        <Border Grid.Column="0"
+                                                StrokeShape="RoundRectangle 12,12,12,12"
+                                                StrokeThickness="0"
+                                                WidthRequest="44" HeightRequest="44"
+                                                HorizontalOptions="Center" VerticalOptions="Center">
+                                            <Border.Triggers>
+                                                <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="True">
+                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="False">
+                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#F0F0F0, Dark=#2A2A2A}" />
+                                                </DataTrigger>
+                                            </Border.Triggers>
+                                            <Label FontSize="22"
+                                                   HorizontalOptions="Center" VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsActive}" Value="True">
+                                                        <Setter Property="Text" Value="🔔" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsActive}" Value="False">
+                                                        <Setter Property="Text" Value="🔕" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </Border>
+
+                                        <!-- Nom + stats -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                            <Label Text="{Binding Name}"
+                                                   FontSize="15"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1" />
+                                            <HorizontalStackLayout Spacing="4">
+                                                <Border StrokeShape="RoundRectangle 4,4,4,4"
+                                                        StrokeThickness="0"
+                                                        WidthRequest="8" HeightRequest="8"
+                                                        VerticalOptions="Center">
+                                                    <Border.Triggers>
+                                                        <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="True">
+                                                            <Setter Property="BackgroundColor" Value="{StaticResource Vert}" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="BackgroundColor" Value="{StaticResource Rouge}" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                </Border>
+                                                <Label FontSize="11"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                                       Opacity="0.6">
+                                                    <Label.Triggers>
+                                                        <DataTrigger TargetType="Label" Binding="{Binding IsActive}" Value="True">
+                                                            <Setter Property="Text" Value="Active" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Label" Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="Text" Value="Désactivée" />
+                                                        </DataTrigger>
+                                                    </Label.Triggers>
+                                                </Label>
+                                                <Label Text="·" FontSize="11" Opacity="0.5"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                                <Label Text="{Binding TriggerCount, StringFormat='{0} match(s)'}"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <!-- Bouton toggle on/off -->
+                                        <Border Grid.Column="2"
+                                                StrokeShape="RoundRectangle 10,10,10,10"
+                                                StrokeThickness="0"
+                                                WidthRequest="38" HeightRequest="38"
+                                                HorizontalOptions="Center" VerticalOptions="Center">
+                                            <Border.Triggers>
+                                                <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="True">
+                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="False">
+                                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#F0EDE8, Dark=#3A342E}" />
+                                                </DataTrigger>
+                                            </Border.Triggers>
+                                            <Label FontSize="16"
+                                                   HorizontalOptions="Center" VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsActive}" Value="True">
+                                                        <Setter Property="Text" Value="✅" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsActive}" Value="False">
+                                                        <Setter Property="Text" Value="⏸️" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnToggleAlertClicked" />
+                                            </Border.GestureRecognizers>
+                                        </Border>
+
+                                        <!-- Bouton supprimer -->
+                                        <Border Grid.Column="3"
+                                                StrokeShape="RoundRectangle 10,10,10,10"
+                                                StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#FFF0F0, Dark=#3D2222}"
+                                                WidthRequest="38" HeightRequest="38"
+                                                HorizontalOptions="Center" VerticalOptions="Center">
+                                            <Label Text="🗑️" FontSize="16"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnDeleteAlertClicked" />
+                                            </Border.GestureRecognizers>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Ligne 2 : Mots-clés en chips -->
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding Keywords}"
+                                                Wrap="Wrap"
+                                                JustifyContent="Start"
+                                                AlignItems="Center"
+                                                Direction="Row">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <Border StrokeShape="RoundRectangle 8,8,8,8"
+                                                        StrokeThickness="0"
+                                                        BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
+                                                        Padding="8,4"
+                                                        Margin="0,0,6,4">
+                                                    <Label FontSize="11"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="🔍 " FontSize="10" />
+                                                                <Span Text="{Binding .}" FontAttributes="Bold" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+
+                                    <!-- Ligne 3 : Détails (catégories, type, localisation) -->
+                                    <HorizontalStackLayout Spacing="8">
+                                        <!-- Type d'annonce -->
+                                        <Border StrokeShape="RoundRectangle 6,6,6,6"
+                                                StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#E8F0FF, Dark=#2A3040}"
+                                                Padding="6,3">
+                                            <Label FontSize="10"
+                                                   TextColor="{AppThemeBinding Light=#5577AA, Dark=#88AADD}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="📋 " FontSize="9" />
+                                                        <Span Text="{Binding AnnonceType}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </Border>
+                                        <!-- Localisation si renseignée -->
+                                        <Border StrokeShape="RoundRectangle 6,6,6,6"
+                                                StrokeThickness="0"
+                                                BackgroundColor="{AppThemeBinding Light=#E8F5E0, Dark=#2A3D22}"
+                                                Padding="6,3"
+                                                IsVisible="{Binding Location, Converter={StaticResource StringToBoolConverter}}">
+                                            <Label FontSize="10"
+                                                   TextColor="{AppThemeBinding Light={StaticResource VertSauge}, Dark={StaticResource VertSaugeSombre}}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="📍 " FontSize="9" />
+                                                        <Span Text="{Binding Location}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
@@ -177,51 +561,275 @@
             </Grid>
         </Grid>
 
-        <!-- Overlays superposés -->
-        <Grid x:Name="CreateListOverlay" Grid.RowSpan="3" IsVisible="{Binding ShowCreateListDialog}"
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- OVERLAY : CRÉER UNE LISTE                       -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Grid x:Name="CreateListOverlay" Grid.RowSpan="2" IsVisible="{Binding ShowCreateListDialog}"
               BackgroundColor="#80000000">
-            <Border BackgroundColor="White" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center"
-                    Padding="20">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="15" />
-                </Border.StrokeShape>
-                <StackLayout Spacing="15">
-                    <Label Text="Créer une nouvelle liste" FontSize="18" FontAttributes="Bold"
+            <Border StrokeShape="RoundRectangle 22,22,22,22"
+                    StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    WidthRequest="340" VerticalOptions="Center" HorizontalOptions="Center"
+                    Padding="24,22">
+                <Border.Shadow>
+                    <Shadow Brush="#40000000" Offset="0,8" Radius="24" Opacity="0.4" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="📝 Nouvelle liste"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
                            HorizontalOptions="Center" />
-                    <Entry Placeholder="Nom de la liste" Text="{Binding NewListName}" />
-                    <Entry Placeholder="Description (optionnel)" Text="{Binding NewListDescription}" />
-                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Button Text="Annuler" Clicked="OnCancelCreateList" BackgroundColor="Gray" TextColor="White" />
-                        <Button Text="Créer" Command="{Binding CreateListCommand}"
-                                BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                    </HorizontalStackLayout>
-                </StackLayout>
+
+                    <Border StrokeShape="RoundRectangle 10,10,10,10"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                            Padding="12,4">
+                        <Entry Placeholder="Nom de la liste"
+                               PlaceholderColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
+                               Text="{Binding NewListName}"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                               BackgroundColor="Transparent"
+                               FontSize="15" />
+                    </Border>
+
+                    <Border StrokeShape="RoundRectangle 10,10,10,10"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                            Padding="12,4">
+                        <Entry Placeholder="Description (optionnel)"
+                               PlaceholderColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
+                               Text="{Binding NewListDescription}"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                               BackgroundColor="Transparent"
+                               FontSize="15" />
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light=#F0EDE8, Dark=#3A342E}"
+                                Padding="0" HeightRequest="44">
+                            <Button Text="Annuler"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    Padding="0"
+                                    Clicked="OnCancelCreateList" />
+                        </Border>
+                        <Border Grid.Column="1"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                Padding="0" HeightRequest="44">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                    <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Button Text="Créer"
+                                    BackgroundColor="Transparent"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    Padding="0"
+                                    Command="{Binding CreateListCommand}" />
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
             </Border>
         </Grid>
 
-        <Grid x:Name="CreateAlertOverlay" Grid.RowSpan="3" IsVisible="{Binding ShowCreateAlertDialog}"
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- OVERLAY : CRÉER UNE ALERTE                      -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Grid x:Name="CreateAlertOverlay" Grid.RowSpan="2" IsVisible="{Binding ShowCreateAlertDialog}"
               BackgroundColor="#80000000">
-            <Border BackgroundColor="White" WidthRequest="350" VerticalOptions="Center" HorizontalOptions="Center"
-                    Padding="20">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="15" />
-                </Border.StrokeShape>
-                <StackLayout Spacing="15">
-                    <Label Text="Créer une nouvelle alerte" FontSize="18" FontAttributes="Bold"
+            <ScrollView VerticalOptions="Center" HorizontalOptions="Center" MaximumHeightRequest="580">
+            <Border StrokeShape="RoundRectangle 22,22,22,22"
+                    StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    WidthRequest="340" VerticalOptions="Center" HorizontalOptions="Center"
+                    Padding="24,22">
+                <Border.Shadow>
+                    <Shadow Brush="#40000000" Offset="0,8" Radius="24" Opacity="0.4" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="🔔 Nouvelle alerte"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
                            HorizontalOptions="Center" />
-                    <Entry Placeholder="Nom de l'alerte" Text="{Binding NewAlertName}" />
-                    <Entry Placeholder="Mots-clés (séparés par des virgules)" Text="{Binding NewAlertKeywords}" />
-                    <Entry Placeholder="Localisation (optionnel)" Text="{Binding NewAlertLocation}" />
-                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                        <Button Text="Annuler" Clicked="OnCancelCreateAlert" BackgroundColor="Gray" TextColor="White" />
-                        <Button Text="Crer" Command="{Binding CreateAlertCommand}"
-                                BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                    </HorizontalStackLayout>
-                </StackLayout>
+
+                    <Label Text="Recevez une notification quand une annonce correspondante est publiée"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                           Opacity="0.6"
+                           HorizontalTextAlignment="Center" />
+
+                    <!-- Nom de l'alerte -->
+                    <Border StrokeShape="RoundRectangle 10,10,10,10"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}"
+                            BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                            Padding="12,4">
+                        <Entry Placeholder="Nom de l'alerte (ex: Vélo enfant)"
+                               PlaceholderColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
+                               Text="{Binding NewAlertName}"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                               BackgroundColor="Transparent"
+                               FontSize="15" />
+                    </Border>
+
+                    <!-- Mots-clés -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="🔍 Mots-clés"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}"
+                                BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                Padding="12,4">
+                            <Entry Placeholder="vélo, enfant, sport (séparés par virgule)"
+                                   PlaceholderColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
+                                   Text="{Binding NewAlertKeywords}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   BackgroundColor="Transparent"
+                                   FontSize="14" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Type d'annonce -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="📋 Type"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}"
+                                BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                Padding="4,0">
+                            <Picker Title="Type d'annonce"
+                                    TitleColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
+                                    ItemsSource="{Binding AvailableTypes}"
+                                    SelectedItem="{Binding SelectedAlertType}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                    BackgroundColor="Transparent"
+                                    FontSize="14" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Catégories (chips sélectionnables) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="🏷️ Catégories (optionnel)"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <FlexLayout BindableLayout.ItemsSource="{Binding AlertCategoryItems}"
+                                    Wrap="Wrap"
+                                    JustifyContent="Start"
+                                    AlignItems="Center"
+                                    Direction="Row">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="viewModels:AlertCategoryItem">
+                                    <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                            StrokeThickness="1"
+                                            Padding="10,6"
+                                            Margin="0,0,6,6">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFEDE3, Dark=#4D3E34}" />
+                                                <Setter Property="Stroke" Value="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#F5F5F5, Dark=#2A2A2A}" />
+                                                <Setter Property="Stroke" Value="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnCategoryChipTapped" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="{Binding Name}"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+
+                    <!-- Localisation -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="📍 Localisation (optionnel)"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Border StrokeShape="RoundRectangle 10,10,10,10"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light=#20000000, Dark=#20FFFFFF}"
+                                BackgroundColor="{AppThemeBinding Light=#FFFAF5, Dark=#352C24}"
+                                Padding="12,4">
+                            <Entry Placeholder="Ville ou zone (ex: Paris)"
+                                   PlaceholderColor="{AppThemeBinding Light=#B0A89E, Dark=#706A62}"
+                                   Text="{Binding NewAlertLocation}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   BackgroundColor="Transparent"
+                                   FontSize="14" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Boutons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                        <Border Grid.Column="0"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                BackgroundColor="{AppThemeBinding Light=#F0EDE8, Dark=#3A342E}"
+                                Padding="0" HeightRequest="44">
+                            <Button Text="Annuler"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    Padding="0"
+                                    Clicked="OnCancelCreateAlert" />
+                        </Border>
+                        <Border Grid.Column="1"
+                                StrokeShape="RoundRectangle 12,12,12,12"
+                                StrokeThickness="0"
+                                Padding="0" HeightRequest="44">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="{AppThemeBinding Light=#D98C6A, Dark=#B8704E}" Offset="0.0" />
+                                    <GradientStop Color="{AppThemeBinding Light=#E5A07E, Dark=#C47A58}" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Button Text="✨ Créer l'alerte"
+                                    BackgroundColor="Transparent"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    Padding="0"
+                                    Command="{Binding CreateAlertCommand}" />
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
             </Border>
+            </ScrollView>
         </Grid>
-        
+
         <!-- Overlay pour les conseils -->
-        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="3" />
+        <views:TipOverlayView x:Name="TipOverlay" Grid.RowSpan="2" />
     </Grid>
 </ContentPage>
+

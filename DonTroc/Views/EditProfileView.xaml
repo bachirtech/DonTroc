@@ -114,6 +114,93 @@
                 </StackLayout>
             </Border>
 
+            <!-- Section Rappels Push (hors app) -->
+            <Border BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    Padding="15"
+                    Margin="0,10,0,0">
+                <StackLayout Spacing="12">
+                    <Label Text="🔔 Rappels push"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                    
+                    <Label Text="Recevez des rappels même quand l'app est fermée. Vous pouvez choisir les types de rappels à recevoir."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                           LineBreakMode="WordWrap"/>
+
+                    <!-- J1 : Annonces zone -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="📍" FontSize="18" VerticalOptions="Center"/>
+                        <StackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="Nouvelles annonces dans ma zone"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                            <Label Text="Notification si des annonces sont publiées près de chez vous"
+                                   FontSize="10"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        </StackLayout>
+                        <Switch Grid.Column="2"
+                                IsToggled="{Binding ReminderJ1Enabled}"
+                                OnColor="{StaticResource DonTrocPrimary}"
+                                ThumbColor="White"/>
+                    </Grid>
+
+                    <!-- J3 : Streak -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="🔥" FontSize="18" VerticalOptions="Center"/>
+                        <StackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="Streak en danger"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                            <Label Text="Rappel quand votre série quotidienne risque de se casser"
+                                   FontSize="10"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        </StackLayout>
+                        <Switch Grid.Column="2"
+                                IsToggled="{Binding ReminderJ3Enabled}"
+                                OnColor="{StaticResource DonTrocPrimary}"
+                                ThumbColor="White"/>
+                    </Grid>
+
+                    <!-- J7 : Résumé hebdomadaire -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="📊" FontSize="18" VerticalOptions="Center"/>
+                        <StackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="Résumé hebdomadaire"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                            <Label Text="Nombre de vues sur vos annonces cette semaine"
+                                   FontSize="10"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        </StackLayout>
+                        <Switch Grid.Column="2"
+                                IsToggled="{Binding ReminderJ7Enabled}"
+                                OnColor="{StaticResource DonTrocPrimary}"
+                                ThumbColor="White"/>
+                    </Grid>
+
+                    <!-- J14 : Correspondances favoris -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="❤️" FontSize="18" VerticalOptions="Center"/>
+                        <StackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="Annonces correspondant à vos favoris"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+                            <Label Text="Notification quand de nouvelles annonces matchent vos catégories"
+                                   FontSize="10"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        </StackLayout>
+                        <Switch Grid.Column="2"
+                                IsToggled="{Binding ReminderJ14Enabled}"
+                                OnColor="{StaticResource DonTrocPrimary}"
+                                ThumbColor="White"/>
+                    </Grid>
+                </StackLayout>
+            </Border>
+
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
 
             <Button Text="Enregistrer" 

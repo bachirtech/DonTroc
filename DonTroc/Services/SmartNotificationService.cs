@@ -197,10 +197,34 @@ namespace DonTroc.Services
 
         #region Méthodes privées
 
+        /// <summary>
+        /// Route la notification vers la méthode typée appropriée du NotificationService.
+        /// Chaque type utilise son propre canal de notification Android pour un tri clair dans les paramètres.
+        /// </summary>
         private async Task ScheduleNotificationAsync(string title, string message, string type, string itemId)
         {
-            // Utiliser le NotificationService existant mais l'adapter
-            await _notificationService.ShowMessageNotificationAsync(title, message, $"{type}_{itemId}");
+            switch (type)
+            {
+                // Gamification : achievements, level_up, challenges → canal dédié haute priorité
+                case "achievement":
+                case "level_up":
+                case "challenge":
+                    await _notificationService.ShowGamificationNotificationAsync(title, message, type, itemId);
+                    break;
+
+                // Proximité : notifications géolocalisées → canal dédié
+                case "proximity":
+                    await _notificationService.ShowProximityNotificationAsync(title, message, itemId);
+                    break;
+
+                // Suggestions et rappels généraux → canal messages par défaut
+                case "suggestion":
+                case "pickup_reminder":
+                case "urgency":
+                default:
+                    await _notificationService.ShowMessageNotificationAsync(title, message, $"{type}_{itemId}");
+                    break;
+            }
         }
 
         private async Task<List<UserAction>> GetUserHistoryAsync(string userId)

@@ -26,7 +26,7 @@ namespace DonTroc.Services
             _authService = authService;
             // Créer notre propre client Firebase authentifié pour les opérations sociales
             _firebaseClient = new FirebaseClient(
-                "https://dontroc-55570-default-rtdb.europe-west1.firebasedatabase.app/",
+                ConfigurationService.FirebaseUrl,
                 new FirebaseOptions
                 {
                     AuthTokenAsyncFactory = async () => await authService.GetAuthTokenAsync() ?? string.Empty
@@ -181,7 +181,7 @@ namespace DonTroc.Services
                 try
                 {
                     var friend = await _firebaseClient
-                        .Child("users")
+                        .Child("UserProfiles")
                         .Child(friendId)
                         .OnceSingleAsync<UserProfile>();
                     
@@ -234,7 +234,7 @@ namespace DonTroc.Services
             try
             {
                 var user = await _firebaseClient
-                    .Child("users")
+                    .Child("UserProfiles")
                     .Child(userId)
                     .OnceSingleAsync<UserProfile>();
 

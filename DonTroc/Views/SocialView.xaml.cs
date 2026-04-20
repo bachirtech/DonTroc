@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using DonTroc.Models;
+using DonTroc.Services;
 using DonTroc.ViewModels;
 using Microsoft.Maui.Controls;
 
@@ -8,16 +10,24 @@ namespace DonTroc.Views
     public partial class SocialView : ContentPage
     {
         private SocialViewModel? _viewModel;
+        private readonly AdMobService? _adMobService;
 
-        public SocialView(SocialViewModel viewModel)
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(SocialView))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(SocialViewModel))]
+        public SocialView(SocialViewModel viewModel, AdMobService adMobService)
         {
             InitializeComponent();
             BindingContext = _viewModel = viewModel;
+            _adMobService = adMobService;
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
            base.OnAppearing();
+            if (_adMobService != null)
+            {
+                await _adMobService.TryShowInterstitialOnNavigationAsync("Social");
+            }
             if (_viewModel?.LoadSocialDataCommand != null)
             {
                 _viewModel.LoadSocialDataCommand.Execute(null);

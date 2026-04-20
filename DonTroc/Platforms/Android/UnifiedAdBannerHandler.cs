@@ -21,6 +21,7 @@ namespace DonTroc
         private float _density;
         private bool _isInitialized;
         private bool _isLoaded;
+        private bool _isDisposed; // Protection anti-gaspillage : annuler si page quittée
         private AdProvider _activeProvider = AdProvider.None;
 
         // IDs AdMob
@@ -39,9 +40,20 @@ namespace DonTroc
         {
         }
 
+        protected override ContentViewGroup CreatePlatformView()
+        {
+            var view = base.CreatePlatformView();
+            view.SetBackgroundColor(global::Android.Graphics.Color.Transparent);
+            view.SetWillNotDraw(true);
+            return view;
+        }
+
         protected override void ConnectHandler(ContentViewGroup platformView)
         {
             base.ConnectHandler(platformView);
+
+            // Forcer transparent sur toute la hiérarchie dès le départ
+            ForceTransparentRecursive(platformView);
 
             // Déterminer quelle plateforme utiliser
             _activeProvider = GetActiveAdProvider();
@@ -54,9 +66,22 @@ namespace DonTroc
 
             if (_isInitialized) return;
             _isInitialized = true;
+            _isDisposed = false;
             _container = platformView;
 
             _ = InitializeWithDelayAsync(platformView);
+        }
+
+        private static void ForceTransparentRecursive(global::Android.Views.View view)
+        {
+            view.SetBackgroundColor(global::Android.Graphics.Color.Transparent);
+            if (view is ViewGroup vg)
+            {
+                for (int i = 0; i < vg.ChildCount; i++)
+                {
+                    ForceTransparentRecursive(vg.GetChildAt(i)!);
+                }
+            }
         }
 
         private static AdProvider GetActiveAdProvider()
@@ -74,7 +99,25 @@ namespace DonTroc
         {
             try
             {
-                await Task.Delay(100);
+                // Attendre que le SDK soit prêt (max 15s)
+                var maxWait = 30;
+                for (int i = 0; i < maxWait; i++)
+                {
+                    if (_isDisposed) return;
+                    if (DonTroc.Platforms.Android.AdMobNativeService.IsSdkReady) break;
+                    await Task.Delay(500);
+                }
+                
+                // Délai anti-navigation rapide (3 secondes)
+                // Si l'utilisateur quitte la page en moins de 3s, on économise une requête
+                await Task.Delay(3000);
+                
+                if (_isDisposed)
+                {
+                    System.Diagnostics.Debug.WriteLine("[UnifiedBanner] 🚫 Chargement annulé (page quittée avant 3s)");
+                    return;
+                }
+                
                 MainThread.BeginInvokeOnMainThread(() => InitializeAdView(platformView));
             }
             catch (Exception ex)
@@ -85,6 +128,9 @@ namespace DonTroc
 
         private void InitializeAdView(ContentViewGroup container)
         {
+            // Vérification : page quittée entre BeginInvokeOnMainThread et exécution
+            if (_isDisposed) return;
+            
             try
             {
                 var context = container.Context;
@@ -146,6 +192,8 @@ namespace DonTroc
                     AdUnitId = AdMobBannerAdUnitId,
                     AdSize = AdSize.Banner
                 };
+                adView.SetBackgroundColor(global::Android.Graphics.Color.Transparent);
+                adView.Visibility = ViewStates.Invisible; // Masqué jusqu'au chargement
 
                 var adLayoutParams = new FrameLayout.LayoutParams(width, height)
                 {
@@ -186,7 +234,7 @@ namespace DonTroc
                     Gravity = GravityFlags.Center
                 };
                 placeholder.SetTextColor(global::Android.Graphics.Color.Gray);
-                placeholder.SetBackgroundColor(global::Android.Graphics.Color.ParseColor("#F5F5F5"));
+                placeholder.SetBackgroundColor(global::Android.Graphics.Color.Transparent);
 
                 var layoutParams = new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MatchParent,
@@ -224,10 +272,14 @@ namespace DonTroc
 
         protected override void DisconnectHandler(ContentViewGroup platformView)
         {
+            // Marquer comme disposé IMMÉDIATEMENT pour annuler tout chargement en cours
+            _isDisposed = true;
+            
             try
             {
                 if (_adView is AdView adMobView)
                 {
+                    adMobView.Pause(); // Arrêter l'auto-refresh avant destruction
                     adMobView.Destroy();
                 }
                 _adView = null;
@@ -243,6 +295,13 @@ namespace DonTroc
 
         internal void OnAdLoaded()
         {
+            // Si la page est déjà quittée, ne pas afficher → pas d'impression gaspillée
+            if (_isDisposed)
+            {
+                System.Diagnostics.Debug.WriteLine("[UnifiedBanner] 🚫 Bannière chargée mais page quittée — gaspillage évité");
+                return;
+            }
+            
             _isLoaded = true;
 
             if (_adView != null && _container != null)

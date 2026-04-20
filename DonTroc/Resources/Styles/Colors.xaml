@@ -37,13 +37,13 @@
     <Color x:Key="DonTrocCardBackground">#FFFFFF</Color>
     <Color x:Key="DonTrocCardBackgroundDark">#2D2D2D</Color>
 
-    <!-- Couleurs de l'application par défaut (à remplacer progressivement) -->
-    <Color x:Key="Primary">#512BD4</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
+    <!-- Couleurs de l'application par défaut (alignées sur la palette DonTroc) -->
+    <Color x:Key="Primary">#D98C6A</Color>
+    <Color x:Key="PrimaryDark">#B8704E</Color>
     <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#2B0B98</Color>
+    <Color x:Key="Secondary">#A8C686</Color>
+    <Color x:Key="SecondaryDarkText">#8DAE6A</Color>
+    <Color x:Key="Tertiary">#6B7A8F</Color>
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>

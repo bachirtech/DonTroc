@@ -1632,7 +1632,7 @@ namespace DonTroc.ViewModels
         /// <summary>
         /// Nettoyer les abonnements quand la page est fermée
         /// </summary>
-        public new void Dispose()
+        public override void Dispose()
         {
             // Réinitialiser la conversation active pour réactiver les notifications
             _globalNotificationService.SetActiveConversation(null);
