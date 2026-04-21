@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - DonTroc</title>
+    <link rel="alternate" hreflang="fr" href="privacy-policy.html">
+    <link rel="alternate" hreflang="en" href="privacy-policy-en.html">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #512BD4; margin-bottom: 10px; }
+        h2 {
+            color: #512BD4;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #512BD4;
+            padding-bottom: 5px;
+        }
+        h3 { color: #666; margin-top: 20px; margin-bottom: 10px; }
+        p { margin-bottom: 15px; }
+        ul { margin-left: 20px; margin-bottom: 15px; }
+        li { margin-bottom: 8px; }
+        .date { color: #666; font-style: italic; margin-bottom: 30px; }
+        .highlight { background-color: #f0ebff; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .warning {
+            background-color: #fff3e0; padding: 15px; border-radius: 5px;
+            margin: 15px 0; border-left: 4px solid #ff9800;
+        }
+        .contact { background-color: #e8f5e9; padding: 20px; border-radius: 5px; margin-top: 30px; }
+        a { color: #512BD4; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f0ebff; color: #512BD4; }
+        .lang-switcher {
+            display: flex; gap: 8px; justify-content: flex-end;
+            margin-bottom: 20px; font-size: 0.9rem;
+        }
+        .lang-switcher a {
+            text-decoration: none; padding: 6px 12px; border-radius: 6px;
+            border: 1px solid #ddd; color: #666; background: #fafafa;
+        }
+        .lang-switcher a:hover { background: #f0ebff; color: #512BD4; }
+        .lang-switcher a.active {
+            background: #512BD4; color: white; border-color: #512BD4; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-switcher">
+            <a href="privacy-policy.html" hreflang="fr">🇫🇷 Français</a>
+            <a href="privacy-policy-en.html" hreflang="en" class="active">🇬🇧 English</a>
+        </div>
+        <a href="index.html" style="display:inline-block;margin-bottom:20px;color:#512BD4;text-decoration:none;">← Back to home</a>
+
+        <h1>🔒 Privacy Policy</h1>
+        <p class="date">Last updated: April 20, 2026 — Version 2.0</p>
+        
+        <p>Welcome to <strong>DonTroc</strong>, the community app for donations and bartering between individuals. We are committed to protecting your privacy and personal data. This policy explains how we collect, use, and protect your information.</p>
+
+        <h2>1. Information We Collect</h2>
+        
+        <h3>📧 Account Information</h3>
+        <ul>
+            <li><strong>Email</strong>: To create your account and authenticate you</li>
+            <li><strong>Name/Username</strong>: To identify you to other users</li>
+            <li><strong>Profile picture</strong> (optional): To personalize your profile</li>
+            <li><strong>Notification token (FCM Token)</strong>: To send you push notifications</li>
+        </ul>
+
+        <h3>📷 Photos (CAMERA permission)</h3>
+        <div class="highlight">
+            <p><strong>Why we use the camera:</strong></p>
+            <ul>
+                <li>Allow users to take photos of items they wish to donate or swap</li>
+                <li>Camera access is requested only when you tap the "Take a photo" button</li>
+                <li>You can deny this permission and use photos from your gallery instead</li>
+            </ul>
+        </div>
+
+        <h3>📍 Location (LOCATION permissions)</h3>
+        <div class="highlight">
+            <p><strong>Why we use location:</strong></p>
+            <ul>
+                <li>Show items available near you</li>
+                <li>Allow other users to see the approximate area of your listings</li>
+                <li><strong>Proximity notifications</strong>: alert you when a new listing is published within a radius you define (1 to 50 km)</li>
+                <li>Calculate distances between you and available listings</li>
+                <li>Precise location is NEVER shared publicly — only the city/neighborhood is visible</li>
+                <li>Your position is securely stored and used only for distance calculations and proximity notifications</li>
+                <li>You can disable proximity notifications at any time in your profile settings</li>
+                <li>You can fully disable location services in your device settings</li>
+            </ul>
+        </div>
+
+        <h3>💬 Messages</h3>
+        <ul>
+            <li>Messages exchanged between users to organize donations/swaps</li>
+            <li>Typing indicators to enhance the chat experience</li>
+            <li>Messages are securely stored on Firebase</li>
+        </ul>
+
+        <h3>🎮 Gamification Data</h3>
+        <ul>
+            <li>Experience points (XP), level, badges, and completed challenges</li>
+            <li>Usage statistics (number of listings, successful trades, etc.)</li>
+            <li>This data is stored locally on your device and serves only to enhance your experience</li>
+        </ul>
+
+        <h3>🤝 Social Data</h3>
+        <ul>
+            <li>Generated and used referral codes</li>
+            <li>History of listings shared on social networks</li>
+            <li>Friends list and social activities</li>
+        </ul>
+
+        <h3>📊 Interaction Data</h3>
+        <ul>
+            <li>User actions (listing views, favorites, etc.) to improve recommendations</li>
+            <li>Reports of inappropriate content</li>
+            <li>Transaction history (donations and swaps)</li>
+        </ul>
+
+        <h2>2. How We Use Your Data</h2>
+        <ul>
+            <li>✅ Enable the app to function (listings, messages, transactions)</li>
+            <li>✅ Improve your user experience (recommendations, gamification)</li>
+            <li>✅ Send you notifications about your listings, messages, and nearby items</li>
+            <li>✅ Ensure the safety of the platform (moderation, reporting)</li>
+            <li>✅ Display ads to fund the free service</li>
+            <li>✅ Compute anonymous usage statistics</li>
+            <li>❌ We NEVER sell your data to third parties</li>
+        </ul>
+
+        <h2>3. Advertising and Monetization</h2>
+        
+        <div class="warning">
+            <p><strong>⚠️ Important information about ads:</strong></p>
+            <p>DonTroc is a free app funded by advertising. We use <strong>Google AdMob with mediation</strong> to display ads. Mediation lets several partner ad networks bid in real time to deliver the most relevant ads and optimize app monetization.</p>
+        </div>
+
+        <h3>🎯 Advertising Networks</h3>
+        <p>DonTroc uses <strong>Google AdMob</strong> (Google LLC) as its mediation platform. Through this mediation, the following partner networks may serve ads in the app:</p>
+
+        <table>
+            <tr><th>Ad Network</th><th>Provider</th><th>Privacy Policy</th></tr>
+            <tr><td><strong>Google AdMob</strong> (Mediation platform)</td><td>Google LLC</td><td><a href="https://policies.google.com/privacy" target="_blank">Google Policy</a></td></tr>
+            <tr><td><strong>Meta Audience Network</strong></td><td>Meta Platforms, Inc.</td><td><a href="https://www.facebook.com/privacy/policy/" target="_blank">Meta Policy</a></td></tr>
+            <tr><td><strong>Unity Ads</strong></td><td>Unity Technologies</td><td><a href="https://unity.com/legal/privacy-policy" target="_blank">Unity Policy</a></td></tr>
+            <tr><td><strong>Pangle</strong></td><td>ByteDance Ltd.</td><td><a href="https://www.pangleglobal.com/privacy/enduser-en" target="_blank">Pangle Policy</a></td></tr>
+            <tr><td><strong>Liftoff Monetize (Vungle)</strong></td><td>Liftoff Mobile, Inc.</td><td><a href="https://liftoff.io/privacy-policy/" target="_blank">Liftoff Policy</a></td></tr>
+            <tr><td><strong>IronSource (LevelPlay)</strong></td><td>Unity Technologies (ironSource Ltd.)</td><td><a href="https://developers.is.com/ironsource-mobile/air/ironsource-mobile-privacy-policy/" target="_blank">IronSource Policy</a></td></tr>
+            <tr><td><strong>InMobi</strong></td><td>InMobi Pte Ltd.</td><td><a href="https://www.inmobi.com/privacy-policy/" target="_blank">InMobi Policy</a></td></tr>
+        </table>
+
+        <h3>🛡️ GDPR Consent (CMP / UMP — IAB TCF v2.2)</h3>
+        <div class="highlight" style="background-color:#e3f2fd;border-left:4px solid #2196F3;">
+            <p><strong>If you reside in the EEA, UK, Switzerland, or Brazil:</strong></p>
+            <ul>
+                <li>On first launch, an official <strong>Google UMP (User Messaging Platform)</strong> consent form, certified IAB TCF v2.2, is shown</li>
+                <li>You can <strong>accept</strong>, <strong>reject</strong>, or <strong>customize</strong> your consent per purpose (Purposes 1 to 10) and per vendor</li>
+                <li>Refusing does not affect your usage: you will simply see <strong>non-personalized</strong> ads</li>
+                <li>You can <strong>change or withdraw your consent at any time</strong> via: <em>Profile → 🛡️ Ad Privacy</em> (Article 7.3 GDPR)</li>
+                <li>Your preferences are stored locally and transmitted to partners as a TCF string (TC String)</li>
+                <li>DonTroc <strong>does not request</strong> your consent for TCF "Special Features" 1 and 2 (precise geolocation and active device fingerprinting) — intentionally disabled to respect your privacy</li>
+            </ul>
+        </div>
+
+        <h3>📊 Google Analytics & Consent Mode v2</h3>
+        <div class="highlight">
+            <p>DonTroc uses <strong>Google Analytics for Firebase</strong> and <strong>Firebase Crashlytics</strong> to measure audience and fix bugs (pages visited, session duration, key events, crash reports, technical performance).</p>
+            <p><strong>Consent Mode v2:</strong> in EEA/UK/CH, when you reject analytics cookies via the UMP form, Google Analytics operates in <em>cookieless modeling</em> mode — it statistically estimates certain aggregated metrics <strong>without identifying you</strong>. Your TCF signals (Purpose 1) are automatically transmitted to Google Analytics in compliance with European requirements.</p>
+        </div>
+
+        <h3>📋 Types of Ads Displayed</h3>
+        <ul>
+            <li><strong>Banners</strong>: Small ads displayed at the bottom of certain screens</li>
+            <li><strong>Interstitials</strong>: Full-screen ads shown during transitions between certain pages (with frequency capping)</li>
+            <li><strong>Rewarded videos</strong>: Optional video ads you can choose to watch in exchange for rewards (bonus points, listing boosts, etc.)</li>
+        </ul>
+
+        <h3>🔄 How Mediation Works</h3>
+        <div class="highlight">
+            <p><strong>How mediation works:</strong></p>
+            <p>When an ad slot is available, Google AdMob sends a simultaneous request to several partner networks. Each network participates in a real-time auction and the network with the best bid serves its ad. This process is fully automated and transparent for the user.</p>
+        </div>
+
+        <h3>🔐 Data Collected by Ad Networks</h3>
+        <p>Partner ad networks may automatically collect the following information via their SDKs integrated in the app:</p>
+        <ul>
+            <li><strong>Advertising ID</strong> (GAID/IDFA): anonymous device identifier</li>
+            <li><strong>Device information</strong>: model, OS, version, screen size, language</li>
+            <li><strong>Network information</strong>: connection type (Wi-Fi/mobile), carrier</li>
+            <li><strong>Ad performance data</strong>: impressions, clicks, video views</li>
+            <li><strong>Approximate location</strong>: country and region (derived from IP address)</li>
+            <li><strong>Interaction data</strong>: viewing time, ad interactions</li>
+        </ul>
+
+        <div class="warning">
+            <p><strong>⚠️ Each partner ad network is responsible for its own data collection practices.</strong> We invite you to review the privacy policies of each network (links in the table above) to understand how they handle your data.</p>
+        </div>
+
+        <div class="highlight">
+            <p><strong>🛡️ Your choices regarding ads:</strong></p>
+            <ul>
+                <li>You can reset your advertising ID in your device settings</li>
+                <li>You can disable ad personalization (Android Settings &gt; Google &gt; Ads)</li>
+                <li>On iOS, you can limit ad tracking (Settings &gt; Privacy &gt; Tracking)</li>
+                <li>Rewarded videos are always optional — you are never required to watch them</li>
+                <li>Disabling personalization does not prevent ads from being shown but they will be less targeted</li>
+            </ul>
+        </div>
+
+        <h2>3 bis. Voluntary Donations (PayPal & Ko-fi)</h2>
+        <p>DonTroc offers a <strong>voluntary donation</strong> feature to support development. Donations are handled by external third-party platforms — DonTroc <strong>never processes</strong> your payments and <strong>never has access</strong> to your banking information.</p>
+        <ul>
+            <li>Donations are <strong>100% optional</strong> and provide <strong>no exclusive advantage</strong> in the app</li>
+            <li>When you tap "PayPal" or "Ko-fi", you are redirected to the official corresponding website (external browser or native app)</li>
+            <li><strong>PayPal</strong> (PayPal Holdings, Inc.) — <a href="https://www.paypal.com/myaccount/privacy/privacyhub" target="_blank">PayPal Privacy Policy</a></li>
+            <li><strong>Ko-fi</strong> (Ko-fi Labs Ltd.) — <a href="https://ko-fi.com/manage/privacy" target="_blank">Ko-fi Privacy Policy</a></li>
+            <li>Once redirected, your data (name, email, payment information) is collected and processed <strong>solely</strong> by PayPal or Ko-fi under their own terms</li>
+            <li>DonTroc receives no notification, user identifier, or transaction information from these platforms</li>
+            <li>No payment information is stored by DonTroc</li>
+            <li>To cancel or get a refund for a donation, contact PayPal or Ko-fi support directly</li>
+        </ul>
+
+        <h2>3 ter. Push Notifications (Firebase Cloud Messaging)</h2>
+        <p>DonTroc sends several categories of notifications via <strong>Firebase Cloud Messaging (FCM)</strong>:</p>
+        <ul>
+            <li><strong>Transactional</strong>: new message, barter proposal, rating received</li>
+            <li><strong>Proximity</strong>: new listing in your area (configurable radius 1-50 km)</li>
+            <li><strong>Retention</strong>: periodic reminders to re-engage inactive users</li>
+            <li><strong>Smart</strong>: personalized suggestions based on your interests and history</li>
+            <li><strong>Gamification</strong>: new badge, challenge, level-up, leaderboard rank</li>
+            <li><strong>Tips & tricks</strong>: to make the most of the app</li>
+        </ul>
+        <p>You can disable each notification category from your profile or your device settings. The FCM token is revocable and removed upon uninstall.</p>
+
+        <h2>3 quater. In-App Updates (Google Play In-App Update)</h2>
+        <p>DonTroc uses the <strong>Google Play In-App Update</strong> API to offer new versions without leaving the app:</p>
+        <ul>
+            <li>No personal data is collected by this feature</li>
+            <li>Only the installed version number is compared with the one available on Google Play</li>
+            <li>Downloads are performed directly by Google Play, not by DonTroc</li>
+            <li>Two modes: <em>flexible</em> (background download) and <em>immediate</em> (blocking critical update)</li>
+        </ul>
+
+        <h2>3 quinquies. Extended Gamification (Quiz, Leaderboard, Ratings)</h2>
+        <ul>
+            <li><strong>Eco quizzes</strong>: anonymized answers, used only to compute your rewards and improve educational content</li>
+            <li><strong>Leaderboard</strong>: your username and score are publicly visible by default — you can disable this in your profile</li>
+            <li><strong>Rating system</strong>: ratings (1-5 stars) and comments given/received are visible on public profiles</li>
+            <li><strong>Trust badges</strong>: automatically computed (account age, successful transactions, average rating)</li>
+            <li><strong>Personalized recommendations</strong>: local algorithm based on your viewing history and favorites</li>
+        </ul>
+
+        <h2>4. Sharing Data with Third Parties</h2>
+        <p>Your data is shared with the following third-party services, only to the extent necessary for the app to function:</p>
+        <ul>
+            <li><strong>Firebase / Google Cloud</strong>: Authentication, real-time database, push notifications</li>
+            <li><strong>Cloudinary</strong>: Secure hosting for listing and profile photos</li>
+            <li><strong>Google AdMob</strong>: Ad mediation platform funding the free app</li>
+            <li><strong>Meta Audience Network</strong>: Partner ad network (via AdMob mediation)</li>
+            <li><strong>Unity Ads</strong>: Partner ad network (via AdMob mediation)</li>
+            <li><strong>Pangle (ByteDance)</strong>: Partner ad network (via AdMob mediation)</li>
+            <li><strong>Liftoff Monetize / Vungle</strong>: Partner ad network (via AdMob mediation)</li>
+            <li><strong>IronSource / LevelPlay</strong>: Partner ad network (via AdMob mediation)</li>
+            <li><strong>Other users</strong>: Only the information you choose to make public (listings, username, approximate city)</li>
+        </ul>
+
+        <h2>5. Data Security</h2>
+        <ul>
+            <li>🔐 All communications are encrypted (HTTPS/TLS)</li>
+            <li>🔐 Passwords are hashed and never stored in plain text</li>
+            <li>🔐 Authentication is handled by Firebase Authentication (Google)</li>
+            <li>🔐 Data is stored on secure Google Cloud servers</li>
+            <li>🔐 Image uploads use a secure signature (Cloudinary)</li>
+            <li>🔐 Firebase access rules are strictly defined (each user can only modify their own data)</li>
+        </ul>
+
+        <h2>6. Your Rights</h2>
+        <p>In accordance with GDPR and applicable regulations, you have the right to:</p>
+        <ul>
+            <li><strong>Access</strong> your personal data</li>
+            <li><strong>Rectify</strong> your information</li>
+            <li><strong>Delete</strong> your account and all your data</li>
+            <li><strong>Export</strong> your data</li>
+            <li><strong>Withdraw</strong> your consent at any time</li>
+            <li><strong>Disable</strong> ad personalization via your device settings</li>
+            <li><strong>Disable</strong> proximity notifications in your profile settings</li>
+        </ul>
+        <p>To exercise these rights, contact us at the address below or use the account management options in the app.</p>
+
+        <h2>7. Data Retention</h2>
+        <ul>
+            <li>Your data is kept as long as your account is active</li>
+            <li>When your account is deleted, all your data is removed within 30 days</li>
+            <li>Expired listings are automatically deleted after 90 days</li>
+            <li>Gamification data is deleted with your account</li>
+            <li>Anonymized advertising data may be kept by partner ad networks (Google AdMob, Meta, Unity, Pangle, Liftoff, IronSource, InMobi) according to their own retention policies</li>
+            <li>Donation transactions are handled entirely by <strong>PayPal</strong> and <strong>Ko-fi</strong>. DonTroc keeps no record; applicable retention periods are those of these third-party platforms (typically 5 to 10 years for their own accounting and tax obligations)</li>
+            <li>Technical logs (Firebase Crashlytics crashes) are kept for <strong>90 days</strong> then automatically deleted</li>
+            <li>The FCM token (push notifications) is removed immediately upon app uninstall</li>
+        </ul>
+
+        <h2>8. Cookies and Similar Technologies</h2>
+        <p>DonTroc does not use web cookies. However, the advertising SDKs integrated in the app (Google AdMob, Meta Audience Network, Unity Ads, Pangle, Liftoff/Vungle, IronSource) may use similar technologies (advertising identifiers, local storage, device fingerprinting) for ad serving and performance measurement. See the respective privacy policies of each network (see Section 3) for more details.</p>
+
+        <h2>9. International Data Transfers</h2>
+        <p>Your data may be transferred and stored on servers located outside your country of residence, including:</p>
+        <ul>
+            <li><strong>United States</strong>: Google (Firebase, AdMob), Meta (Audience Network), Unity Technologies, Liftoff/Vungle</li>
+            <li><strong>European Union</strong>: Firebase Realtime Database (European servers)</li>
+            <li><strong>China / Singapore</strong>: ByteDance (Pangle)</li>
+            <li><strong>Israel</strong>: ironSource (LevelPlay)</li>
+            <li><strong>India / Singapore</strong>: InMobi</li>
+        </ul>
+        <p>These transfers are governed by standard contractual clauses or other protection mechanisms compliant with applicable regulations (GDPR, EU Commission's standard contractual clauses).</p>
+
+        <h2>10. Minors</h2>
+        <p>DonTroc is not intended for children under 13. We do not knowingly collect personal data from children under 13. Ads displayed are configured to not target minors.</p>
+
+        <h2>11. Changes to This Policy</h2>
+        <p>We may update this privacy policy at any time. Significant changes will be notified in the app. The last update date is shown at the top of this document.</p>
+
+        <div class="contact">
+            <h2>📬 Contact Us</h2>
+            <p>For any questions regarding this privacy policy, your personal data, or to exercise your rights:</p>
+            <ul>
+                <li><strong>Email</strong>: <a href="mailto:bachirdev.pro@gmail.com">bachirdev.pro@gmail.com</a></li>
+                <li><strong>Developer</strong>: Bassirou Balde (BachirDev)</li>
+            </ul>
+            <p style="margin-top: 15px;">
+                <a href="terms-en.html">📜 See our Terms of Use</a>
+            </p>
+        </div>
+
+        <p style="margin-top: 30px; text-align: center; color: #666;">
+            © 2025-2026 DonTroc - BachirDev. All rights reserved.
+        </p>
+    </div>
+</body>
+</html>
+

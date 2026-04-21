@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conditions d'utilisation - DonTroc</title>
+    <link rel="alternate" hreflang="fr" href="terms.html">
+    <link rel="alternate" hreflang="en" href="terms-en.html">
     <style>
         * {
             margin: 0;
@@ -87,10 +89,26 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        .lang-switcher {
+            display: flex; gap: 8px; justify-content: flex-end;
+            margin-bottom: 20px; font-size: 0.9rem;
+        }
+        .lang-switcher a {
+            text-decoration: none; padding: 6px 12px; border-radius: 6px;
+            border: 1px solid #ddd; color: #666; background: #fafafa;
+        }
+        .lang-switcher a:hover { background: #f0ebff; color: #512BD4; }
+        .lang-switcher a.active {
+            background: #512BD4; color: white; border-color: #512BD4; font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="lang-switcher">
+            <a href="terms.html" hreflang="fr" class="active">🇫🇷 Français</a>
+            <a href="terms-en.html" hreflang="en">🇬🇧 English</a>
+        </div>
         <a href="index.html" class="back-link">← Retour à l'accueil</a>
         
         <h1>📜 Conditions d'utilisation</h1>
