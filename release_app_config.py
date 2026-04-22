@@ -20,6 +20,9 @@ DEFAULT_RELEASE_NOTES = (
 DEFAULT_UPDATE_MESSAGE = (
     "Une nouvelle version de DonTroc est disponible avec des am\u00e9liorations et corrections."
 )
+# URL par defaut pour Android : page GitHub Pages hebergeant l'APK officiel
+# (DonTroc n'est plus distribuee via le Play Store).
+DEFAULT_ANDROID_UPDATE_URL = "https://bachirtech.github.io/DonTroc/download.html"
 def read_csproj_versions():
     content = CSPROJ.read_text(encoding="utf-8")
     code_match = re.search(r"<ApplicationVersion>(\d+)</ApplicationVersion>", content)
@@ -57,6 +60,10 @@ def main():
     parser.add_argument("--message", default=DEFAULT_UPDATE_MESSAGE)
     parser.add_argument("--force-update", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--android-url", default=DEFAULT_ANDROID_UPDATE_URL,
+                        help="URL custom (page download APK) pour Android. Vide = fallback Play Store.")
+    parser.add_argument("--ios-url", default="",
+                        help="URL custom pour iOS. Vide = fallback App Store.")
     parser.add_argument("--sync-only", action="store_true",
                         help="Synchronise uniquement iOS Info.plist depuis le csproj")
     args = parser.parse_args()
@@ -77,7 +84,9 @@ def main():
         "update_message": args.message,
         "release_notes": release_notes,
     }
-    data = {"android": platform_cfg, "ios": dict(platform_cfg)}
+    android_cfg = dict(platform_cfg, update_url=args.android_url)
+    ios_cfg = dict(platform_cfg, update_url=args.ios_url)
+    data = {"android": android_cfg, "ios": ios_cfg}
     CONFIG_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"{CONFIG_FILE.name} regenere en UTF-8")

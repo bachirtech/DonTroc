@@ -95,3 +95,5 @@ keystore/
 *.keystore
 signing.properties
 keystore/maps.properties
+# APKs hosted via GitHub Releases (too big for git: > 100 MB)
+docs/downloads/*.apk
