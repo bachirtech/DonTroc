@@ -1,0 +1,29 @@
+# app-ads.txt for DonTroc (com.bachirdev.dontroc)
+# Reference: https://iabtechlab.com/app-ads-txt/
+# Update this file from AdMob console: Apps -> app-ads.txt -> View
+
+# === Google AdMob (DIRECT) ===
+google.com, pub-5085236088670848, DIRECT, f08c47fec0942fa0
+
+# === Mediation partners ===
+# IMPORTANT: copy/paste the lines below from each network's publisher dashboard.
+# AdMob can also generate the full file: https://apps.admob.com/v2/apps/list -> app-ads.txt
+
+# --- Unity Ads ---
+# unityads.unity3d.com, <YOUR_UNITY_ORG_ID>, DIRECT, 96cabb5fbdde37a9
+
+# --- Pangle (ByteDance) ---
+# pangle.io, <YOUR_PANGLE_PUB_ID>, DIRECT, 0fcb6adfb05d0fdd
+
+# --- Vungle / Liftoff ---
+# liftoff.io, <YOUR_LIFTOFF_PUB_ID>, DIRECT, e94ade0d27c61056
+
+# --- IronSource ---
+# ironsourceads.com, <YOUR_IRONSOURCE_PUB_ID>, DIRECT, c6263d5a37398d2b
+
+# --- InMobi ---
+# inmobi.com, <YOUR_INMOBI_PUB_ID>, DIRECT, 83e75a7ae333ca9d
+
+# --- Meta Audience Network (si actif) ---
+# facebook.com, <YOUR_FACEBOOK_PUB_ID>, DIRECT, c3e20eee3f780d68
+
