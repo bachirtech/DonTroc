@@ -1,0 +1,34 @@
+DonTroc - Don & Troc d'Objets
+Copyright (c) 2024-2026 Bassirou Balde (BachirDev)
+All rights reserved.
+
+This source code, including but not limited to all files in this repository
+(C#, XAML, configuration files, assets, documentation), is the exclusive
+intellectual property of Bassirou Balde, registered as Auto-Entrepreneur
+in Morocco.
+
+NO LICENSE IS GRANTED. This is proprietary software.
+
+You may NOT, without explicit prior written permission from the copyright
+holder:
+  - Copy, fork, mirror, distribute or republish this code in whole or in part
+  - Use this code (or any derivative work) in your own application,
+    commercial or non-commercial
+  - Remove or alter any copyright, trademark or attribution notice
+  - Reverse engineer the compiled application beyond what is allowed by
+    applicable law
+
+The "DonTroc" name, logo, color palette and brand identity are trademarks
+of Bassirou Balde and are protected by trademark law.
+
+Third-party libraries used in this project (e.g. .NET MAUI, Firebase SDK,
+Google AdMob SDK, Plugin.Firebase) remain subject to their respective
+open-source licenses and are not covered by this notice.
+
+For inquiries, partnerships, licensing requests or copyright concerns:
+    Email : bachirdev.pro@gmail.com
+    Web   : https://bachirtech.github.io/DonTroc/
+
+This file constitutes proof of authorship under the Berne Convention
+and may be used as evidence in copyright disputes.
+

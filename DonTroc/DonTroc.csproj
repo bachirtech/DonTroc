@@ -36,7 +36,7 @@
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
 		<ApplicationDisplayVersion>2.0</ApplicationDisplayVersion>
-		<ApplicationVersion>28</ApplicationVersion>
+		<ApplicationVersion>30</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -124,6 +124,17 @@
 		<AndroidUseAapt2>true</AndroidUseAapt2>
 		<AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
 		
+		<!-- ============================================================ -->
+		<!-- OPTIMISATION TAILLE AAB (build 31) :                         -->
+		<!-- Limiter aux 2 ABIs Android utiles en 2026 :                  -->
+		<!--   - arm64-v8a : 95% des téléphones modernes (téléchargement) -->
+		<!--   - armeabi-v7a : ~5% des téléphones anciens (compat 32-bit) -->
+		<!-- Suppression de x86 + x86_64 (émulateurs uniquement, pas de   -->
+		<!-- vrais téléphones x86 sur Play Store).                         -->
+		<!-- Gain : -30 à -40 MB sur l'AAB final.                          -->
+		<!-- ============================================================ -->
+		<RuntimeIdentifiers>android-arm64;android-arm</RuntimeIdentifiers>
+		
 		<!-- Utiliser D8 sans R8 pour éviter le conflit de classes dupliquées AndroidX Compose -->
 		<AndroidDexTool>d8</AndroidDexTool>
 		<!-- IMPORTANT: Désactiver R8 (AndroidLinkTool vide) pour éviter l'erreur -->
@@ -141,12 +152,22 @@
 		<!-- des assemblies explicitement marquées [IsTrimmable].          -->
 		<!-- ============================================================ -->
 		
-		<!-- Linking Android SDK uniquement -->
-		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
-		
-		<!-- Trimming partiel obligatoire pour le build Android -->
-		<PublishTrimmed>true</PublishTrimmed>
-		<TrimMode>partial</TrimMode>
+		<!-- ============================================================ -->
+		<!-- FIX CRASH RELEASE v5 (build 30) :                            -->
+		<!-- Désactivation complète du trimming + AndroidLinkMode=None    -->
+		<!--                                                               -->
+		<!-- PROBLÈME : avec SdkOnly + PublishTrimmed=true (TrimMode=     -->
+		<!-- partial), le trimmer supprimait du code dans les assemblies  -->
+		<!-- marquées [IsTrimmable] (Microsoft.Maui.*, Microsoft.Ext.*),   -->
+		<!-- ce qui cassait la résolution DI / les bindings XAML compilés -->
+		<!-- de pages comme RewardsPage, EditAnnonceView,                 -->
+		<!-- TradeProposalsListPage, etc.                                  -->
+		<!--                                                               -->
+		<!-- SOLUTION : trimming OFF. AAB ~5-8 MB plus gros mais 0 crash. -->
+		<!-- ============================================================ -->
+		<AndroidLinkMode>None</AndroidLinkMode>
+		<PublishTrimmed>false</PublishTrimmed>
+		<TrimMode>copy</TrimMode>
 		<TrimmerRemoveSymbols>false</TrimmerRemoveSymbols>
 		
 		<!-- ============================================================ -->

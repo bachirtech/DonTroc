@@ -138,7 +138,7 @@ public class AppUpdateService
         while (true)
         {
             await page.DisplayAlert(title, message, "Mettre à jour");
-            OpenStore();
+            OpenStore(config.update_url);
             // Laisse le temps d'ouvrir le store ; quand l'utilisateur revient, on re-propose.
             await Task.Delay(2000);
         }
@@ -172,7 +172,7 @@ public class AppUpdateService
         var update = await page.DisplayAlert(title, message, "Mettre à jour", "Plus tard");
         if (update)
         {
-            OpenStore();
+            OpenStore(config.update_url);
         }
         else
         {
@@ -214,10 +214,18 @@ public class AppUpdateService
     /// </summary>
     public Task ResumeIfNeededAsync() => _inAppUpdate.ResumeIfImmediateUpdatePendingAsync();
 
-    private void OpenStore()
+    private void OpenStore(string? customUrl = null)
     {
         try
         {
+            // 🆕 Si une URL custom est fournie via Firebase (ex. page GitHub Pages
+            // hébergeant l'APK), on l'ouvre en priorité — utile quand l'app n'est
+            // plus distribuée via le Play Store.
+            if (!string.IsNullOrWhiteSpace(customUrl))
+            {
+                _ = Launcher.OpenAsync(new Uri(customUrl));
+                return;
+            }
 #if ANDROID
             var packageName = AppInfo.PackageName;
             // D'abord tenter l'intent Play Store natif
@@ -251,6 +259,11 @@ public class AppUpdateService
         public int min_required_version_code { get; set; }
         public string update_message { get; set; } = string.Empty;
         public string release_notes { get; set; } = string.Empty;
+        /// <summary>
+        /// URL personnalisée vers laquelle envoyer l'utilisateur pour récupérer la nouvelle version
+        /// (page GitHub Pages, lien APK direct, etc.). Si vide → fallback Play Store / App Store.
+        /// </summary>
+        public string update_url { get; set; } = string.Empty;
     }
 }
 
