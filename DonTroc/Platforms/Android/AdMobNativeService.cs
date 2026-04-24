@@ -23,8 +23,8 @@ namespace DonTroc.Platforms.Android
     /// </summary>
     public class AdMobNativeService : Java.Lang.Object, IAdMobService
     {
-        private const string RewardedAdUnitId = "ca-app-pub-5085236088670848/1650434769";
-        private const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8273475447";
+        private const string RewardedAdUnitId = "ca-app-pub-5085236088670848/4273402055";
+        private const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8212647060";
         private InterstitialAd? _interstitialAd;
         private bool _isInitialized;
         private RewardedAd? _rewardedAd;

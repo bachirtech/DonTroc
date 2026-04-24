@@ -38,7 +38,7 @@ namespace DonTroc
     [global::Android.Runtime.Preserve(AllMembers = true)]
     public class AdMobBannerHandler : ContentViewHandler
     {
-        private const string BannerAdUnitId = "ca-app-pub-5085236088670848/1004542862";
+        private const string BannerAdUnitId = "ca-app-pub-5085236088670848/4140917995";
         
         private AdView? _adView;
         private ContentViewGroup? _container;

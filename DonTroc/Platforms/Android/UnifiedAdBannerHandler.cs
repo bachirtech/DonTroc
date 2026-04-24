@@ -25,7 +25,7 @@ namespace DonTroc
         private AdProvider _activeProvider = AdProvider.None;
 
         // IDs AdMob
-        private const string ProductionAdMobBannerAdUnitId = "ca-app-pub-5085236088670848/2349645674";
+        private const string ProductionAdMobBannerAdUnitId = "ca-app-pub-5085236088670848/2935647536";
         // ID de test Google (affiche toujours une bannière test)
         private const string TestAdMobBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111";
         

@@ -23,9 +23,9 @@ namespace DonTroc.Services
         private readonly IAdMobService _platformService;
 
         // IDs de production AdMob
-        public const string RewardedAdUnitId = "ca-app-pub-5085236088670848/1650434769";
-        public const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8273475447";
-        public const string BannerAdUnitId = "ca-app-pub-5085236088670848/1004542862";
+        public const string RewardedAdUnitId = "ca-app-pub-5085236088670848/4273402055";
+        public const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8212647060";
+        public const string BannerAdUnitId = "ca-app-pub-5085236088670848/4140917995";
 
         // ── Protection anti-suspension : Limites interstitiels ──
         private int _navigationCount;
