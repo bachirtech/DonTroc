@@ -123,6 +123,46 @@ public class MainActivity : MauiAppCompatActivity
                     };
                 }
 
+                // 🆕 Notification FCM "migration / mise à jour" :
+                //   data: { action: "open_url", url: "https://...", type: "app_update" }
+                // → ouvrir l'URL fournie (page de téléchargement) ET forcer un check de MAJ
+                //   pour faire apparaître la popup même si elle a été récemment "snooze".
+                if (targetRoute == null)
+                {
+                    var action = intent.GetStringExtra("action");
+                    var url = intent.GetStringExtra("url");
+                    var notifType = intent.GetStringExtra("type");
+
+                    if (string.Equals(action, "open_url", StringComparison.OrdinalIgnoreCase)
+                        && !string.IsNullOrWhiteSpace(url))
+                    {
+                        try
+                        {
+                            _ = Microsoft.Maui.ApplicationModel.Launcher.OpenAsync(new Uri(url));
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[MainActivity] Launcher.OpenAsync failed: {ex.Message}");
+                        }
+                    }
+
+                    if (string.Equals(notifType, "app_update", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(action, "open_url", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Forcer la popup de MAJ (ignore cooldown 24h + dismissed)
+                        try
+                        {
+                            var svc = IPlatformApplication.Current?.Services
+                                .GetService(typeof(Services.AppUpdateService)) as Services.AppUpdateService;
+                            _ = svc?.ForceCheckAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[MainActivity] ForceCheckAsync failed: {ex.Message}");
+                        }
+                    }
+                }
+
                 // Cloud Functions push : traiter le click_action des data FCM
                 if (targetRoute == null)
                 {

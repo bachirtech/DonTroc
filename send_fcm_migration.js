@@ -19,17 +19,17 @@ const DOWNLOAD_URL = 'https://bachirtech.github.io/DonTroc/download.html';
 const message = {
   topic: 'all_users',
   notification: {
-    title: '📦 DonTroc : nouvelle façon de mettre à jour',
+    title: '🆕 DonTroc 2.1 disponible',
     body:
-      "DonTroc n'est plus disponible sur le Play Store. " +
-      'Téléchargez la dernière version (2.0) directement depuis notre site officiel.',
+      "Une mise à jour importante de DonTroc est disponible. " +
+      "Téléchargez la nouvelle version (2.1) depuis notre site officiel.",
   },
   data: {
     action: 'open_url',
     url: DOWNLOAD_URL,
     type: 'app_update',
-    version: '2.0',
-    version_code: '30',
+    version: '2.1',
+    version_code: '31',
   },
   android: {
     priority: 'high',

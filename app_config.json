@@ -1,19 +1,18 @@
 {
   "android": {
-    "latest_version_code": 30,
-    "latest_version_name": "2",
+    "latest_version_code": 32,
+    "latest_version_name": "2.1",
     "min_required_version_code": 0,
-    "update_message": "📦 DonTroc n'est plus distribuée via le Play Store ! Téléchargez la dernière version directement depuis notre site officiel.",
-    "release_notes": "- 📥 Téléchargement direct depuis dontroc.com\n- 🤝 Système de propositions de troc structurées\n- 🎯 Amis & Parrainage modernisés\n- 🧠 Recommandations personnalisées\n- 🐛 Corrections et optimisations",
+    "update_message": "DonTroc 2.1 (build 32) disponible : telechargez la nouvelle version pour beneficier des dernieres ameliorations.",
+    "release_notes": "🐛 Corrections de bugs\n⚡ Amelioration de la stabilite\n🔄 Systeme de mise a jour automatique",
     "update_url": "https://bachirtech.github.io/DonTroc/download.html"
   },
   "ios": {
-    "latest_version_code": 30,
-    "latest_version_name": "2",
+    "latest_version_code": 32,
+    "latest_version_name": "2.1",
     "min_required_version_code": 0,
-    "update_message": "Une nouvelle version de DonTroc est disponible avec des améliorations et corrections.",
-    "release_notes": "- 🤝 Système de propositions de troc structurées\n- 🎯 Amis & Parrainage modernisés\n- 🧠 Recommandations personnalisées\n- 🐛 Corrections et optimisations",
+    "update_message": "DonTroc 2.1 (build 32) disponible : telechargez la nouvelle version pour beneficier des dernieres ameliorations.",
+    "release_notes": "🐛 Corrections de bugs\n⚡ Amelioration de la stabilite\n🔄 Systeme de mise a jour automatique",
     "update_url": ""
   }
 }
-

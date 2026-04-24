@@ -58,7 +58,16 @@ public class AppUpdateService
     /// Vérifie si une mise à jour est disponible et affiche la popup appropriée.
     /// Fire-and-forget safe : tout est enveloppé dans try/catch.
     /// </summary>
-    public async Task CheckForUpdateAsync()
+    public Task CheckForUpdateAsync() => CheckForUpdateInternalAsync(force: false);
+
+    /// <summary>
+    /// Force une vérification immédiate en ignorant le cooldown 24h ET le "Plus tard"
+    /// précédemment choisi pour cette version. Utilisé quand l'utilisateur clique sur
+    /// une notification push de migration / mise à jour.
+    /// </summary>
+    public Task ForceCheckAsync() => CheckForUpdateInternalAsync(force: true);
+
+    private async Task CheckForUpdateInternalAsync(bool force)
     {
         try
         {
@@ -78,7 +87,7 @@ public class AppUpdateService
             if (!int.TryParse(AppInfo.BuildString, out var currentBuild))
                 currentBuild = 0;
 
-            Debug.WriteLine($"[AppUpdate] Build actuel={currentBuild}, dernier={config.latest_version_code}, min={config.min_required_version_code}");
+            Debug.WriteLine($"[AppUpdate] Build actuel={currentBuild}, dernier={config.latest_version_code}, min={config.min_required_version_code}, force={force}");
 
             // 1) Force update
             if (config.min_required_version_code > 0 && currentBuild < config.min_required_version_code)
@@ -90,18 +99,29 @@ public class AppUpdateService
             // 2) Soft update
             if (config.latest_version_code > 0 && currentBuild < config.latest_version_code)
             {
-                // Ne pas harceler : max 1 fois par 24h, et ignorer si l'utilisateur a déjà refusé cette version
-                var dismissed = Preferences.Default.Get(DismissedVersionKey, 0);
-                if (dismissed == config.latest_version_code)
-                    return;
+                if (!force)
+                {
+                    // Ne pas harceler : max 1 fois par 24h, et ignorer si l'utilisateur a déjà refusé cette version
+                    var dismissed = Preferences.Default.Get(DismissedVersionKey, 0);
+                    if (dismissed == config.latest_version_code)
+                        return;
 
-                var lastReminderTicks = Preferences.Default.Get(SoftReminderKey, 0L);
-                var lastReminder = lastReminderTicks > 0 ? new DateTime(lastReminderTicks) : DateTime.MinValue;
-                if (DateTime.UtcNow - lastReminder < SoftReminderCooldown)
-                    return;
+                    var lastReminderTicks = Preferences.Default.Get(SoftReminderKey, 0L);
+                    var lastReminder = lastReminderTicks > 0 ? new DateTime(lastReminderTicks) : DateTime.MinValue;
+                    if (DateTime.UtcNow - lastReminder < SoftReminderCooldown)
+                        return;
+                }
 
-                Preferences.Default.Set(SoftReminderKey, DateTime.UtcNow.Ticks);
-                await MainThread.InvokeOnMainThreadAsync(() => ShowSoftUpdateAsync(config));
+                // ⚠️ Le cooldown ne doit être enregistré qu'APRÈS affichage réel de la popup,
+                // sinon une exception silencieuse ferait perdre 24h sans que l'utilisateur ait rien vu.
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    var shown = await ShowSoftUpdateAsync(config);
+                    if (shown && !force)
+                    {
+                        Preferences.Default.Set(SoftReminderKey, DateTime.UtcNow.Ticks);
+                    }
+                });
             }
         }
         catch (Exception ex)
@@ -144,7 +164,7 @@ public class AppUpdateService
         }
     }
 
-    private async Task ShowSoftUpdateAsync(AppUpdateConfig config)
+    private async Task<bool> ShowSoftUpdateAsync(AppUpdateConfig config)
     {
         // 🆕 Tentative Play In-App Update Flexible (Android) — DL en arrière-plan, UX premium
         if (_inAppUpdate.IsSupported)
@@ -153,13 +173,13 @@ public class AppUpdateService
             if (result == InAppUpdateResult.FlowStarted)
             {
                 Debug.WriteLine("[AppUpdate] Flow Flexible démarré, téléchargement en arrière-plan");
-                return;
+                return true;
             }
             Debug.WriteLine($"[AppUpdate] Play In-App Update Flexible indisponible ({result}) → fallback popup");
         }
 
         var page = Application.Current?.MainPage;
-        if (page == null) return;
+        if (page == null) return false;
 
         var title = $"✨ Nouvelle version {config.latest_version_name} disponible";
         var message = string.IsNullOrWhiteSpace(config.update_message)
@@ -179,6 +199,7 @@ public class AppUpdateService
             // L'utilisateur a dit « Plus tard » → mémoriser pour ne plus redemander pour cette version.
             Preferences.Default.Set(DismissedVersionKey, config.latest_version_code);
         }
+        return true;
     }
 
     /// <summary>
