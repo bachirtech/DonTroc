@@ -9,8 +9,7 @@ namespace DonTroc.Services
     public static class AdMobConfiguration
     {
         
-        /// STATUT ACTUEL: ✅ RÉACTIVÉ - Suspension levée (période expirée depuis le 19 février 2026)
-        /// </summary>
+        // Variable qui active la configuration Admob
         public const bool ADS_ENABLED = true;
 
         /// <summary>

@@ -72,7 +72,7 @@ namespace DonTroc.Services
         /// Vérifie si l'utilisateur a un mode sans pub actif
         /// (achat permanent OU récompense temporaire via rewarded ad)
         /// </summary>
-        private bool IsAdFreeActive()
+        public bool IsAdFreeActive()
         {
             try
             {
@@ -82,7 +82,7 @@ namespace DonTroc.Services
                     return true;
                 }
 
-                // 2. Vérifier la récompense temporaire (rewarded ad → 2h sans pub)
+                // 2. Vérifier la récompense temporaire (rewarded ad → 30mn sans pub)
                 var adFreeUntilTicks = Preferences.Get("AdFreeUntil", 0L);
                 if (adFreeUntilTicks > 0)
                 {

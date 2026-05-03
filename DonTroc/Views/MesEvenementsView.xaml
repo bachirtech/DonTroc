@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:DataType="viewModels:MesEvenementsViewModel"
+             x:Class="DonTroc.Views.MesEvenementsView"
+             x:Name="ThisPage"
+             Title="Mes événements"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="14" Spacing="20">
+
+                <!-- Créés -->
+                <VerticalStackLayout IsVisible="{Binding HasCreated}" Spacing="10">
+                    <Label Text="🛠️ Événements que j'ai créés" FontAttributes="Bold" FontSize="16"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    <CollectionView ItemsSource="{Binding CreatedEvents}" SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Evenement">
+                                <SwipeView>
+                                    <SwipeView.RightItems>
+                                        <SwipeItems Mode="Execute">
+                                            <SwipeItem Text="Supprimer"
+                                                       BackgroundColor="#C0392B"
+                                                       IconImageSource="trash.png"
+                                                       Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.DeleteCommand}"
+                                                       CommandParameter="{Binding .}" />
+                                        </SwipeItems>
+                                    </SwipeView.RightItems>
+                                    <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                            Padding="14">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.OpenDetailCommand}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto" RowSpacing="3" ColumnSpacing="6">
+                                            <Label Grid.Column="0" Text="{Binding Titre}" FontAttributes="Bold" FontSize="15"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                            <Border Grid.Column="1" StrokeShape="RoundRectangle 8,8,8,8" StrokeThickness="0"
+                                                    BackgroundColor="#A8C686" Padding="8,3" VerticalOptions="Center">
+                                                <Label Text="{Binding CountdownText}" TextColor="White" FontSize="11" FontAttributes="Bold" />
+                                            </Border>
+                                            <!-- Bouton supprimer rapide (alternative au swipe) -->
+                                            <Button Grid.Column="2"
+                                                    Text="🗑️"
+                                                    FontSize="14"
+                                                    Padding="6,2"
+                                                    HeightRequest="32" WidthRequest="36"
+                                                    CornerRadius="8"
+                                                    BackgroundColor="#C0392B" TextColor="White"
+                                                    VerticalOptions="Center"
+                                                    Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.DeleteCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="*,*">
+                                                <Label Text="{Binding DateDebut, StringFormat='📅 {0:dd/MM HH:mm}'}" FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                                <Label Grid.Column="1" Text="{Binding NombreParticipants, StringFormat='👥 {0} participants'}" FontSize="12"
+                                                       HorizontalTextAlignment="End"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </SwipeView>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Rejoints -->
+                <VerticalStackLayout IsVisible="{Binding HasJoined}" Spacing="10">
+                    <Label Text="🎟️ Événements auxquels je participe" FontAttributes="Bold" FontSize="16"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    <CollectionView ItemsSource="{Binding JoinedEvents}" SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Evenement">
+                                <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                        Padding="14">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.OpenDetailCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="3">
+                                        <Label Grid.Column="0" Text="{Binding Titre}" FontAttributes="Bold" FontSize="15"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                        <Border Grid.Column="1" StrokeShape="RoundRectangle 8,8,8,8" StrokeThickness="0"
+                                                BackgroundColor="#D98C6A" Padding="8,3">
+                                            <Label Text="{Binding CountdownText}" TextColor="White" FontSize="11" FontAttributes="Bold" />
+                                        </Border>
+                                        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*">
+                                            <Label Text="{Binding DateDebut, StringFormat='📅 {0:dd/MM HH:mm}'}" FontSize="12"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                            <Label Grid.Column="1" Text="{Binding CreateurName, StringFormat='Par {0}'}" FontSize="12"
+                                                   HorizontalTextAlignment="End"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Empty state -->
+                <Border IsVisible="{Binding HasCreated, Converter={StaticResource InverseBoolConverter}}"
+                        StrokeShape="RoundRectangle 18,18,18,18" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="24,32" Margin="0,12">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" IsVisible="{Binding HasJoined, Converter={StaticResource InverseBoolConverter}}">
+                        <Label Text="🎪" FontSize="44" HorizontalTextAlignment="Center" />
+                        <Label Text="Tu n'as pas encore d'événement"
+                               FontAttributes="Bold" FontSize="15" HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Label Text="Crée ou rejoins un événement depuis l'onglet Événements."
+                               FontSize="12" Opacity="0.7" HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>
+

@@ -264,6 +264,39 @@
       "$platform": {
         ".validate": "$platform == 'android' || $platform == 'ios'"
       }
+    },
+
+    "Events": {
+      ".indexOn": ["CreateurId", "Type", "Saison", "DateDebutTimestamp", "Statut", "IsOfficial"],
+      ".read": "auth != null",
+      "$eventId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('CreateurId').val() == auth.uid) || data.child('CreateurId').val() == auth.uid || root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1)",
+        ".validate": "newData.hasChildren(['CreateurId', 'Titre', 'Type', 'DateDebutTimestamp', 'DateFinTimestamp']) && newData.child('Titre').isString() && newData.child('Titre').val().length > 0 && newData.child('Titre').val().length <= 100",
+        "IsOfficial": {
+          ".write": "auth != null && root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1",
+          ".validate": "newData.isBoolean()"
+        },
+        "NombreParticipants": {
+          ".write": "auth != null"
+        },
+        "AnnoncesIds": {
+          ".write": "auth != null && (root.child('Events/' + $eventId + '/CreateurId').val() == auth.uid || root.child('EventParticipants/' + $eventId + '/' + auth.uid).exists())"
+        },
+        "Statut": {
+          ".validate": "newData.isString()"
+        }
+      }
+    },
+
+    "EventParticipants": {
+      "$eventId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('Events/' + $eventId + '/CreateurId').val() == auth.uid || !root.child('Events/' + $eventId).exists() || root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1)",
+        "$userId": {
+          ".write": "auth != null && (auth.uid == $userId || root.child('Events/' + $eventId + '/CreateurId').val() == auth.uid || root.child('UserProfiles/' + auth.uid + '/Role').val() >= 1)",
+          ".validate": "newData.hasChildren(['EventId', 'UserId']) && newData.child('UserId').val() == $userId"
+        }
+      }
     }
   }
 }

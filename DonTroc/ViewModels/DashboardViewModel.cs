@@ -25,12 +25,14 @@ public class DashboardViewModel : BaseViewModel
     private readonly RecommendationService _recommendationService;
     private readonly UnreadMessageService _unreadMessageService;
     private readonly OnboardingService _onboardingService;
+    private readonly EventService _eventService;
 
     // Collections pour l'affichage des données
     public ObservableCollection<Annonce> AnnoncesRecentes { get; } = new();
     public ObservableCollection<Annonce> AnnoncesRecommandees { get; } = new();
     public ObservableCollection<Annonce> AnnoncesProches { get; } = new();
     public ObservableCollection<OnboardingStep> ChecklistSteps { get; } = new();
+    public ObservableCollection<Evenement> EvenementsAVenir { get; } = new();
     
     // === PROPRIÉTÉS STREAK / GAMIFICATION ===
     
@@ -195,6 +197,15 @@ public class DashboardViewModel : BaseViewModel
     public ICommand VoirAnnonceCommand { get; }
     public ICommand DismissChecklistCommand { get; }
     public ICommand ChecklistStepTappedCommand { get; }
+    public ICommand GoToEventsCommand { get; private set; } = null!;
+    public ICommand OpenEventDetailCommand { get; private set; } = null!;
+
+    private bool _hasEvenements;
+    public bool HasEvenements
+    {
+        get => _hasEvenements;
+        set => SetProperty(ref _hasEvenements, value);
+    }
 
     // Constructeur avec injection de dépendances
     public DashboardViewModel(
@@ -207,7 +218,8 @@ public class DashboardViewModel : BaseViewModel
         FavoritesService favoritesService,
         RecommendationService recommendationService,
         UnreadMessageService unreadMessageService,
-        OnboardingService onboardingService)
+        OnboardingService onboardingService,
+        EventService eventService)
     {
         _firebaseService = firebaseService;
         _authService = authService;
@@ -219,6 +231,7 @@ public class DashboardViewModel : BaseViewModel
         _recommendationService = recommendationService;
         _unreadMessageService = unreadMessageService;
         _onboardingService = onboardingService;
+        _eventService = eventService;
 
         // S'abonner aux changements de propriétés du ViewModel premium
         _premiumFeatures.PropertyChanged += OnPremiumFeaturesPropertyChanged;
@@ -268,6 +281,17 @@ public class DashboardViewModel : BaseViewModel
         
         ChecklistStepTappedCommand = new Command<OnboardingStep>(async void (step) => await OnChecklistStepTapped(step));
 
+        GoToEventsCommand = new Command(async void () =>
+        {
+            await Shell.Current.GoToAsync(nameof(EventsListView));
+        });
+
+        OpenEventDetailCommand = new Command<Evenement>(async void (ev) =>
+        {
+            if (ev != null)
+                await Shell.Current.GoToAsync($"{nameof(EventDetailView)}?eventId={ev.Id}");
+        });
+
         // Charger les données au démarrage
         _ = LoadDashboardDataAsync();
         
@@ -301,6 +325,9 @@ public class DashboardViewModel : BaseViewModel
 
             await Task.WhenAll(recommandationsTask, prochesTask);
             
+            // Charger les événements à venir (en parallèle, non bloquant)
+            await LoadEvenementsAsync();
+
             // Mettre à jour le message d'accueil
             UpdateMessageAccueil();
         }
@@ -339,6 +366,44 @@ public class DashboardViewModel : BaseViewModel
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Erreur chargement gamification: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Charge les événements à venir (limite 5 pour le carrousel du Dashboard).
+    /// Privilégie les événements proches géographiquement, complète avec les officiels saisonniers.
+    /// </summary>
+    private async Task LoadEvenementsAsync()
+    {
+        try
+        {
+            var nearby = await _eventService.GetNearbyEventsAsync(50, 5);
+            var seasonal = await _eventService.GetSeasonalEventsAsync(5);
+
+            // Fusion : nearby d'abord, puis seasonal sans doublons
+            var combined = nearby.ToList();
+            foreach (var s in seasonal)
+            {
+                if (combined.All(e => e.Id != s.Id))
+                    combined.Add(s);
+            }
+            // Si rien de proche/officiel, fallback sur les prochains événements globaux
+            if (combined.Count == 0)
+            {
+                combined = (await _eventService.GetUpcomingEventsAsync(5)).ToList();
+            }
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                EvenementsAVenir.Clear();
+                foreach (var e in combined.Take(5)) EvenementsAVenir.Add(e);
+                HasEvenements = EvenementsAVenir.Count > 0;
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Erreur chargement événements dashboard: {ex.Message}");
+            HasEvenements = false;
         }
     }
 

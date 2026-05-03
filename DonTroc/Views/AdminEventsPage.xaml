@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             x:DataType="viewModels:AdminEventsViewModel"
+             x:Class="DonTroc.Views.AdminEventsPage"
+             x:Name="ThisPage"
+             Title="Événements officiels"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="14" Spacing="18">
+
+                <!-- HEADER -->
+                <Border StrokeShape="RoundRectangle 16,16,16,16" StrokeThickness="0" Padding="0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#D98C6A" Offset="0.0" />
+                            <GradientStop Color="#A8C686" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <VerticalStackLayout Padding="16" Spacing="4">
+                        <Label Text="🛠️ Console Admin — Événements officiels" FontAttributes="Bold" FontSize="17" TextColor="White" />
+                        <Label Text="Crée des événements saisonniers diffusés à toute la communauté." FontSize="12" TextColor="White" Opacity="0.9" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- CHOIX DU PRESET -->
+                <Label Text="1️⃣ Choisis un thème saisonnier" FontAttributes="Bold" FontSize="15"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                <CollectionView ItemsSource="{Binding Presets}"
+                                SelectionMode="None"
+                                HeightRequest="140">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="viewModels:AdminEventsViewModel+SeasonalPreset">
+                            <Border WidthRequest="140" StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0" Padding="0"
+                                    BackgroundColor="{Binding Color}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelectPresetCommand}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Padding="12" Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
+                                    <Label Text="{Binding Emoji}" FontSize="36" HorizontalTextAlignment="Center" />
+                                    <Label Text="{Binding Titre}" FontAttributes="Bold" FontSize="13" TextColor="White"
+                                           HorizontalTextAlignment="Center" MaxLines="2" LineBreakMode="WordWrap" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- FORMULAIRE -->
+                <VerticalStackLayout IsVisible="{Binding HasPreset}" Spacing="12">
+
+                    <Label Text="2️⃣ Personnalise et publie" FontAttributes="Bold" FontSize="15"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                    <!-- Titre -->
+                    <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="12,4">
+                        <Entry Text="{Binding Titre}" Placeholder="Titre de l'événement officiel"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </Border>
+
+                    <!-- Description -->
+                    <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="12,8">
+                        <Editor Text="{Binding Description}" Placeholder="Description de l'événement"
+                                AutoSize="TextChanges" HeightRequest="100"
+                                TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </Border>
+
+                    <!-- Dates -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="📅 Début" FontSize="12" Opacity="0.7"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                    Padding="10,4">
+                                <DatePicker Date="{Binding DateDebut}" Format="dd/MM/yyyy"
+                                            TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="🏁 Fin" FontSize="12" Opacity="0.7"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                    Padding="10,4">
+                                <DatePicker Date="{Binding DateFin}" Format="dd/MM/yyyy"
+                                            TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- PUSH NOTIFICATION -->
+                    <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="14">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="🔔 Diffusion push (topic all_users)"
+                                       FontAttributes="Bold" FontSize="14"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                <Switch Grid.Column="1" IsToggled="{Binding SendBroadcast}" OnColor="#A8C686" />
+                            </Grid>
+
+                            <VerticalStackLayout IsVisible="{Binding SendBroadcast}" Spacing="6">
+                                <Label Text="Titre du push :" FontSize="12" Opacity="0.7"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                <Border StrokeShape="RoundRectangle 10,10,10,10" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#3A3A3A}" Padding="10,2">
+                                    <Entry Text="{Binding PushTitle}" Placeholder="Titre court et impactant"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                </Border>
+                                <Label Text="Corps du push :" FontSize="12" Opacity="0.7" Margin="0,4,0,0"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                <Border StrokeShape="RoundRectangle 10,10,10,10" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#3A3A3A}" Padding="10,4">
+                                    <Editor Text="{Binding PushBody}" Placeholder="Texte engageant"
+                                            AutoSize="TextChanges" HeightRequest="60"
+                                            TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                </Border>
+                                <Label Text="⚠️ Cette notification sera envoyée à TOUS les utilisateurs DonTroc."
+                                       FontSize="11" TextColor="#C0392B" Margin="0,4,0,0" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Bouton publier -->
+                    <Button Text="🚀 Publier l'événement officiel"
+                            Command="{Binding PublishCommand}"
+                            BackgroundColor="{Binding AccentColor}" TextColor="White"
+                            FontAttributes="Bold" FontSize="15"
+                            CornerRadius="14" HeightRequest="50" />
+
+                </VerticalStackLayout>
+
+                <!-- STATUS -->
+                <Label Text="{Binding StatusMessage}" FontSize="13" HorizontalTextAlignment="Center"
+                       IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                <!-- LISTE EXISTANTS -->
+                <BoxView HeightRequest="1" BackgroundColor="#30000000" Margin="0,8" />
+
+                <Label Text="📋 Événements officiels existants" FontAttributes="Bold" FontSize="15"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                <CollectionView ItemsSource="{Binding ExistingOfficials}" SelectionMode="None"
+                                EmptyView="Aucun événement officiel publié pour le moment.">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Evenement">
+                            <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                    Padding="14">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="3" ColumnSpacing="6">
+                                    <Label Grid.Column="0" Text="{Binding Titre}" FontAttributes="Bold" FontSize="15"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                    <Button Grid.Column="1" Grid.RowSpan="2"
+                                            Text="🗑️"
+                                            FontSize="14" Padding="6,2"
+                                            HeightRequest="36" WidthRequest="40" CornerRadius="8"
+                                            BackgroundColor="#C0392B" TextColor="White"
+                                            VerticalOptions="Center"
+                                            Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.DeleteOfficialCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="*,*">
+                                        <Label Text="{Binding DateDebut, StringFormat='📅 {0:dd/MM/yyyy}'}" FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                        <Label Grid.Column="1" Text="{Binding NombreParticipants, StringFormat='👥 {0} participants'}" FontSize="12"
+                                               HorizontalTextAlignment="End"
+                                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>
+

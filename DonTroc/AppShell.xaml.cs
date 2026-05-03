@@ -60,6 +60,13 @@ public partial class AppShell : Shell
         // Routes pour le système de propositions de troc
         Routing.RegisterRoute(nameof(TradeProposalPage), typeof(TradeProposalPage));
         Routing.RegisterRoute(nameof(TradeProposalsListPage), typeof(TradeProposalsListPage));
+
+        // Routes pour les événements & trocs groupés
+        Routing.RegisterRoute(nameof(EventsListView), typeof(EventsListView));
+        Routing.RegisterRoute(nameof(EventDetailView), typeof(EventDetailView));
+        Routing.RegisterRoute(nameof(CreationEvenementView), typeof(CreationEvenementView));
+        Routing.RegisterRoute(nameof(MesEvenementsView), typeof(MesEvenementsView));
+        Routing.RegisterRoute(nameof(EventsMapView), typeof(EventsMapView));
         
         // Routes pour le panneau d'administration
         Routing.RegisterRoute(nameof(AdminDashboardPage), typeof(AdminDashboardPage));
@@ -67,6 +74,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(AdminLogsPage), typeof(AdminLogsPage));
         Routing.RegisterRoute(nameof(ModerationPage), typeof(ModerationPage));
         Routing.RegisterRoute(nameof(AdminSetupPage), typeof(AdminSetupPage));
+        Routing.RegisterRoute(nameof(AdminEventsPage), typeof(AdminEventsPage));
 
         UpdateMessagesBadge();
     }

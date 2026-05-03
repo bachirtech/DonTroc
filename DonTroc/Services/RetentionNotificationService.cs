@@ -18,6 +18,7 @@ public class RetentionNotificationService
     private readonly FirebaseService _firebaseService;
     private readonly NotificationService _notificationService;
     private readonly AuthService _authService;
+    private readonly EventService? _eventService;
     private readonly ILogger<RetentionNotificationService> _logger;
 
     // Préfixe pour les clés de cooldown dans Preferences
@@ -35,13 +36,15 @@ public class RetentionNotificationService
         FirebaseService firebaseService,
         AuthService authService,
         NotificationService notificationService,
-        ILogger<RetentionNotificationService> logger)
+        ILogger<RetentionNotificationService> logger,
+        EventService? eventService = null)
     {
         _gamificationService = gamificationService;
         _favoritesService = favoritesService;
         _firebaseService = firebaseService;
         _authService = authService;
         _notificationService = notificationService;
+        _eventService = eventService;
         _logger = logger;
     }
 
@@ -62,6 +65,7 @@ public class RetentionNotificationService
             await SafeExecuteAsync(() => CheckAlertMatchesAsync(userId), "AlertMatches");
             await SafeExecuteAsync(() => CheckFavoriteStatusChangesAsync(userId), "FavoriteStatus");
             await SafeExecuteAsync(() => CheckUnreadMessagesAsync(userId), "UnreadMessages");
+            await SafeExecuteAsync(() => CheckUpcomingEventRemindersAsync(userId), "EventReminders");
         }
         catch (Exception ex)
         {
@@ -539,6 +543,89 @@ public class RetentionNotificationService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "[Retention] Erreur lors de la vérification {Check}", checkName);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 6. RAPPELS ÉVÉNEMENTS J-3 / J-1 / J0 (Phase 4)
+    // ═══════════════════════════════════════════════════
+
+    /// <summary>
+    /// Vérifie les événements à venir auxquels l'utilisateur participe (créés ou rejoints)
+    /// et envoie un rappel local J-3, J-1 et J0 (jour J).
+    /// Une notification est envoyée au maximum une fois par event/jour grâce à un flag local.
+    /// </summary>
+    private async Task CheckUpcomingEventRemindersAsync(string userId)
+    {
+        if (_eventService == null) return;
+
+        try
+        {
+            var (created, joined) = await _eventService.GetMyEventsAsync(userId);
+            var allMine = created.Concat(joined).ToList();
+            if (!allMine.Any()) return;
+
+            var now = DateTime.UtcNow;
+            var notificationsSent = 0;
+
+            foreach (var ev in allMine)
+            {
+                if (ev.EstTermine() || ev.Statut == Models.StatutEvenement.Annule)
+                    continue;
+
+                var hoursUntil = (ev.DateDebut - now).TotalHours;
+                if (hoursUntil < 0 || hoursUntil > 24 * 4) continue; // Pas dans la fenêtre J-3 → jour J
+
+                int? targetDay = null;
+                string title = string.Empty;
+                string message = string.Empty;
+
+                if (hoursUntil <= 6) // Jour J (≤ 6h avant le début, ou en cours dans la journée)
+                {
+                    targetDay = 0;
+                    title = $"🎉 C'est aujourd'hui : {ev.Titre} !";
+                    message = !string.IsNullOrEmpty(ev.AdresseRdv)
+                        ? $"📍 RDV à {ev.AdresseRdv} — {ev.DateDebut:HH:mm}"
+                        : $"L'événement commence à {ev.DateDebut:HH:mm}. À tout de suite !";
+                }
+                else if (hoursUntil <= 30) // J-1 (entre 6h et 30h avant)
+                {
+                    targetDay = 1;
+                    title = $"⏰ Demain : {ev.Titre}";
+                    message = $"Plus que 24h ! RDV {ev.DateDebut:dd/MM 'à' HH:mm}"
+                              + (!string.IsNullOrEmpty(ev.AdresseRdv) ? $" — {ev.AdresseRdv}" : "");
+                }
+                else if (hoursUntil >= 66 && hoursUntil <= 78) // J-3 (≈ 72h ± 6h)
+                {
+                    targetDay = 3;
+                    title = $"📅 Dans 3 jours : {ev.Titre}";
+                    message = $"N'oublie pas l'événement le {ev.DateDebut:dddd dd MMMM 'à' HH:mm}";
+                }
+
+                if (targetDay == null) continue;
+
+                // Une seule notification par (event, jour). Pas de cooldown — flag "déjà envoyé"
+                // qui sera nettoyé naturellement quand l'événement sera supprimé/passé.
+                var sentKey = $"event_reminder_sent_{ev.Id}_d{targetDay}";
+                if (Preferences.Get(sentKey, false)) continue;
+
+                await _notificationService.ShowGamificationNotificationAsync(
+                    title, message, "event_reminder", ev.Id);
+
+                Preferences.Set(sentKey, true);
+                notificationsSent++;
+
+                _logger.LogInformation(
+                    "[Retention] Rappel événement J-{Day} envoyé pour '{Title}' ({EventId})",
+                    targetDay, ev.Titre, ev.Id);
+
+                // Limite : max 3 rappels événements par cycle pour ne pas spammer
+                if (notificationsSent >= 3) break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[Retention] Erreur lors de la vérification des rappels d'événements");
         }
     }
 }

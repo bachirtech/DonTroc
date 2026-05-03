@@ -8,6 +8,7 @@
              xmlns:services="clr-namespace:DonTroc.Services"
              x:DataType="viewModels:DashboardViewModel"
              x:Class="DonTroc.Views.DashboardView"
+             x:Name="DashboardPageRoot"
              Title="Accueil"
              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
@@ -530,6 +531,93 @@
                             </Grid>
                         </VerticalStackLayout>
                     </Border>
+
+                    <!-- ─── 🏪 ÉVÉNEMENTS À VENIR (CARROUSEL) ─── -->
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" Margin="4,0">
+                            <Label Grid.Column="0"
+                                   Text="🏪 Événements à venir"
+                                   FontSize="18" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}"
+                                   VerticalTextAlignment="Center" />
+                            <Label Grid.Column="1"
+                                   Text="Voir tout ›" FontSize="14" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Terracotta}, Dark={StaticResource TerracottaSombre}}"
+                                   VerticalTextAlignment="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding GoToEventsCommand}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+
+                        <!-- Carrousel (visible quand des événements existent) -->
+                        <CollectionView ItemsSource="{Binding EvenementsAVenir}"
+                                        HeightRequest="170"
+                                        SelectionMode="None"
+                                        IsVisible="{Binding HasEvenements}">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
+                            </CollectionView.ItemsLayout>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:Evenement">
+                                    <Border WidthRequest="240"
+                                            StrokeShape="RoundRectangle 16,16,16,16"
+                                            StrokeThickness="0" Padding="0">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#D98C6A" Offset="0.0" />
+                                                <GradientStop Color="#A8C686" Offset="1.0" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={x:Reference DashboardPageRoot}, Path=BindingContext.OpenEventDetailCommand}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <VerticalStackLayout Padding="14" Spacing="6">
+                                            <Label Text="{Binding CountdownText}" FontSize="11" FontAttributes="Bold" TextColor="White" Opacity="0.9" />
+                                            <Label Text="{Binding Titre}" FontAttributes="Bold" FontSize="16" TextColor="White" MaxLines="2" LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding Description}" FontSize="12" TextColor="White" Opacity="0.85" MaxLines="2" LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding DateDebut, StringFormat='📅 {0:dd MMM HH:mm}'}" FontSize="12" TextColor="White" Margin="0,4,0,0" />
+                                            <Border StrokeShape="RoundRectangle 10,10,10,10" StrokeThickness="0" BackgroundColor="#40FFFFFF" Padding="8,3" HorizontalOptions="Start">
+                                                <Label TextColor="White" FontSize="11" FontAttributes="Bold">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="👥 " />
+                                                            <Span Text="{Binding NombreParticipants}" />
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Carte CTA visible quand AUCUN événement n'existe encore -->
+                        <Border IsVisible="{Binding HasEvenements, Converter={StaticResource InverseBoolConverter}}"
+                                StrokeShape="RoundRectangle 16,16,16,16"
+                                StrokeThickness="0" Padding="0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#D98C6A" Offset="0.0" />
+                                    <GradientStop Color="#A8C686" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToEventsCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*" Padding="18,16" ColumnSpacing="14">
+                                <Label Grid.Column="0" Text="🎪" FontSize="42" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                    <Label Text="Lance le premier événement !" FontAttributes="Bold" FontSize="15" TextColor="White" />
+                                    <Label Text="Vide-grenier virtuel, troc de quartier… invite ta communauté."
+                                           FontSize="12" TextColor="White" Opacity="0.9" MaxLines="2" LineBreakMode="TailTruncation" />
+                                    <Label Text="Découvrir ›" FontSize="12" FontAttributes="Bold" TextColor="White" Margin="0,4,0,0" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
 
                     <!-- ─── RECOMMANDÉ POUR VOUS (CARROUSEL) ─── -->
                     <VerticalStackLayout Spacing="10" IsVisible="{Binding HasRecommandations}">

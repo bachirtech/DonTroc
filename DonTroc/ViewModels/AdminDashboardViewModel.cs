@@ -29,6 +29,7 @@ namespace DonTroc.ViewModels
             NavigateToUsersCommand = new Command(async () => await NavigateToUsersAsync());
             NavigateToReportsCommand = new Command(async () => await NavigateToReportsAsync());
             NavigateToLogsCommand = new Command(async () => await NavigateToLogsAsync());
+            NavigateToEventsCommand = new Command(async () => await NavigateToEventsAsync());
             RefreshCommand = new Command(async () => await RefreshAsync());
         }
 
@@ -99,6 +100,7 @@ namespace DonTroc.ViewModels
         public ICommand NavigateToUsersCommand { get; }
         public ICommand NavigateToReportsCommand { get; }
         public ICommand NavigateToLogsCommand { get; }
+        public ICommand NavigateToEventsCommand { get; }
         public ICommand RefreshCommand { get; }
 
         #endregion
@@ -159,6 +161,11 @@ namespace DonTroc.ViewModels
         private async Task NavigateToLogsAsync()
         {
             await Shell.Current.GoToAsync(nameof(Views.AdminLogsPage));
+        }
+
+        private async Task NavigateToEventsAsync()
+        {
+            await Shell.Current.GoToAsync(nameof(Views.AdminEventsPage));
         }
 
         private async Task RefreshAsync()

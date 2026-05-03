@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             x:DataType="viewModels:EventsMapViewModel"
+             x:Class="DonTroc.Views.EventsMapView"
+             Title="Carte des événements"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- HEADER -->
+        <Border Grid.Row="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,18,18"
+                Padding="14,12">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#D98C6A" Offset="0.0" />
+                    <GradientStop Color="#A8C686" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <Label Grid.Column="0" Text="{Binding HeaderText}"
+                       FontSize="16" FontAttributes="Bold" TextColor="White"
+                       VerticalTextAlignment="Center" />
+                <Label Grid.Column="1" Text="🎯" FontSize="14" TextColor="White"
+                       VerticalTextAlignment="Center" />
+                <Border Grid.Column="2" StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                        BackgroundColor="#33000000" Padding="6,0">
+                    <Picker ItemsSource="{Binding RadiusOptions}"
+                            SelectedItem="{Binding RadiusKm}"
+                            BackgroundColor="Transparent"
+                            TextColor="White" TitleColor="White"
+                            FontSize="13" WidthRequest="80" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- CARTE -->
+        <maps:Map Grid.Row="1"
+                  x:Name="EventsMap"
+                  IsShowingUser="True"
+                  MapType="Street"
+                  IsScrollEnabled="True"
+                  IsZoomEnabled="True" />
+
+        <ActivityIndicator Grid.Row="1"
+                          IsRunning="{Binding IsBusy}"
+                          IsVisible="{Binding IsBusy}"
+                          Color="#D98C6A"
+                          VerticalOptions="Center"
+                          HorizontalOptions="Center" />
+
+        <!-- STATUT -->
+        <Border Grid.Row="2"
+                IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                StrokeShape="RoundRectangle 14,14,0,0" StrokeThickness="0"
+                Padding="14,10">
+            <Label Text="{Binding StatusMessage}"
+                   FontSize="13" HorizontalTextAlignment="Center"
+                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+        </Border>
+    </Grid>
+</ContentPage>
+

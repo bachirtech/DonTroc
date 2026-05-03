@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             x:DataType="viewModels:CreationEvenementViewModel"
+             x:Class="DonTroc.Views.CreationEvenementView"
+             Title="Créer un événement"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <Label Text="🏪 Nouvel événement" FontSize="22" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+            <!-- Titre -->
+            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    Padding="12,4">
+                <Entry Placeholder="Titre de l'événement (ex: Vide-grenier de quartier)"
+                       Text="{Binding Titre}" MaxLength="100"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+            </Border>
+
+            <!-- Description -->
+            <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                    Padding="12,4">
+                <Editor Placeholder="Description (à quoi ressemble l'événement, ce qu'on y fait...)"
+                        Text="{Binding Description}"
+                        AutoSize="TextChanges" MinimumHeightRequest="80" MaxLength="1000"
+                        TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+            </Border>
+
+            <!-- Type -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Type d'événement" FontSize="13" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="12,2">
+                    <Picker ItemsSource="{Binding TypesDisponibles}"
+                            SelectedItem="{Binding SelectedType}"
+                            TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Date / heure -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Date et heure" FontSize="13" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="10,2">
+                        <DatePicker Date="{Binding DateDebut}" Format="dd/MM/yyyy"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </Border>
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="8,2">
+                        <TimePicker Time="{Binding HeureDebut}" Format="HH:mm"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </Border>
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                            Padding="8,2">
+                        <TimePicker Time="{Binding HeureFin}" Format="HH:mm"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </Border>
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- Lieu (uniquement pour Local) -->
+            <VerticalStackLayout IsVisible="{Binding IsLocalEvent}" Spacing="4">
+                <Label Text="📍 Lieu de rendez-vous" FontSize="13" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="12,4">
+                    <Entry Placeholder="Adresse (ex: Place de la Mairie)" Text="{Binding AdresseRdv}"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                </Border>
+                <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="12,4">
+                    <Entry Placeholder="Ville" Text="{Binding Ville}"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                </Border>
+                <Button Text="📍 Utiliser ma position actuelle"
+                        Command="{Binding UseCurrentLocationCommand}"
+                        BackgroundColor="#A8C686" TextColor="White" CornerRadius="12" HeightRequest="40" />
+
+                <!-- Mini-carte cliquable pour choisir le point exact de RDV -->
+                <Label Text="👇 Touche la carte pour ajuster le point de RDV"
+                       FontSize="11" Opacity="0.7" HorizontalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0" HeightRequest="220">
+                    <maps:Map x:Name="PickerMap"
+                              IsShowingUser="True"
+                              MapType="Street"
+                              IsScrollEnabled="True"
+                              IsZoomEnabled="True" />
+                </Border>
+                <Label IsVisible="{Binding HasSelectedLocation}"
+                       FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"
+                       TextColor="#A8C686">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="✅ Lieu confirmé : " />
+                            <Span Text="{Binding SelectedLatitude, StringFormat='{0:F4}'}" />
+                            <Span Text=", " />
+                            <Span Text="{Binding SelectedLongitude, StringFormat='{0:F4}'}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </VerticalStackLayout>
+
+            <!-- Max participants -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Nombre maximum de participants (optionnel)" FontSize="13"
+                       TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="12,4">
+                    <Entry Placeholder="Ex: 20"
+                           Text="{Binding MaxParticipants}"
+                           Keyboard="Numeric"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Status -->
+            <Label Text="{Binding StatusMessage}" FontSize="13" FontAttributes="Bold"
+                   IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"
+                   TextColor="{AppThemeBinding Light=#B8704E, Dark=#E5A07E}"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- Bouton enregistrer -->
+            <Button Text="✅ Créer l'événement"
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="#D98C6A" TextColor="White"
+                    FontAttributes="Bold" FontSize="15" CornerRadius="14" HeightRequest="50" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="#D98C6A" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+

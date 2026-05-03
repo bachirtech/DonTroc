@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:DonTroc.ViewModels"
+             xmlns:models="clr-namespace:DonTroc.Models"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             x:DataType="viewModels:EventDetailViewModel"
+             x:Class="DonTroc.Views.EventDetailView"
+             Title="Détail événement"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="16" BindingContext="{Binding}">
+
+                <!-- HEADER -->
+                <Border StrokeShape="RoundRectangle 18,18,18,18" StrokeThickness="0" Padding="0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#D98C6A" Offset="0.0" />
+                            <GradientStop Color="#A8C686" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <VerticalStackLayout Padding="18" Spacing="8">
+                        <Label Text="{Binding Current.Titre}" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                        <Label Text="{Binding Current.CountdownText}" FontSize="14" TextColor="White" Opacity="0.9" />
+                        <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
+                            <Label Text="{Binding Current.DateDebut, StringFormat='📅 {0:dd MMM yyyy HH:mm}'}" TextColor="White" FontSize="13" />
+                            <Label Grid.Column="1" Text="{Binding Current.NombreParticipants, StringFormat='👥 {0} participants'}" TextColor="White" FontSize="13" HorizontalTextAlignment="End" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- DESCRIPTION -->
+                <Border StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="📝 Description" FontAttributes="Bold" FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Label Text="{Binding Current.Description}" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Label Text="{Binding Current.CreateurName, StringFormat='Organisé par : {0}'}" FontSize="12" Opacity="0.7" Margin="0,6,0,0"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- LIEU DE RDV -->
+                <Border IsVisible="{Binding HasLocation}"
+                        StrokeShape="RoundRectangle 14,14,14,14" StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="📍 Lieu de rendez-vous" FontAttributes="Bold" FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Label Text="{Binding Current.AdresseRdv}" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                        <Label Text="{Binding Current.Ville}" FontSize="12" Opacity="0.7"
+                               TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+
+                        <!-- Mini-carte avec pin du point de RDV -->
+                        <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                HeightRequest="180" Margin="0,8,0,0">
+                            <maps:Map x:Name="RdvMap"
+                                      IsShowingUser="False"
+                                      MapType="Street"
+                                      IsScrollEnabled="True"
+                                      IsZoomEnabled="True" />
+                        </Border>
+
+                        <Button Text="🗺️ Itinéraire (Maps)"
+                                Command="{Binding OpenMapCommand}"
+                                BackgroundColor="#A8C686" TextColor="White"
+                                CornerRadius="12" Padding="14,8" Margin="0,8,0,0" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- BOUTON REJOINDRE / QUITTER -->
+                <Button IsVisible="{Binding IsOwner, Converter={StaticResource InverseBoolConverter}}"
+                        Text="{Binding JoinButtonText}"
+                        Command="{Binding ToggleParticipationCommand}"
+                        BackgroundColor="#D98C6A" TextColor="White"
+                        FontAttributes="Bold" FontSize="15" CornerRadius="14" HeightRequest="48" />
+
+                <!-- PARTICIPANTS -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="👥 Participants" FontAttributes="Bold" FontSize="15"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    <CollectionView ItemsSource="{Binding Participants}" HeightRequest="80">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:EventParticipant">
+                                <VerticalStackLayout WidthRequest="60" HorizontalOptions="Center" Spacing="4">
+                                    <Border StrokeShape="RoundRectangle 30,30,30,30" StrokeThickness="0"
+                                            BackgroundColor="#D98C6A" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center">
+                                        <Label Text="👤" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+                                    </Border>
+                                    <Label Text="{Binding UserName}" FontSize="11" HorizontalTextAlignment="Center"
+                                           MaxLines="1" LineBreakMode="TailTruncation"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- MARCHÉ VIRTUEL -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="🛍️ Marché virtuel" FontAttributes="Bold" FontSize="15"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    <Label Text="Aucune annonce dans le marché — soyez le premier à en partager une !"
+                           FontSize="12" Opacity="0.7" IsVisible="{Binding MarketAnnonces.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=invert}"
+                           TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                    <CollectionView ItemsSource="{Binding MarketAnnonces}">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="8" VerticalItemSpacing="8" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Annonce">
+                                <Border StrokeShape="RoundRectangle 12,12,12,12" StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}"
+                                        Padding="0">
+                                    <Grid RowDefinitions="100,Auto">
+                                        <Image Source="{Binding FirstPhotoUrl}" Aspect="AspectFill" />
+                                        <VerticalStackLayout Grid.Row="1" Padding="8" Spacing="2">
+                                            <Label Text="{Binding Titre}" FontAttributes="Bold" FontSize="12" MaxLines="1" LineBreakMode="TailTruncation"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                            <Label Text="{Binding Type}" FontSize="10" Opacity="0.7"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Ardoise}, Dark={StaticResource ArdoiseSombre}}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- BOUTON PARTAGER -->
+                <Button Text="📤 Partager l'événement"
+                        Command="{Binding ShareCommand}"
+                        BackgroundColor="#A8C686" TextColor="White"
+                        FontAttributes="Bold" CornerRadius="14" HeightRequest="44" />
+
+                <!-- BOUTON SUPPRIMER (créateur uniquement) -->
+                <Button IsVisible="{Binding IsOwner}"
+                        Text="🗑️ Supprimer cet événement"
+                        Command="{Binding DeleteCommand}"
+                        BackgroundColor="#C0392B" TextColor="White"
+                        FontAttributes="Bold" CornerRadius="14" HeightRequest="44" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>
+

@@ -165,6 +165,9 @@ public static class MauiProgram
         // Service de propositions de troc structurées
         builder.Services.AddSingleton<TradeProposalService>();
 
+        // Service d'événements & trocs groupés (vide-greniers virtuels, saisonniers, locaux)
+        builder.Services.AddSingleton<EventService>();
+
 #if ANDROID
         // Service pour les notifications Push FCM
         builder.Services.AddSingleton<FcmService>();
@@ -202,11 +205,26 @@ public static class MauiProgram
         // ViewModels des propositions de troc
         builder.Services.AddTransient<TradeProposalViewModel>();
         builder.Services.AddTransient<TradeProposalsListViewModel>();
+
+        // ViewModels des événements & trocs groupés
+        builder.Services.AddTransient<EventsListViewModel>();
+        builder.Services.AddTransient<EventDetailViewModel>();
+        builder.Services.AddTransient<CreationEvenementViewModel>();
+        builder.Services.AddTransient<MesEvenementsViewModel>();
+        builder.Services.AddTransient<EventsMapViewModel>();
+
+        // Vues des événements
+        builder.Services.AddTransient<EventsListView>();
+        builder.Services.AddTransient<EventDetailView>();
+        builder.Services.AddTransient<CreationEvenementView>();
+        builder.Services.AddTransient<MesEvenementsView>();
+        builder.Services.AddTransient<EventsMapView>();
         
         // ViewModels d'administration
         builder.Services.AddTransient<AdminDashboardViewModel>();
         builder.Services.AddTransient<UserManagementViewModel>();
         builder.Services.AddTransient<AdminLogsViewModel>();
+        builder.Services.AddTransient<AdminEventsViewModel>();
 
         // Vues
         builder.Services.AddSingleton<MainPage>();
@@ -244,6 +262,7 @@ public static class MauiProgram
         builder.Services.AddTransient<UserManagementPage>();
         builder.Services.AddTransient<AdminLogsPage>();
         builder.Services.AddTransient<AdminSetupPage>();
+        builder.Services.AddTransient<AdminEventsPage>();
 
 #if DEBUG
         builder.Logging.SetMinimumLevel(LogLevel.Debug);

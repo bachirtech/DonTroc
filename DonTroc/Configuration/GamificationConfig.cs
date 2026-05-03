@@ -43,6 +43,11 @@ public static class GamificationConfig
         // Propositions de troc structurées
         { "propose_trade", 10 },       // XP pour envoyer une proposition
         { "accept_trade", 25 },        // XP pour accepter une proposition
+
+        // Événements & trocs groupés (Phase 4)
+        { "create_event", 50 },        // XP pour créer un événement
+        { "join_event", 15 },          // XP pour rejoindre un événement
+        { "event_attended", 30 },      // XP quand on participe le jour J
     };
     
     // ============================================================================
@@ -396,6 +401,80 @@ public static class GamificationConfig
             XpReward = 2000
         },
         
+        // === BADGES ÉVÉNEMENTS (Phase 4 — Trocs groupés) ===
+        new Badge
+        {
+            Id = "event_organizer",
+            Name = "Organisateur",
+            Description = "Créez votre premier événement",
+            Icon = "🏪",
+            Rarity = BadgeRarity.Uncommon,
+            Category = BadgeCategory.Social,
+            RequiredValue = 1,
+            StatKey = "events_created",
+            XpReward = 100
+        },
+        new Badge
+        {
+            Id = "event_master",
+            Name = "Maître Organisateur",
+            Description = "Créez 5 événements",
+            Icon = "🎪",
+            Rarity = BadgeRarity.Rare,
+            Category = BadgeCategory.Social,
+            RequiredValue = 5,
+            StatKey = "events_created",
+            XpReward = 350
+        },
+        new Badge
+        {
+            Id = "event_legend",
+            Name = "Légende des Événements",
+            Description = "Créez 20 événements",
+            Icon = "👑",
+            Rarity = BadgeRarity.Epic,
+            Category = BadgeCategory.Social,
+            RequiredValue = 20,
+            StatKey = "events_created",
+            XpReward = 1000
+        },
+        new Badge
+        {
+            Id = "event_participant",
+            Name = "Participant",
+            Description = "Rejoignez votre premier événement",
+            Icon = "🎟️",
+            Rarity = BadgeRarity.Common,
+            Category = BadgeCategory.Social,
+            RequiredValue = 1,
+            StatKey = "events_joined",
+            XpReward = 50
+        },
+        new Badge
+        {
+            Id = "event_assidu",
+            Name = "Participant Assidu",
+            Description = "Rejoignez 5 événements",
+            Icon = "⚡",
+            Rarity = BadgeRarity.Uncommon,
+            Category = BadgeCategory.Social,
+            RequiredValue = 5,
+            StatKey = "events_joined",
+            XpReward = 200
+        },
+        new Badge
+        {
+            Id = "event_addict",
+            Name = "Accro aux Événements",
+            Description = "Rejoignez 20 événements",
+            Icon = "🔥",
+            Rarity = BadgeRarity.Rare,
+            Category = BadgeCategory.Social,
+            RequiredValue = 20,
+            StatKey = "events_joined",
+            XpReward = 600
+        },
+
         // === BADGES SPÉCIAUX (Secrets) ===
         new Badge
         {
