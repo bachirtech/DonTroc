@@ -1,16 +1,26 @@
-# Configuration locale pour les mots de passe de signature
+# Configuration locale pour les secrets de build
 # CE FICHIER NE DOIT JAMAIS ÊTRE VERSIONNÉ (ajouté au .gitignore)
 #
 # Copiez ce fichier en "Local.Build.props" et remplissez vos valeurs
 # OU définissez les variables d'environnement suivantes :
 #   export DONTROC_KEYSTORE_PASS="VotreMotDePasse"
 #   export DONTROC_KEY_PASS="VotreMotDePasse"
+#   export GOOGLE_MAPS_API_KEY="AIza..."
 
 <Project>
   <PropertyGroup>
-    <!-- Mots de passe du keystore Android -->
+    <!-- 🔐 Mots de passe du keystore Android -->
     <KeyStorePassword>VOTRE_MOT_DE_PASSE_ICI</KeyStorePassword>
     <KeyPassword>VOTRE_MOT_DE_PASSE_ICI</KeyPassword>
+
+    <!-- 🗺️ Clé Google Maps API
+         À récupérer sur https://console.cloud.google.com/apis/credentials
+         IMPORTANT: Restreindre la clé par :
+           - Application : "Android apps"
+           - Package : com.bachirdev.dontroc
+           - Empreinte SHA-1 : (récupérée via keytool sur dontroc-release.keystore)
+           - APIs : Maps SDK for Android, Maps SDK for iOS uniquement -->
+    <GoogleMapsApiKey>VOTRE_CLE_GOOGLE_MAPS_ICI</GoogleMapsApiKey>
   </PropertyGroup>
 </Project>
 

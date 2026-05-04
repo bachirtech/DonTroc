@@ -10,8 +10,12 @@
 		android:networkSecurityConfig="@xml/network_security_config"
 		android:resizeableActivity="true">
 		
-		<!-- Configuration Google Maps API Key -->
-		<meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyBBr5uAyAsABZXFCoQV5eUPmmIEWSAaNhc" />
+		<!-- Configuration Google Maps API Key
+		     ⚠️ La valeur est injectée au build via AndroidManifestPlaceholders
+		         (voir DonTroc.csproj > GOOGLE_MAPS_API_KEY).
+		     La clé réelle vit dans Local.Build.props (gitignored)
+		     ou dans la variable d'environnement GOOGLE_MAPS_API_KEY. -->
+		<meta-data android:name="com.google.android.geo.API_KEY" android:value="${GOOGLE_MAPS_API_KEY}" />
 		
 		<!-- Configuration sécurisée pour la production -->
 		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />

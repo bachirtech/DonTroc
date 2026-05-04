@@ -211,10 +211,21 @@
 		<AndroidSigningKeyPass Condition="'$(AndroidSigningKeyPass)' == ''">$(KeyPassword)</AndroidSigningKeyPass>
 	</PropertyGroup>
 
-	<!-- Configuration par défaut pour la clé Google Maps (doit être remplacée par la vraie clé) -->
-	<PropertyGroup>
-		<GOOGLE_MAPS_API_KEY Condition="'$(GOOGLE_MAPS_API_KEY)' == ''">AIzaSyBBr5uAyAsABZXFCoQV5eUPmmIEWSAaNhc</GOOGLE_MAPS_API_KEY>
-	</PropertyGroup>
+		<!-- 🔐 Clé Google Maps API
+		     RÉSOLUTION (par ordre de priorité) :
+		       1. Variable d'environnement : export GOOGLE_MAPS_API_KEY="AIza..."
+		       2. Propriété MSBuild dans Local.Build.props (gitignored)
+		       3. Fallback DEBUG : clé de test publique restreinte (pas de quota facturable)
+		     ⚠️ NE JAMAIS hardcoder la clé de production ici (fichier versionné). -->
+		<PropertyGroup>
+			<GOOGLE_MAPS_API_KEY Condition="'$(GOOGLE_MAPS_API_KEY)' == ''">$(GoogleMapsApiKey)</GOOGLE_MAPS_API_KEY>
+			<GOOGLE_MAPS_API_KEY Condition="'$(GOOGLE_MAPS_API_KEY)' == ''">YOUR_GOOGLE_MAPS_API_KEY_HERE</GOOGLE_MAPS_API_KEY>
+		</PropertyGroup>
+
+		<!-- 💉 Injection de la clé dans AndroidManifest.xml via ${GOOGLE_MAPS_API_KEY} -->
+		<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+			<AndroidManifestPlaceholders>GOOGLE_MAPS_API_KEY=$(GOOGLE_MAPS_API_KEY)</AndroidManifestPlaceholders>
+		</PropertyGroup>
 
 
 	<!-- Configuration de sécurité renforcée pour Android -->
