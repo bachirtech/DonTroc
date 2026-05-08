@@ -11,60 +11,65 @@
     Shell.TabBarTitleColor="{StaticResource Terracotta}"
     Shell.TabBarUnselectedColor="{StaticResource Ardoise}">
 
-    <Shell.ItemTemplate>
-        <DataTemplate>
-            <Grid ColumnSpacing="0" RowSpacing="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="32" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+    <Shell.Resources>
+        <ResourceDictionary>
+            <!-- Template d'onglet personnalisé : utilisé UNIQUEMENT sur Android
+                 (assigné dans AppShell.xaml.cs via #if ANDROID).
+                 Sur iOS, on laisse Shell utiliser sa UITabBar native pour éviter
+                 les bugs de rendu (bande grise) et de NRE dans ShellTableViewSource. -->
+            <DataTemplate x:Key="AndroidShellItemTemplate">
+                <Grid ColumnSpacing="0" RowSpacing="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="32" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!-- Icône de l'onglet -->
-                <Image Grid.Row="0"
-                       Source="{Binding Icon}"
-                       Margin="0,5,0,0"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"
-                       HeightRequest="24"
-                       WidthRequest="24">
-                    <Image.Triggers>
-                        <!-- Change la couleur de l'icône quand l'onglet est sélectionné -->
-                        <DataTrigger TargetType="Image" 
-                                     Binding="{Binding IsSelected}" 
-                                     Value="True">
-                            <Setter Property="Source" Value="{Binding SelectedIcon}" />
-                        </DataTrigger>
-                    </Image.Triggers>
-                </Image>
+                    <!-- Icône de l'onglet -->
+                    <Image Grid.Row="0"
+                           Source="{Binding Icon}"
+                           Margin="0,5,0,0"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           HeightRequest="24"
+                           WidthRequest="24">
+                        <Image.Triggers>
+                            <DataTrigger TargetType="Image"
+                                         Binding="{Binding IsSelected}"
+                                         Value="True">
+                                <Setter Property="Source" Value="{Binding SelectedIcon}" />
+                            </DataTrigger>
+                        </Image.Triggers>
+                    </Image>
 
-                <!-- Titre de l'onglet -->
-                <Label Grid.Row="1"
-                       Text="{Binding Title}"
-                       FontSize="10"
-                       HorizontalOptions="Center"
-                       VerticalOptions="End"
-                       Margin="0,0,0,5" />
+                    <!-- Titre de l'onglet -->
+                    <Label Grid.Row="1"
+                           Text="{Binding Title}"
+                           FontSize="10"
+                           HorizontalOptions="Center"
+                           VerticalOptions="End"
+                           Margin="0,0,0,5" />
 
-                <!-- Badge de messages non lus, visible uniquement pour l'onglet "Messages" -->
-                <views:BadgeView 
-                    Grid.Row="0"
-                    Count="{Binding Source={RelativeSource AncestorType={x:Type local:AppShell}}, Path=TotalUnreadCount}"
-                    IsVisible="{Binding Title, Converter={StaticResource StringEqualsToBoolConverter}, ConverterParameter='Messages'}"
-                    BadgeColor="{StaticResource Terracotta}"
-                    TextColor="White"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Start"
-                    Margin="20,0,0,0"
-                    Scale="0.7" />
-            </Grid>
-        </DataTemplate>
-    </Shell.ItemTemplate>
+                    <!-- Badge de messages non lus, visible uniquement pour l'onglet "Messages" -->
+                    <views:BadgeView
+                        Grid.Row="0"
+                        Count="{Binding Source={RelativeSource AncestorType={x:Type local:AppShell}}, Path=TotalUnreadCount}"
+                        IsVisible="{Binding Title, Converter={StaticResource StringEqualsToBoolConverter}, ConverterParameter='Messages'}"
+                        BadgeColor="{StaticResource Terracotta}"
+                        TextColor="White"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Start"
+                        Margin="20,0,0,0"
+                        Scale="0.7" />
+                </Grid>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Shell.Resources>
 
-    <!-- Page de connexion, définie comme page de démarrage de l'application -->
-    <ShellContent
-        Title="Connexion"
-        ContentTemplate="{DataTemplate views:LoginView}"
-        Route="LoginView" />
+    <!-- ⚠️ La LoginView N'EST PAS dans Shell : le flux d'authentification passe par
+         App.cs (MainPage = new NavigationPage(LoginView)). Une fois connecté, App.cs
+         remplace MainPage par cette AppShell qui ne contient QUE la TabBar.
+         Garder un <ShellContent Route="LoginView"> ici causait sur iOS un panneau
+         résiduel gris recouvrant la moitié de l'écran après navigation vers //MainApp. -->
 
     <!-- Barre de navigation inférieure (accessible après une connexion réussie) -->
     <TabBar Route="MainApp">

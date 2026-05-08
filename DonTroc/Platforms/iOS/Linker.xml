@@ -25,12 +25,33 @@
   <assembly fullname="CommunityToolkit.Maui" preserve="all" />
   <assembly fullname="CommunityToolkit.Maui.MediaElement" preserve="all" />
 
-  <!-- Firebase -->
+  <!-- Firebase (managed wrappers Plugin.Firebase) -->
   <assembly fullname="Plugin.Firebase" preserve="all" />
   <assembly fullname="Plugin.Firebase.Analytics" preserve="all" />
   <assembly fullname="Plugin.Firebase.Core" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Auth" preserve="all" />
+  <assembly fullname="Plugin.Firebase.CloudMessaging" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Firestore" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Storage" preserve="all" />
+  <assembly fullname="Plugin.Firebase.RemoteConfig" preserve="all" />
+  <!-- Plugin.Firebase.Bundled : initialisation cross-platform Firebase -->
+  <assembly fullname="Plugin.Firebase.Bundled" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Bundled.iOS" preserve="all" />
+  <assembly fullname="Plugin.Firebase.Bundled.Shared" preserve="all" />
+  <!-- Bindings natifs iOS Firebase (AdamE.* utilisé par Plugin.Firebase) -->
   <assembly fullname="Firebase.Auth" preserve="all" />
+  <assembly fullname="Firebase.CloudMessaging" preserve="all" />
+  <assembly fullname="Firebase.CloudFirestore" preserve="all" />
+  <assembly fullname="Firebase.Database" preserve="all" />
+  <assembly fullname="Firebase.Storage" preserve="all" />
   <assembly fullname="Firebase" preserve="all" />
+  <!-- Bindings legacy (managed C# Firebase libs) -->
+  <assembly fullname="FirebaseAuthentication.net" preserve="all" />
+  <assembly fullname="FirebaseDatabase.net" preserve="all" />
+
+  <!-- AdMob iOS (Jc.GMA.iOS = Google Mobile Ads binding) -->
+  <assembly fullname="Jc.GMA.iOS" preserve="all" />
+  <assembly fullname="Google.MobileAds" preserve="all" />
 
   <!-- JSON -->
   <assembly fullname="Newtonsoft.Json" preserve="all" />

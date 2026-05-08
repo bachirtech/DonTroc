@@ -52,6 +52,21 @@ DonTroc est l'application gratuite de don et de troc d'objets entre particuliers
 • Organisez vos rendez-vous facilement
 • Historique complet des conversations
 
+📅 **ÉVÉNEMENTS & INVITATIONS**
+• Créez des événements de don ou de troc (vide-greniers, collectes solidaires…)
+• Invitez vos amis à participer directement depuis l’app
+• Partagez vos événements sur les réseaux sociaux
+
+👥 **AMIS & RÉSEAU**
+• Ajoutez des amis pour suivre leurs annonces et échanges
+• Système de favoris et de contacts de confiance
+• Recevez des notifications quand vos amis publient de nouveaux objets
+
+🎁 **PARRAINAGE**
+• Invitez vos proches à rejoindre DonTroc
+• Gagnez des récompenses exclusives pour chaque filleul inscrit
+• Suivi du parrainage et des bonus dans votre profil
+
 ⭐ **SYSTÈME DE CONFIANCE**
 • Notes et avis entre utilisateurs
 • Badges de confiance
@@ -87,6 +102,8 @@ DonTroc est l'application gratuite de don et de troc d'objets entre particuliers
 **💚 POURQUOI DONTROC ?**
 DonTroc n'est pas qu'une simple application de petites annonces. C'est une communauté engagée pour un monde plus responsable. Chaque objet donné ou échangé, c'est un déchet en moins et un geste pour la planète !
 
+DonTroc, c’est aussi la possibilité d’organiser des événements de don ou de troc, d’inviter vos amis et de parrainer de nouveaux membres pour agrandir la communauté solidaire. Plus vous partagez, plus vous êtes récompensé !
+
 Téléchargez DonTroc maintenant et rejoignez des milliers d'utilisateurs qui donnent une seconde vie à leurs objets !
 
 ---
@@ -100,7 +117,7 @@ don objets, troc, échange gratuit, occasion, seconde main, recyclage, écologie
 
 ### Apple App Store (jusqu'à 100 caractères)
 ```
-don,troc,échange,objets,gratuit,occasion,recyclage,écologie,annonces,seconde main,vide grenier
+don,troc,échange,objets,gratuit,occasion,recyclage,écologie,annonces,seconde main,vide grenier,événement,invitation,amis,réseau,parrainage,récompense,partage
 ```
 
 ---
@@ -270,4 +287,3 @@ Merci de soutenir DonTroc et l'économie circulaire ! 💚
 
 *Document créé le 22 décembre 2024*
 *Cette description est optimisée pour maximiser la visibilité de DonTroc dans les résultats de recherche des App Stores et attirer plus d'utilisateurs intéressés par le don, le troc et l'économie circulaire.*
-

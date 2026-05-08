@@ -1,11 +1,13 @@
 // Fichier: DonTroc/ViewModels/LeaderboardViewModel.cs
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DonTroc.Services;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 
 namespace DonTroc.ViewModels;

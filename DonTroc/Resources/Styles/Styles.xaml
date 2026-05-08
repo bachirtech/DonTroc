@@ -23,30 +23,52 @@
     <!-- Couleurs de l'application (valeurs directes pour éviter les références circulaires) -->
     <Color x:Key="Primary">#D98C6A</Color>
     <Color x:Key="Secondary">#A8C686</Color>
-    <Color x:Key="Tertiary">#6B7A8F</Color>
+    <Color x:Key="Tertiary">#00FFFF</Color>
     <Color x:Key="Error">#DC3545</Color>
     <Color x:Key="Success">#28A745</Color>
 
     <!-- Alias pour DonTrocBackground -->
     <Color x:Key="DonTrocBackground">#F9FFFB</Color> // Couleur de fond de l'application
 
-    <!-- Style global pour toutes les pages -->
+    <!-- Style implicite par défaut pour toutes les ContentPage : fond app uniforme.
+         (Anciennement #FFFF00 jaune fluo pour diagnostiquer la bande grise iOS — fix
+         résolu via TabBar icons Resize=True + KeyboardAutoManagerScroll.Disconnect()
+         + UITabBar opaque dans AppDelegate.) -->
     <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}" />
     </Style>
 
-    <!-- Style pour la barre de navigation (Shell) -->
-    <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}" />
-        <Setter Property="Shell.ForegroundColor" Value="White" />
-        <Setter Property="Shell.TitleColor" Value="White" />
-        <Setter Property="Shell.DisabledColor" Value="#B4FFFFFF" />
-        <Setter Property="Shell.UnselectedColor" Value="#95FFFFFF" />
-        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocSurface}, Dark={StaticResource DonTrocSurfaceDark}}" />
-        <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"/>
-        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}"/>
-        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource DonTrocText}, Dark={StaticResource DonTrocTextDark}}"/>
+    <!-- 🛠️ FIX iOS bande grise : forcer un fond transparent sur les conteneurs
+         de défilement. Sur iOS, UICollectionView/UIScrollView/UIRefreshControl
+         utilisent par défaut systemGroupedBackground (gris clair) ce qui crée
+         une bande grise visible quand le contenu ne remplit pas l'espace. -->
+    <Style TargetType="CollectionView" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="Transparent" />
     </Style>
+    <Style TargetType="ScrollView" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+    <Style TargetType="RefreshView" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="RefreshColor" Value="{StaticResource Primary}" />
+    </Style>
+    <Style TargetType="ListView" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="SeparatorColor" Value="Transparent" />
+    </Style>
+
+    <!-- 🛠️ Style Shell implicite NEUTRALISÉ (anciennement il imposait des couleurs
+         qui écrasaient celles définies inline sur AppShell.xaml et provoquaient
+         la "bande" colorée résiduelle sur iOS).
+         👉 Toutes les couleurs de la AppShell sont maintenant définies UNIQUEMENT
+         dans AppShell.xaml. Si tu veux un style implicite, ajoute-le seulement
+         pour les pages internes (TargetType="ContentPage") pas pour Shell. -->
+    <!--
+    <Style TargetType="Shell" ApplyToDerivedTypes="True">
+        ... (supprimé volontairement)
+    </Style>
+    -->
+
 
     <!-- Style pour les boutons (style de base implicite) -->
     <Style TargetType="Button">

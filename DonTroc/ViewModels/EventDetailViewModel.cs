@@ -6,7 +6,10 @@ using DonTroc.Models;
 using DonTroc.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices.Sensors;
+using Microsoft.Maui.Storage;
 
 namespace DonTroc.ViewModels;
 

@@ -31,6 +31,10 @@ public partial class App : Application
     {
         InitializeComponent();
 
+        // 🔬 DIAG iOS bande grise : forcer Light mode pour écarter la piste dark mode mal mappé.
+        // Si la bande grise disparaît avec Light forcé, c'est un problème de couleurs dark mode.
+        UserAppTheme = AppTheme.Light;
+
         _authService = authService;
         _unreadMessageService = unreadMessageService;
         _serviceProvider = serviceProvider;
@@ -242,7 +246,7 @@ public partial class App : Application
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     var onboardingView = _serviceProvider.GetRequiredService<OnboardingView>();
-                    MainPage = new NavigationPage(onboardingView);
+                    SetRootPage(new NavigationPage(onboardingView));
                 });
                 return; // L'onboarding redirigera vers LoginView une fois terminé
             }
@@ -252,14 +256,21 @@ public partial class App : Application
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                if (isAuthenticated)
-                {
-                    MainPage = new AppShell(_unreadMessageService);
-                }
-                else
-                {
-                    MainPage = new NavigationPage(_serviceProvider.GetRequiredService<LoginView>());
-                }
+                // 🛠️ FIX iOS bande grise courbe (pageSheet résiduel) :
+                // NE PAS wrapper LoginView dans un NavigationPage. Sur iOS,
+                // NavigationPage(LoginView) crée un UINavigationController comme
+                // rootViewController. Quand on remplace ensuite MainPage par
+                // AppShell, MAUI iOS PRÉSENTE la Shell modalement (.pageSheet)
+                // par-dessus l'ancien UINavigationController au lieu de remplacer
+                // le rootViewController → on voit la bande grise courbe (le
+                // dessous du modal pageSheet) sur toutes les pages.
+                // LoginView a déjà Shell.NavBarIsVisible="False" et n'utilise
+                // pas la navigation Push → pas besoin de NavigationPage.
+                Page rootPage = isAuthenticated
+                    ? (Page)new AppShell(_unreadMessageService)
+                    : _serviceProvider.GetRequiredService<LoginView>();
+
+                SetRootPage(rootPage);
             });
 
             if (isAuthenticated)
@@ -298,9 +309,57 @@ public partial class App : Application
             
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                MainPage = new NavigationPage(_serviceProvider.GetRequiredService<LoginView>());
+                // Idem fallback : LoginView seule, pas de NavigationPage (cf. note plus haut)
+                SetRootPage(_serviceProvider.GetRequiredService<LoginView>());
             });
         }
+    }
+
+    /// <summary>
+    /// Remplace la page racine via l'API Window MAUI 9 (Windows[0].Page).
+    /// Sur iOS, cela force la libération de l'ancien UIViewController root
+    /// (UINavigationController résiduel) qui sinon laisse une bande grise
+    /// courbe (UINavigationBar translucide) visible sur toutes les pages.
+    /// Fallback sur MainPage si aucune Window n'est encore active.
+    /// </summary>
+    private void SetRootPage(Page page)
+    {
+        try
+        {
+            if (Windows != null && Windows.Count > 0)
+            {
+                Windows[0].Page = page;
+            }
+            else
+            {
+                MainPage = page;
+            }
+        }
+        catch (Exception ex)
+        {
+            _fileLogger?.LogException(ex);
+            MainPage = page;
+        }
+    }
+
+    /// <summary>
+    /// 🛠️ FIX iOS bande grise : on override CreateWindow pour appliquer un fond
+    /// explicite à la Page racine. Sinon, sur iOS, le UIWindow.backgroundColor
+    /// reste à la couleur système par défaut (systemBackground = gris-clair) qui
+    /// transparaît dans les zones non couvertes par la page (safe area, animations
+    /// Shell). NB : Window.BackgroundColor n'existe pas en MAUI ; on agit donc
+    /// sur Page.BackgroundColor + UIWindow.Appearance côté AppDelegate iOS.
+    /// </summary>
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        var window = base.CreateWindow(activationState);
+        // 🔴 DIAGNOSTIC : ORANGE FLUO sur Page racine.
+        // Si la "bande grise" devient ORANGE → c'est window.Page.BackgroundColor.
+        if (window.Page != null)
+        {
+            window.Page.BackgroundColor = Color.FromArgb("#FF8800");
+        }
+        return window;
     }
 
     protected override void OnStart()

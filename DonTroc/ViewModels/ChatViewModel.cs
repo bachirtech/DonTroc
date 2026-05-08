@@ -15,6 +15,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Media;
+using Microsoft.Maui.Storage;
 
 namespace DonTroc.ViewModels
 {

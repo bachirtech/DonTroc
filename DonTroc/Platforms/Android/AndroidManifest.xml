@@ -29,6 +29,22 @@
 		<meta-data
 			android:name="com.google.android.gms.ads.APPLICATION_ID"
 			android:value="ca-app-pub-5085236088670848~1435485723"/>
+
+		<!-- 🔔 Firebase Cloud Messaging — icône & couleur des notifications.
+		     Sans ces meta-data, Android affiche un carré blanc générique pour
+		     les notifs FCM (au lieu du logo DonTroc). L'icône doit être un
+		     drawable monochrome blanc sur transparent (Android 5+ Material). -->
+		<meta-data
+			android:name="com.google.firebase.messaging.default_notification_icon"
+			android:resource="@drawable/ic_notification" />
+		<meta-data
+			android:name="com.google.firebase.messaging.default_notification_color"
+			android:resource="@color/colorAccent" />
+		<!-- Canal de notification par défaut (Android 8+) — sans ça, les notifs
+		     reçues alors que l'app est en background utilisent un canal anonyme. -->
+		<meta-data
+			android:name="com.google.firebase.messaging.default_notification_channel_id"
+			android:value="dontroc_messages" />
 	</application>
 	
 	<!-- PERMISSIONS -->

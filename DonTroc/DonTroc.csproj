@@ -36,7 +36,7 @@
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
 		<ApplicationDisplayVersion>2.1</ApplicationDisplayVersion>
-		<ApplicationVersion>32</ApplicationVersion>
+		<ApplicationVersion>33</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -263,13 +263,19 @@
 		<MauiSplashScreen Include="Resources/Splash/New/splash.svg" Color="#FFF8EE" BaseSize="512,512" />
 
 		<!-- Images optimisées -->
-		<MauiImage Include="Resources/Images/heart_icon.png" />
-		<MauiImage Include="Resources/Images/home_icon.png" />
-		<MauiImage Include="Resources/Images/map_icon.png" />
-		<MauiImage Include="Resources/Images/messagerie_icon.png" />
-		<MauiImage Include="Resources/Images/search_icon.png" />
-		<MauiImage Include="Resources/Images/transaction_icon.png" />
-		<MauiImage Include="Resources/Images/user_icon.png" />
+		<!-- 🛠️ FIX iOS bande grise sous TabBar :
+		     Les PNG sources font 512×512 à 890×890 pixels. Sans Resize/BaseSize,
+		     iOS UITabBar les affiche à leur taille native → la tab bar grossit
+		     de plusieurs centaines de points et laisse une bande grise sous le contenu.
+		     Resize="True" + BaseSize="24,24" force MAUI à redimensionner à la compilation
+		     en 24pt (48×48 @2x, 72×72 @3x), conforme aux Apple HIG (max 75pt). -->
+		<MauiImage Include="Resources/Images/heart_icon.png" Resize="True" BaseSize="24,24" />
+		<MauiImage Include="Resources/Images/home_icon.png" Resize="True" BaseSize="24,24" />
+		<MauiImage Include="Resources/Images/map_icon.png" Resize="True" BaseSize="24,24" />
+		<MauiImage Include="Resources/Images/messagerie_icon.png" Resize="True" BaseSize="24,24" />
+		<MauiImage Include="Resources/Images/search_icon.png" Resize="True" BaseSize="24,24" />
+		<MauiImage Include="Resources/Images/transaction_icon.png" Resize="True" BaseSize="24,24" />
+		<MauiImage Include="Resources/Images/user_icon.png" Resize="True" BaseSize="24,24" />
 		<MauiImage Include="Resources/Images/logotroc.png" />
 
 		<MauiFont Include="Resources/Fonts/*" />
@@ -319,7 +325,8 @@
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
 
 		<!-- Google Sign-In pour l'authentification SSO -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.4.0.2" />
+		<!-- ❌ DÉSACTIVÉ : Google Sign-In n'est plus utilisé dans l'app (uniquement email/mdp Firebase Auth) -->
+		<!-- <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.4.0.2" /> -->
 
 		<!-- AdMob - SDK COMPLET avec classes de médiation                                  -->
 		<!-- Le SDK complet contient com.google.ads.mediation.Adapter (avec initialize())  -->
@@ -521,8 +528,8 @@
 		<!-- Google Mobile Ads SDK pour iOS (binding standalone, pas de dépendance Firebase) -->
 		<PackageReference Include="Jc.GMA.iOS" Version="12.7.1" />
 
-		<!-- Google Sign-In pour iOS (écosystème AdamE, compatible Plugin.Firebase 4.x) -->
-		<PackageReference Include="AdamE.Google.iOS.SignIn" Version="9.0.0" />
+		<!-- ❌ Google Sign-In pour iOS DÉSACTIVÉ (non utilisé dans l'app) -->
+		<!-- <PackageReference Include="AdamE.Google.iOS.SignIn" Version="9.0.0" /> -->
 	</ItemGroup>
 
 	<!-- Désactiver les warnings de downgrade/conflit de packages pour éviter les conflits transitifs -->
@@ -570,7 +577,12 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
-		<BundleResource Include="Platforms/iOS/GoogleService-Info.plist" />
+		<!-- IMPORTANT : LogicalName force la copie à la racine du bundle (.app/GoogleService-Info.plist).
+		     Sans ça, le fichier se retrouve dans .app/Platforms/iOS/ et FirebaseApp.configure() lève
+		     "could not find a valid GoogleService-Info.plist". -->
+		<BundleResource Include="Platforms/iOS/GoogleService-Info.plist">
+			<LogicalName>GoogleService-Info.plist</LogicalName>
+		</BundleResource>
 		<LinkDescription Include="Platforms/iOS/Linker.xml" />
 	</ItemGroup>
 
@@ -596,9 +608,16 @@
 		<!-- ios-arm64 = device physique, iossimulator-arm64 = simulateur Apple Silicon -->
 	</PropertyGroup>
 
-	<!-- Configuration spécifique pour Debug iOS (simulateur + device) -->
-	<PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios'))">
-		<!-- PublishTrimmed requis par iOS -->
+	<!-- ============================================================ -->
+	<!-- 🍎 SIGNATURE iOS — Team ID DonTroc : ZF7KX4SVSJ              -->
+	<!-- (Apple Developer Program "bassirou balde", payant)            -->
+	<!-- ============================================================ -->
+	<PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
+		<TeamIdentifier>ZF7KX4SVSJ</TeamIdentifier>
+	</PropertyGroup>
+
+	<!-- Configuration spécifique pour Debug iOS — SIMULATEUR (pas de signature) -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios')) AND $(RuntimeIdentifier.Contains('simulator'))">
 		<PublishTrimmed>true</PublishTrimmed>
 		<MtouchLink>None</MtouchLink>
 		<MtouchDebug>true</MtouchDebug>
@@ -606,12 +625,29 @@
 		<MtouchExtraArgs>$(MtouchExtraArgs) -v</MtouchExtraArgs>
 		<BuildIpa>false</BuildIpa>
 		<MtouchEnableBitcode>false</MtouchEnableBitcode>
-		<!-- Désactiver la signature en Debug (pas besoin pour simulateur) -->
 		<EnableCodeSigning>false</EnableCodeSigning>
-		<!-- Pas de Entitlements en Debug pour éviter les erreurs de provisioning -->
 	</PropertyGroup>
 
-	<!-- Configuration spécifique pour Release iOS -->
+	<!-- Configuration spécifique pour Debug iOS — DEVICE PHYSIQUE (signature DEV automatique) -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-ios')) AND !$(RuntimeIdentifier.Contains('simulator'))">
+		<PublishTrimmed>true</PublishTrimmed>
+		<MtouchLink>None</MtouchLink>
+		<MtouchDebug>true</MtouchDebug>
+		<MtouchUseLlvm>false</MtouchUseLlvm>
+		<BuildIpa>false</BuildIpa>
+		<MtouchEnableBitcode>false</MtouchEnableBitcode>
+		<EnableCodeSigning>true</EnableCodeSigning>
+		<CodesignKey>Apple Development</CodesignKey>
+		<CodesignProvision>Automatic</CodesignProvision>
+		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
+	</PropertyGroup>
+
+	<!-- ============================================================ -->
+	<!-- Configuration Release iOS — APP STORE / TESTFLIGHT            -->
+	<!-- Signature DISTRIBUTION + génération IPA + Archive Xcode.      -->
+	<!-- Surcharge possible en CLI (voir scripts/ios_build_release_ipa.sh) :
+	     dotnet publish ... -p:CodesignKey="Apple Distribution: ..."     -->
+	<!-- ============================================================ -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-ios'))">
 		<PublishTrimmed>true</PublishTrimmed>
 		<MtouchLink>SdkOnly</MtouchLink>
@@ -619,11 +655,23 @@
 		<MtouchUseLlvm>true</MtouchUseLlvm>
 		<MtouchFloat32>true</MtouchFloat32>
 		<OptimizePNGs>true</OptimizePNGs>
-		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
-		<!-- Pour Release, configurer les certificats Apple Developer -->
-		<CodesignKey>iPhone Developer</CodesignKey>
-		<BuildIpa>false</BuildIpa>
+		<CodesignEntitlements>Platforms/iOS/Entitlements.Release.plist</CodesignEntitlements>
+		<!-- Signature DISTRIBUTION pour App Store / TestFlight -->
+		<EnableCodeSigning>true</EnableCodeSigning>
+		<CodesignKey Condition="'$(CodesignKey)' == ''">Apple Distribution</CodesignKey>
+		<CodesignProvision Condition="'$(CodesignProvision)' == ''">Automatic</CodesignProvision>
+		<!-- Génération automatique du .ipa et de l'archive Xcode -->
+		<BuildIpa Condition="'$(BuildIpa)' == ''">true</BuildIpa>
+		<ArchiveOnBuild Condition="'$(ArchiveOnBuild)' == ''">true</ArchiveOnBuild>
+		<!-- RID device par défaut (peut être overridé en CLI) -->
+		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">ios-arm64</RuntimeIdentifier>
 	</PropertyGroup>
+
+	<!-- NB : l'aplatissement de l'alpha des icônes iOS pour l'App Store
+	     est géré par le script scripts/ios_build_release_ipa.sh
+	     (passe sips PNG→BMP→PNG entre build et publish IPA), car le
+	     hook MSBuild AfterTargets="ResizetizeImages" ne s'exécute pas
+	     lorsque la cible Resizetizer est considérée up-to-date. -->
 
 	<!-- Configuration spécifique pour MacCatalyst - OBLIGATOIRE -->
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-maccatalyst'">

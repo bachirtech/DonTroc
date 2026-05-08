@@ -1,9 +1,15 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DonTroc.Services;
 using System.Windows.Input;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+#if IOS
+using UIKit;
+#endif
+
 
 namespace DonTroc.ViewModels;
 
@@ -232,13 +238,9 @@ public class LoginViewModel : BaseViewModel
                 }
 
                 // Connexion réussie → aller au Dashboard
-                Application.Current.MainPage = new AppShell(_unreadMessageService);
-                
-                // Navigation explicite si Shell.Current est disponible
-                if (Shell.Current != null)
-                {
-                    await Shell.Current.GoToAsync("//MainApp");
-                }
+                // ⚠️ iOS : dismiss le clavier AVANT de remplacer MainPage, sinon
+                // sa zone reste réservée comme bande grise sur toutes les pages.
+                await DismissKeyboardAndSwitchToShellAsync();
             }
             else
             {
@@ -452,4 +454,57 @@ public class LoginViewModel : BaseViewModel
         }
     }
     */
+
+    /// <summary>
+    /// iOS uniquement : avant de remplacer MainPage, on force la dismiss du clavier
+    /// (resignFirstResponder) et on attend une frame pour que UIKit libère la zone
+    /// réservée. Sans ça, la zone du clavier reste affichée comme bande grise
+    /// persistante sur toutes les pages de la Shell après login.
+    /// </summary>
+    private async Task DismissKeyboardAndSwitchToShellAsync()
+    {
+#if IOS
+        try
+        {
+            // Force la fin de l'édition sur la vue racine de la fenêtre clé
+            // → UIKit dismiss le clavier (resignFirstResponder en cascade).
+            var window = UIKit.UIApplication.SharedApplication.ConnectedScenes
+                .OfType<UIKit.UIWindowScene>()
+                .SelectMany(s => s.Windows)
+                .FirstOrDefault(w => w.IsKeyWindow);
+            window?.RootViewController?.View?.EndEditing(true);
+        }
+        catch { /* ignoré */ }
+
+        // Laisser une frame à UIKit pour terminer l'animation de dismiss
+        await Task.Delay(250);
+#endif
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            // 🛠️ FIX iOS bande grise courbe : utiliser l'API Window MAUI 9 au lieu
+            // de Application.MainPage. Cette dernière laisse fréquemment l'ancien
+            // UINavigationController (de la NavigationPage(LoginView)) attaché à
+            // la UIWindow → la UINavigationBar translucide reste visible comme
+            // bande grise courbe sur toutes les pages de l'AppShell.
+            // Windows[0].Page force iOS à recréer le rootViewController et libère
+            // proprement l'ancien controller.
+            var newShell = new AppShell(_unreadMessageService);
+            var app = Application.Current;
+            if (app?.Windows != null && app.Windows.Count > 0)
+            {
+                app.Windows[0].Page = newShell;
+            }
+            else
+            {
+                // Fallback (peu probable en prod) si aucune Window n'est encore active
+                app!.MainPage = newShell;
+            }
+        });
+
+        // Navigation explicite si Shell.Current est disponible
+        if (Shell.Current != null)
+        {
+            await Shell.Current.GoToAsync("//MainApp");
+        }
+    }
 }

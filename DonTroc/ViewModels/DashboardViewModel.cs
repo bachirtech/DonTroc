@@ -8,6 +8,7 @@ using System.Windows.Input;
 using DonTroc.Models;
 using DonTroc.Services;
 using DonTroc.Views;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 
 namespace DonTroc.ViewModels;

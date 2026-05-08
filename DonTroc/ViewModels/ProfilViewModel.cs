@@ -466,8 +466,9 @@ public class ProfilViewModel : BaseViewModel
         MainThread.BeginInvokeOnMainThread(() =>
         {
             // Réinitialise l'état de l'application en redirigeant vers la page de connexion
+            // ⚠️ iOS bug pageSheet : pas de NavigationPage, cf. App.xaml.cs.
             var loginView = _serviceProvider.GetRequiredService<LoginView>();
-            Application.Current.MainPage = new NavigationPage(loginView);
+            Application.Current.MainPage = loginView;
         });
     }
 
@@ -641,7 +642,8 @@ public class ProfilViewModel : BaseViewModel
                     if (true)
                     {
                         var loginView = _serviceProvider.GetRequiredService<LoginView>();
-                        Application.Current!.MainPage = new NavigationPage(loginView);
+                        // ⚠️ iOS bug pageSheet : pas de NavigationPage, cf. App.xaml.cs.
+                        Application.Current!.MainPage = loginView;
                     }
 
                     // Vérification avant d'afficher l'alerte

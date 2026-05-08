@@ -134,8 +134,11 @@ public class OnboardingViewModel : BaseViewModel
 
             // Naviguer vers la page de connexion (l'onboarding est juste une introduction)
             // L'utilisateur DOIT s'authentifier avant d'accéder à l'app
+            // ⚠️ iOS bug pageSheet : ne PAS wrapper LoginView dans NavigationPage,
+            // sinon le passage suivant LoginView → AppShell présente la Shell modalement
+            // (.pageSheet) → bande grise courbe persistante. cf. App.xaml.cs.
             var loginView = _serviceProvider.GetRequiredService<Views.LoginView>();
-            Application.Current!.MainPage = new NavigationPage(loginView);
+            Application.Current!.MainPage = loginView;
         }
         catch (Exception ex)
         {

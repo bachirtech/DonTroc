@@ -12,7 +12,7 @@
 
     <ScrollView VerticalScrollBarVisibility="Never">
         <VerticalStackLayout HorizontalOptions="Fill"
-                             VerticalOptions="CenterAndExpand"
+                             VerticalOptions="Start"
                              Padding="{OnIdiom Phone='28,10,28,30', Tablet='40,20,40,40', Desktop='40,20,40,40'}">
             
             <!-- Conteneur avec largeur limitée et centré -->

@@ -13,16 +13,27 @@
 		<string>$(AppIdentifierPrefix)com.bachirdev.dontroc</string>
 	</array>
 
-	<!-- Background Modes -->
-	<key>com.apple.developer.background-modes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-	</array>
+	<!-- ⚠️ Background Modes (com.apple.developer.background-modes) RETIRÉ.
+	     Les modes "fetch" et "remote-notification" sont déjà déclarés dans
+	     Info.plist (UIBackgroundModes) → suffisant pour iOS. La clé entitlement
+	     n'est requise QUE pour les modes spéciaux (CarPlay, VoIP, etc.) ET
+	     nécessite que la capability "Background Modes" soit ACTIVÉE sur l'App ID
+	     dans developer.apple.com — sinon : rejet upload App Store.
+	     Le profil App Store actuel n'autorise pas cet entitlement. -->
 
-	<!-- Data Protection - Protection des données par défaut -->
-	<key>com.apple.developer.default-data-protection</key>
-	<string>NSFileProtectionComplete</string>
+	<!-- ⚠️ Data Protection (com.apple.developer.default-data-protection) RETIRÉ.
+	     Cette clé entitlement nécessite que la capability "Data Protection" soit
+	     ACTIVÉE sur l'App ID dans developer.apple.com. Sans ça, l'upload App Store
+	     échoue avec : "The bundle contains a key that is not included in the
+	     provisioning profile: 'com.apple.developer.default-data-protection'".
+	     iOS applique de toute façon NSFileProtectionCompleteUntilFirstUserAuthentication
+	     par défaut sur tous les fichiers depuis iOS 7 → niveau de sécurité
+	     largement suffisant pour DonTroc (pas de données médicales/financières).
+	     Pour activer la protection forte plus tard :
+	       1. developer.apple.com → Identifiers → com.bachirdev.dontroc → Edit
+	       2. Cocher "Data Protection" + sélectionner "Complete Protection"
+	       3. Régénérer le profil "DonTroc App Store"
+	       4. Réajouter la clé ici. -->
 </dict>
 </plist>
 

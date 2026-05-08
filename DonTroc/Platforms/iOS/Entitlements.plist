@@ -21,16 +21,22 @@
 	</array>
 	-->
 	
-	<!-- Background Modes -->
+	<!-- ============================================================
+	     ⚠️ Background Modes & Data Protection DÉSACTIVÉS en DEBUG :
+	     Ces capabilities doivent d'abord être ACTIVÉES sur l'App ID
+	     côté developer.apple.com, puis le profile re-téléchargé.
+	     Sans ça, iOS rejette l'install (erreur 0xe8008015).
+	     À réactiver en Phase 6 quand on configurera Release.
+	     ============================================================ -->
+	<!--
 	<key>com.apple.developer.background-modes</key>
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
-	
-	<!-- Data Protection - Protection des données par défaut -->
 	<key>com.apple.developer.default-data-protection</key>
 	<string>NSFileProtectionComplete</string>
+	-->
 	
 	<!-- Sign in with Apple (si vous voulez ajouter cette fonctionnalité) -->
 	<!-- Décommenter si nécessaire

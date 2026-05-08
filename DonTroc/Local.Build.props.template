@@ -1,4 +1,9 @@
-# Configuration locale pour les secrets de build
+# Tue tous les processus JetBrains
+killall -9 Rider 2>/dev/null
+killall -9 rider 2>/dev/null
+killall -9 java 2>/dev/null  # ⚠️ tue aussi les autres apps Java si tu en as
+pkill -9 -f "JetBrains" 2>/dev/null
+pkill -9 -f "Rider" 2>/dev/null# Configuration locale pour les secrets de build
 # CE FICHIER NE DOIT JAMAIS ÊTRE VERSIONNÉ (ajouté au .gitignore)
 #
 # Copiez ce fichier en "Local.Build.props" et remplissez vos valeurs

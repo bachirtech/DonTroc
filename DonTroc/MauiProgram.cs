@@ -18,9 +18,9 @@ using DonTroc.Platforms.Android;
 using Plugin.Firebase.Bundled.Platforms.Android;
 #endif
 
-#if IOS
-using Plugin.Firebase.Bundled.Platforms.iOS;
-#endif
+// NOTE iOS: l'init de Firebase se fait dans AppDelegate.FinishedLaunching AVANT base.FinishedLaunching
+// (sinon AuthService etc. sont résolus avant que FIRApp.configure() ne soit appelé → crash Auth.swift:155).
+// Voir DonTroc/Platforms/iOS/AppDelegate.cs.
 
 namespace DonTroc;
 
@@ -39,12 +39,7 @@ public static class MauiProgram
                     CrossFirebase.Initialize(activity, () => Microsoft.Maui.ApplicationModel.Platform.CurrentActivity!, CreateCrossFirebaseSettings());
                 }));
 #endif
-#if IOS
-                events.AddiOS(ios => ios.FinishedLaunching((app, launchOptions) => {
-                    CrossFirebase.Initialize(CreateCrossFirebaseSettings());
-                    return false;
-                }));
-#endif
+// iOS : init Firebase fait directement dans AppDelegate.FinishedLaunching (cf. note plus haut)
             })
             .UseSkiaSharp()
             .ConfigureSyncfusionCore()
@@ -68,6 +63,41 @@ public static class MauiProgram
                 handlers.AddHandler<DonTroc.Views.UnifiedAdBannerView, UnifiedAdBannerHandler>();
 #endif
             });
+
+#if IOS
+        // 🛠️ FIX iOS bande grise : forcer le UICollectionView/UIScrollView/
+        // UITableView natifs à avoir un fond TRANSPARENT. Sans ça, iOS leur
+        // applique systemGroupedBackground (gris clair) qui apparaît dès que
+        // le contenu ne remplit pas l'espace disponible (= bande grise visible
+        // sous la liste / au-dessus de la TabBar sur toutes les pages).
+        Microsoft.Maui.Controls.Handlers.Items.CollectionViewHandler.Mapper.AppendToMapping(
+            "iOSClearBackground",
+            (handler, _) =>
+            {
+                if (handler.PlatformView is UIKit.UICollectionView cv)
+                {
+                    cv.BackgroundColor = UIKit.UIColor.Clear;
+                }
+            });
+        Microsoft.Maui.Handlers.ScrollViewHandler.Mapper.AppendToMapping(
+            "iOSClearBackground",
+            (handler, _) =>
+            {
+                if (handler.PlatformView is UIKit.UIScrollView sv)
+                {
+                    sv.BackgroundColor = UIKit.UIColor.Clear;
+                }
+            });
+        Microsoft.Maui.Handlers.RefreshViewHandler.Mapper.AppendToMapping(
+            "iOSClearBackground",
+            (handler, _) =>
+            {
+                if (handler.PlatformView is UIKit.UIView v)
+                {
+                    v.BackgroundColor = UIKit.UIColor.Clear;
+                }
+            });
+#endif
 
         // Configuration du plugin audio
         builder.Services.AddSingleton(AudioManager.Current);
@@ -277,7 +307,7 @@ public static class MauiProgram
         return builder.Build();
     }
 
-    private static CrossFirebaseSettings CreateCrossFirebaseSettings()
+    internal static CrossFirebaseSettings CreateCrossFirebaseSettings()
     {
         return new CrossFirebaseSettings(
             isAuthEnabled: true,

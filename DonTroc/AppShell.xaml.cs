@@ -1,6 +1,8 @@
-﻿﻿﻿﻿using DonTroc.Services;
+﻿﻿﻿﻿using System;
+   using DonTroc.Services;
 using DonTroc.Views;
 using System.ComponentModel;
+using System.Linq;
 using DonTroc.ViewModels;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
@@ -20,7 +22,14 @@ public partial class AppShell : Shell
         _unreadMessageService.PropertyChanged += OnUnreadMessageServicePropertyChanged;
 
         InitializeComponent();
-        
+
+#if ANDROID
+        // Le template d'onglet personnalisé n'est appliqué que sur Android.
+        // Sur iOS, Shell utilise une UITabBar native qui ne supporte pas
+        // correctement Shell.ItemTemplate (bande grise + NRE ShellTableViewSource).
+        ItemTemplate = (DataTemplate)Resources["AndroidShellItemTemplate"];
+#endif
+
         // Le BindingContext est défini sur lui-même pour permettre les liaisons de données dans le XAML
         BindingContext = this;
 
@@ -79,6 +88,75 @@ public partial class AppShell : Shell
         UpdateMessagesBadge();
     }
 
+#if IOS
+    /// <summary>
+    /// 🛠️ FIX iOS bande grise/Ardoise translucide sous la TabBar.
+    /// Une fois le handler iOS attaché, on accède directement à l'UITabBar
+    /// native pour forcer son apparence OPAQUE avec une couleur explicite
+    /// (BeigeClair). Sans ça, MAUI Shell laisse la UITabBar en translucide
+    /// → la couleur grise apparaît mélangée au contenu de la page.
+    /// </summary>
+    protected override void OnHandlerChanged()
+    {
+        base.OnHandlerChanged();
+
+        // Reporter au prochain tick pour s'assurer que UITabBarController est créé
+        Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(ApplyIosTabBarFix);
+    }
+
+    private static void ApplyIosTabBarFix()
+    {
+        try
+        {
+            UIKit.UITabBar? tabBar = null;
+            // Trouver le UITabBarController dans la hiérarchie
+            var rootVc = UIKit.UIApplication.SharedApplication.KeyWindow?.RootViewController;
+            tabBar = FindTabBar(rootVc);
+            if (tabBar == null) return;
+
+            var bg = UIKit.UIColor.FromRGB(0xF6 / 255f, 0xF1 / 255f, 0xEB / 255f); // BeigeClair
+            if (UIKit.UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
+            {
+                var ap = new UIKit.UITabBarAppearance();
+                ap.ConfigureWithOpaqueBackground();
+                ap.BackgroundColor = bg;
+                ap.ShadowColor = UIKit.UIColor.Clear;
+                tabBar.StandardAppearance = ap;
+                if (UIKit.UIDevice.CurrentDevice.CheckSystemVersion(15, 0))
+                {
+                    tabBar.ScrollEdgeAppearance = ap;
+                }
+            }
+            tabBar.Translucent = false;
+            tabBar.BarTintColor = bg;
+            tabBar.BackgroundColor = bg;
+            tabBar.TintColor = UIKit.UIColor.FromRGB(0xD9 / 255f, 0x8C / 255f, 0x6A / 255f);          // Terracotta (sélectionné)
+            tabBar.UnselectedItemTintColor = UIKit.UIColor.FromRGB(0x6B / 255f, 0x7A / 255f, 0x8F / 255f); // Ardoise (icônes non sélectionnées)
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppShell] ApplyIosTabBarFix erreur: {ex.Message}");
+        }
+    }
+
+    private static UIKit.UITabBar? FindTabBar(UIKit.UIViewController? vc)
+    {
+        if (vc == null) return null;
+        if (vc is UIKit.UITabBarController tbc) return tbc.TabBar;
+        foreach (var child in vc.ChildViewControllers)
+        {
+            var r = FindTabBar(child);
+            if (r != null) return r;
+        }
+        if (vc.PresentedViewController != null)
+        {
+            var r = FindTabBar(vc.PresentedViewController);
+            if (r != null) return r;
+        }
+        return null;
+    }
+#endif
+
     private void OnUnreadMessageServicePropertyChanged(object? sender, PropertyChangedEventArgs e) // Méthode pour gérer les changements de propriété dans le service de messages non lus
     {
         if (e.PropertyName == nameof(UnreadMessageService.TotalUnreadCount))
@@ -86,6 +164,9 @@ public partial class AppShell : Shell
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 OnPropertyChanged(nameof(TotalUnreadCount));
+#if IOS
+                UpdateIosMessagesBadge();
+#endif
             });
         }
     }
@@ -93,5 +174,29 @@ public partial class AppShell : Shell
     private void UpdateMessagesBadge() // Méthode pour mettre a jour le badge de messages 
     {
         OnPropertyChanged(nameof(TotalUnreadCount));
+#if IOS
+        UpdateIosMessagesBadge();
+#endif
     }
+
+#if IOS
+    // Sur iOS la TabBar native ne lit pas le DataTemplate custom : on pose le badge
+    // directement sur le Tab "Messages" via les propriétés natives Shell.
+    private void UpdateIosMessagesBadge()
+    {
+        var messagesTab = this.Items
+            .OfType<TabBar>()
+            .SelectMany(tb => tb.Items)
+            .FirstOrDefault(t => t.Title == "Messages");
+
+        if (messagesTab == null) return;
+
+        var count = TotalUnreadCount;
+        // NB : pour utiliser TabBarBadgeText il faut que le package Shell le supporte
+        // (depuis MAUI 8+ via les propriétés Shell). Sinon le badge reste invisible
+        // côté iOS sans casser l'app.
+        // On évite l'API non disponible : on met simplement à jour le titre avec un compteur.
+        messagesTab.Title = count > 0 ? $"Messages ({count})" : "Messages";
+    }
+#endif
 }

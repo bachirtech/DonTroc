@@ -19,7 +19,6 @@ public class AdMobNativeService : NSObject, IAdMobService
     private TaskCompletionSource<bool>? _interstitialAdCompletionSource;
     
     // IDs de production AdMob pour iOS
-    // TODO: Remplacer par vos vrais IDs iOS depuis la console AdMob
     private const string RewardedAdUnitId = "ca-app-pub-5085236088670848/7248212501"; //  l'ID iOS
     private const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/5659069719"; // iOS
     private const string BannerAdUnitId = "ca-app-pub-5085236088670848/7822198620"; //  l'ID iOS

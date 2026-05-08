@@ -22,10 +22,14 @@ namespace DonTroc.Services
     {
         private readonly IAdMobService _platformService;
 
-        // IDs de production AdMob
-        public const string RewardedAdUnitId = "ca-app-pub-5085236088670848/4273402055";
-        public const string InterstitialAdUnitId = "ca-app-pub-5085236088670848/8212647060";
-        public const string BannerAdUnitId = "ca-app-pub-5085236088670848/4140917995";
+        // ⚠️ Les IDs d'unités publicitaires ne sont PAS définis ici car ils diffèrent
+        // entre Android et iOS (chaque plateforme a ses propres ad units AdMob).
+        // Voir :
+        //   • Platforms/Android/AdMobNativeService.cs       (IDs Android)
+        //   • Platforms/Android/AdMobBannerHandler.cs       (banner Android)
+        //   • Platforms/iOS/AdMobNativeService.cs           (IDs iOS)
+        //   • Platforms/Android/AndroidManifest.xml         (App ID Android)
+        //   • Platforms/iOS/Info.plist (GADApplicationIdentifier)  (App ID iOS)
 
         // ── Protection anti-suspension : Limites interstitiels ──
         private int _navigationCount;

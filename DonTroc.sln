@@ -1,5 +1,4 @@
-﻿﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonTroc", "DonTroc\DonTroc.csproj", "{35236EC3-D87C-42DB-B47A-60DB0FE4172A}"
 EndProject
 Global
