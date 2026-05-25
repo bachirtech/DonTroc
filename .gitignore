@@ -98,3 +98,7 @@ keystore/maps.properties
 # APKs hosted via GitHub Releases (too big for git: > 100 MB)
 docs/downloads/*.apk
 DonTroc/.xamarin_downloads/
+
+# Local agent cache - do not commit
+.claude/
+
