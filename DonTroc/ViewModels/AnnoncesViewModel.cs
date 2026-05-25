@@ -410,7 +410,7 @@ public class AnnoncesViewModel : BaseViewModel
     }
 
     // Méthode pour démarrer une conversation et naviguer vers la vue de chat (nouvelle)
-    private async Task ExecuteGoToChatCommand(Annonce annonce)
+    private async Task ExecuteGoToChatCommand(Annonce? annonce)
     {
         // Vérifie si une annonce a bien été passée en paramètre
         if (annonce == null!)
@@ -668,7 +668,7 @@ public class AnnoncesViewModel : BaseViewModel
     }
 
     // Méthode pour ouvrir le visualiseur d'images
-    private async Task ExecuteOpenImageViewerCommand(Annonce annonce)
+    private async Task ExecuteOpenImageViewerCommand(Annonce? annonce)
     {
         try
         {
@@ -686,8 +686,7 @@ public class AnnoncesViewModel : BaseViewModel
                 {
                     try
                     {
-                        var userAction = new UserAction
-                        {
+                        var userAction = new UserAction {
                             UserId = userId,
                             ActionType = "view_annonce",
                             Category = annonce.Categorie ?? "Inconnue",
@@ -696,7 +695,10 @@ public class AnnoncesViewModel : BaseViewModel
                         };
                         await _firebaseService.SaveUserActionAsync(userAction);
                     }
-                    catch { }
+                    catch
+                    {
+                        Console.WriteLine($"[UserAction] Erreur lors de l'enregistrement de l'action pour l'annonce {annonce.Id}");
+                    }
                 });
             }
 
@@ -730,7 +732,7 @@ public class AnnoncesViewModel : BaseViewModel
     }
 
     // Méthode pour ajouter ou retirer une annonce des favoris
-    private async Task ExecuteToggleFavoriteCommand(Annonce annonce)
+    private async Task ExecuteToggleFavoriteCommand(Annonce? annonce)
     {
         if (annonce == null) return;
 
@@ -767,7 +769,7 @@ public class AnnoncesViewModel : BaseViewModel
     }
 
     // Méthode pour partager une annonce
-    private async Task ExecuteShareAnnonceCommand(Annonce annonce)
+    private async Task ExecuteShareAnnonceCommand(Annonce? annonce)
     {
         if (annonce == null) return;
 
@@ -791,7 +793,7 @@ public class AnnoncesViewModel : BaseViewModel
     /// <summary>
     /// Navigue vers la page de détail d'une annonce.
     /// </summary>
-    private async Task ExecuteNavigateToDetailAsync(Annonce annonce)
+    private async Task ExecuteNavigateToDetailAsync(Annonce? annonce)
     {
         if (annonce == null) return;
 

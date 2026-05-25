@@ -6,7 +6,10 @@
              x:Class="DonTroc.Views.QuizPage"
              x:DataType="vm:QuizViewModel"
              Title="Quiz du Jour"
-             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}">
 
     <ContentPage.Resources>
         <ResourceDictionary>

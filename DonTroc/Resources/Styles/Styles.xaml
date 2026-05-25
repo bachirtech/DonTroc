@@ -5,9 +5,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!-- Couleurs du thème (définies en premier) -->
-    <Color x:Key="BeigeClair">#F9FFFB</Color> // Couleur de fond principale
-    <Color x:Key="Terracotta">#D98C6A</Color> // Couleur principale de l'application
-    <Color x:Key="VertSauge">#A8C686</Color> // Couleur secondaire de l'application
+    <!-- ⚠️ Couleur de fond principale -->
+    <Color x:Key="BeigeClair">#F9FFFB</Color>
+    <!-- ⚠️ Couleur principale de l'application -->
+    <Color x:Key="Terracotta">#D98C6A</Color>
+    <!-- ⚠️ Couleur secondaire de l'application -->
+    <Color x:Key="VertSauge">#A8C686</Color>
     <Color x:Key="Ardoise">#6B7A8F</Color>
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
@@ -27,8 +30,8 @@
     <Color x:Key="Error">#DC3545</Color>
     <Color x:Key="Success">#28A745</Color>
 
-    <!-- Alias pour DonTrocBackground -->
-    <Color x:Key="DonTrocBackground">#F9FFFB</Color> // Couleur de fond de l'application
+    <!-- Alias pour DonTrocBackground (couleur de fond de l'application) -->
+    <Color x:Key="DonTrocBackground">#F9FFFB</Color>
 
     <!-- Style implicite par défaut pour toutes les ContentPage : fond app uniforme.
          (Anciennement #FFFF00 jaune fluo pour diagnostiquer la bande grise iOS — fix
@@ -190,6 +193,28 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="TextColor" Value="{StaticResource Error}" />
         <Setter Property="Margin" Value="5,0,0,0" />
+    </Style>
+
+    <!-- Style pour le bouton primaire (alias explicite du style implicite Button) -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocPrimary}, Dark={StaticResource DonTrocPrimaryDark}}" />
+        <Setter Property="FontFamily" Value="PoppinsBold"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderWidth" Value="0"/>
+        <Setter Property="CornerRadius" Value="22"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+    </Style>
+
+    <!-- Style pour les cartes avec clé (CardFrame) — alias du Frame implicite -->
+    <Style x:Key="CardFrame" TargetType="Frame">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource DonTrocCardBackground}, Dark={StaticResource DonTrocCardBackgroundDark}}" />
     </Style>
 
     <!-- Style pour les boutons d'action (ImageButton) -->

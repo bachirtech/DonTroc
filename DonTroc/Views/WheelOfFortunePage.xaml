@@ -5,7 +5,10 @@
              x:Class="DonTroc.Views.WheelOfFortunePage"
              x:DataType="vm:WheelOfFortuneViewModel"
              Title="Roue de la Fortune"
-             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}">
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="20">
         

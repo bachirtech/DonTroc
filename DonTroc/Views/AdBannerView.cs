@@ -36,7 +36,9 @@ namespace DonTroc.Views
             VerticalOptions = LayoutOptions.Start;
             BackgroundColor = Colors.Transparent;
 
-#if !ANDROID
+            // Sur Android et iOS : le handler natif prend en charge l'affichage de la vraie bannière.
+            // Aucun placeholder MAUI nécessaire — on laisse le contenu vide.
+#if !ANDROID && !IOS
             LoadPlaceholder();
 #endif
         }

@@ -669,7 +669,7 @@
                                                     StrokeThickness="0"
                                                     BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}"
                                                     HeightRequest="100">
-                                                <Image Source="{Binding FirstPhotoUrl}"
+                                                <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                        Aspect="AspectFill"
                                                        HeightRequest="100"
                                                        WidthRequest="90" />

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -66,27 +67,41 @@ public class EventsMapViewModel : BaseViewModel
         RefreshCommand = new Command(async () => await LoadAsync());
     }
 
+    // Petit ajout : la méthode charge les événements et contient un try/catch
+    // afin d'attraper les exceptions et d'exposer un message d'erreur à l'UI
+    // au lieu de laisser l'exception remonter.
     public async Task LoadAsync()
     {
         await ExecuteAsync(async () =>
         {
-            var loc = _geolocationService.GetLastKnownLocation();
-            if (loc == null)
+            try
             {
-                StatusMessage = "📍 Position GPS indisponible. Activez la localisation pour voir les événements près de vous.";
-                Events = new List<Evenement>();
-                return;
+                var loc = _geolocationService.GetLastKnownLocation();
+                if (loc == null)
+                {
+                    StatusMessage = "📍 Position GPS indisponible. Activez la localisation pour voir les événements près de vous.";
+                    Events = new List<Evenement>();
+                    return;
+                }
+
+                UserLatitude = loc.Latitude;
+                UserLongitude = loc.Longitude;
+
+                var list = await _eventService.GetNearbyEventsAsync(_radiusKm, limit: 100);
+                Events = list;
+
+                StatusMessage = list.Count == 0
+                    ? $"Aucun événement géolocalisé dans {_radiusKm} km."
+                    : $"📍 {list.Count} événement(s) trouvé(s)";
             }
-
-            UserLatitude = loc.Latitude;
-            UserLongitude = loc.Longitude;
-
-            var list = await _eventService.GetNearbyEventsAsync(_radiusKm, limit: 100);
-            Events = list;
-
-            StatusMessage = list.Count == 0
-                ? $"Aucun événement géolocalisé dans {_radiusKm} km."
-                : $"📍 {list.Count} événement(s) trouvé(s)";
+            catch (Exception ex)
+            {
+                // Attrape et expose l'erreur à l'UI sans remonter l'exception
+                StatusMessage = $"Erreur lors du chargement des événements : {ex.Message}";
+                Events = new List<Evenement>();
+                UserLatitude = null;
+                UserLongitude = null;
+            }
         }, operationName: "LoadEventsMap");
     }
 

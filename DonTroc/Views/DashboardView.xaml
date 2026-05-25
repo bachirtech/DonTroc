@@ -684,10 +684,9 @@
                                                 </Border>
 
                                                 <!-- Image principale -->
-                                                <Image Source="{Binding FirstPhotoUrl}"
+                                                <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                        Aspect="AspectFill"
-                                                       HeightRequest="140"
-                                                       IsVisible="{Binding FirstPhotoUrl, Converter={StaticResource StringToBoolConverter}}" />
+                                                       HeightRequest="140" />
 
                                                 <!-- Badge type (Don/Troc) -->
                                                 <Border StrokeShape="RoundRectangle 10,10,10,10"
@@ -823,10 +822,9 @@
                                                 </Border>
 
                                                 <!-- Image principale -->
-                                                <Image Source="{Binding FirstPhotoUrl}"
+                                                <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                        Aspect="AspectFill"
-                                                       HeightRequest="140"
-                                                       IsVisible="{Binding FirstPhotoUrl, Converter={StaticResource StringToBoolConverter}}" />
+                                                       HeightRequest="140" />
 
                                                 <!-- Badge type (Don/Troc) -->
                                                 <Border StrokeShape="RoundRectangle 10,10,10,10"
@@ -969,10 +967,9 @@
                                                 </Border>
 
                                                 <!-- Image principale (se superpose au placeholder) -->
-                                                <Image Source="{Binding FirstPhotoUrl}"
+                                                <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                        Aspect="AspectFill"
-                                                       HeightRequest="140"
-                                                       IsVisible="{Binding FirstPhotoUrl, Converter={StaticResource StringToBoolConverter}}" />
+                                                       HeightRequest="140" />
 
                                                 <!-- Badge type (Don/Troc) -->
                                                 <Border StrokeShape="RoundRectangle 10,10,10,10"

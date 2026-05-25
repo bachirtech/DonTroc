@@ -5,7 +5,10 @@
              xmlns:models="clr-namespace:DonTroc.Models"
              x:DataType="viewModels:SocialViewModel"
              x:Class="DonTroc.Views.SocialView"
-             Title="Social">
+             Title="Amis &amp; Parrainage"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}">
 
     <Grid RowDefinitions="Auto,*" Padding="15" RowSpacing="15">
         

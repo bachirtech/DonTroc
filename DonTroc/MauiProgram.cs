@@ -1,4 +1,5 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿using System;
+﻿using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Maui;
 using DonTroc.Services;
 using DonTroc.ViewModels;
@@ -39,6 +40,7 @@ public static class MauiProgram
                     CrossFirebase.Initialize(activity, () => Microsoft.Maui.ApplicationModel.Platform.CurrentActivity!, CreateCrossFirebaseSettings());
                 }));
 #endif
+                
 // iOS : init Firebase fait directement dans AppDelegate.FinishedLaunching (cf. note plus haut)
             })
             .UseSkiaSharp()
@@ -61,6 +63,10 @@ public static class MauiProgram
                 
                 // Handler unifié pour UnifiedAdBannerView (AdMob)
                 handlers.AddHandler<DonTroc.Views.UnifiedAdBannerView, UnifiedAdBannerHandler>();
+#endif
+#if IOS
+                // Handler natif iOS pour AdBannerView (bannière AdMob)
+                handlers.AddHandler<DonTroc.Views.AdBannerView, DonTroc.Platforms.iOS.AdMobBannerHandler>();
 #endif
             });
 
@@ -95,6 +101,24 @@ public static class MauiProgram
                 if (handler.PlatformView is UIKit.UIView v)
                 {
                     v.BackgroundColor = UIKit.UIColor.Clear;
+                }
+            });
+
+        // 🛠️ FIX iOS bande noire SearchBar : UISearchBar garde son fond natif
+        // même avec BackgroundColor="Transparent" côté MAUI. On force ici :
+        // - BackgroundColor = Clear (fond du widget entier)
+        // - SearchTextField.BackgroundColor = Clear (fond de la zone de saisie)
+        // - BarTintColor = Clear (barre de fond interne UISearchBar)
+        Microsoft.Maui.Handlers.SearchBarHandler.Mapper.AppendToMapping(
+            "iOSTransparentSearchBar",
+            (handler, _) =>
+            {
+                if (handler.PlatformView is UIKit.UISearchBar sb)
+                {
+                    sb.BackgroundColor = UIKit.UIColor.Clear;
+                    sb.BarTintColor = UIKit.UIColor.Clear;
+                    sb.SearchBarStyle = UIKit.UISearchBarStyle.Minimal;
+                    sb.SearchTextField.BackgroundColor = UIKit.UIColor.Clear;
                 }
             });
 #endif
@@ -304,7 +328,37 @@ public static class MauiProgram
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
 #endif
 
-        return builder.Build();
+        // Handlers globaux pour exceptions non observées
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            try
+            {
+                var ex = e.ExceptionObject as Exception ?? new Exception("Unhandled exception (non-Exception object)");
+                ReportUnhandled(ex);
+            }
+            catch { }
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            Console.WriteLine($"Task non observée: {e.Exception}");
+            e.SetObserved(); // empêche le crash
+        };
+
+        try
+        {
+            return builder.Build();
+        }
+        catch (Exception ex)
+        {
+            // Si Build lui-même échoue, journaliser proprement.
+            // ⚠️ NE PAS re-throw ici : l'exception remonterait dans base.FinishedLaunching()
+            // de l'AppDelegate iOS. Si elle est re-catchée là-bas avec un 2ème appel à
+            // base.FinishedLaunching(), MAUI serait en état corrompu → crash EXC_CRASH
+            // lors de la création de scène UIKit (FBSScene callbacks).
+            try { ReportUnhandled(ex); } catch { }
+            throw;
+        }
     }
 
     internal static CrossFirebaseSettings CreateCrossFirebaseSettings()
@@ -319,5 +373,13 @@ public static class MauiProgram
             // GOOGLE SIGN-IN DÉSACTIVÉ TEMPORAIREMENT
             // googleRequestIdToken: "12542152309-asqvk30n6eukuio6tbg8nm93vq4h2lv6.apps.googleusercontent.com"
         );
+    }
+
+    // Méthode utilitaire sécurisée pour reporter/loguer les exceptions non gérées
+    private static void ReportUnhandled(Exception ex)
+    {
+        try { System.Diagnostics.Debug.WriteLine($"[Unhandled] {ex}"); } catch { }
+        try { Console.Error.WriteLine($"[Unhandled] {ex}"); } catch { }
+        // Ne pas appeler d'API Crashlytics ici directement pour éviter les erreurs de dépendance
     }
 }

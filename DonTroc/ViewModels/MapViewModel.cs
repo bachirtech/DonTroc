@@ -302,7 +302,7 @@ namespace DonTroc.ViewModels
 
                 var allAnnouncements = await _firebaseService.GetAnnoncesAsync();
                 
-                if (allAnnouncements == null || !allAnnouncements.Any())
+                if (!allAnnouncements.Any())
                 {
                     NearbyAnnouncements.Clear();
                     return;

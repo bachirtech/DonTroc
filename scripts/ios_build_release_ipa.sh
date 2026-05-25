@@ -124,7 +124,6 @@ dotnet publish "$PROJ" \
     -p:CodesignProvision="Automatic" \
     -p:CodesignEntitlements="Platforms/iOS/Entitlements.Release.plist" \
     -p:_DeploymentTargetiOSTeamID="$TEAM_ID" \
-    --no-restore \
     -clp:ErrorsOnly
 
 IPA_PATH=$(find DonTroc/bin/Release/$TFM -name "*.ipa" | head -1)

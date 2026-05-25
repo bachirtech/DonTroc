@@ -7,6 +7,9 @@
              x:DataType="viewModels:AnnonceDetailViewModel"
              x:Class="DonTroc.Views.AnnonceDetailView"
              Title="Détail de l'annonce"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
@@ -478,7 +481,7 @@
                                                 StrokeThickness="0"
                                                 StrokeShape="RoundRectangle 14,14,0,0"
                                                 BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
-                                            <Image Source="{Binding FirstPhotoUrl}"
+                                            <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                    Aspect="AspectFill"
                                                    HeightRequest="120" />
                                         </Border>

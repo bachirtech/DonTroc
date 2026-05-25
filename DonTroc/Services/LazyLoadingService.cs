@@ -122,20 +122,53 @@ namespace DonTroc.Services
             Func<int, int, string?, string?, Task<IEnumerable<Annonce>>>? customFactory = null)
         {
             var cacheKey = $"annonces_{category}_{searchTerm}".Replace(" ", "_");
-            
-            return await LoadPagedAsync<Annonce>(
-                cacheKey,
-                pageIndex,
-                pageSize,
-                async (page, size) => 
-                {
-                    if (customFactory != null)
+            try
+            {
+                return await LoadPagedAsync<Annonce>(
+                    cacheKey,
+                    pageIndex,
+                    pageSize,
+                    async (page, size) =>
                     {
-                        return await customFactory(page, size, category, searchTerm);
+                        try
+                        {
+                            if (customFactory != null)
+                            {
+                                return await customFactory(page, size, category, searchTerm);
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Lancer à nouveau les cancellations pour respecter l'intention de l'appelant
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Erreur lors de l'exécution du customFactory pour les annonces: {ex.Message}");
+                        }
+
+                        return new List<Annonce>();
                     }
-                    return new List<Annonce>();
-                }
-            );
+                );
+            }
+            catch (OperationCanceledException)
+            {
+                // Propager les annulations
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Log et retour d'un résultat paginé vide pour maintenir la robustesse
+                Console.WriteLine($"Erreur lors du chargement des annonces (LoadAnnoncesAsync): {ex.Message}");
+                return new PagedResult<Annonce>
+                {
+                    Items = new List<Annonce>(),
+                    PageIndex = pageIndex,
+                    PageSize = pageSize,
+                    TotalCount = 0,
+                    HasMorePages = false
+                };
+            }
         }
 
         /// <summary>
@@ -214,7 +247,10 @@ namespace DonTroc.Services
                         await LoadAsync<T>(key, () => factory(key));
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Préchargement échoué pour la clé: {key}, Erreur: {ex.Message}");
+                }
                 finally
                 {
                     semaphore.Release();
@@ -243,7 +279,7 @@ namespace DonTroc.Services
                     {
                         var nextPage = currentPage + i;
                         var pageKey = $"{baseKey}_page_{nextPage}_{pageSize}";
-                        
+
                         // Vérifier si déjà en cache
                         if (_cacheService.Get<List<T>>(pageKey) == null)
                         {
@@ -251,12 +287,16 @@ namespace DonTroc.Services
                             await LoadAsync<List<T>>(pageKey, async () =>
                             {
                                 var items = await factory(nextPage, pageSize);
+
                                 return items.ToList();
                             }, TimeSpan.FromMinutes(5));
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Préchargement des pages suivantes échoué pour la clé de base: {baseKey}, Erreur: {ex.Message}");
+                }
             });
         }
 
@@ -272,7 +312,7 @@ namespace DonTroc.Services
             try
             {
                 var keysToRemove = new List<string>();
-                
+
                 foreach (var kvp in _loadingSemaphores)
                 {
                     if (kvp.Value.CurrentCount == 1) // Semaphore disponible = pas d'utilisation active
@@ -289,7 +329,10 @@ namespace DonTroc.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du nettoyage des semaphores: {ex.Message}");
+            }
         }
 
         /// <summary>

@@ -57,6 +57,15 @@
   <assembly fullname="Newtonsoft.Json" preserve="all" />
   <assembly fullname="System.Text.Json" preserve="all" />
 
+  <!-- Préserver les assemblages de cryptographie utilisés par les bindings natifs
+       (évite que le linker/sx trimming supprime des types utilisés par
+       AppleCryptoNative/X509 import lors de l'initialisation Firebase/AdMob) -->
+  <assembly fullname="System.Security.Cryptography.Algorithms" preserve="all" />
+  <assembly fullname="System.Security.Cryptography.Primitives" preserve="all" />
+  <assembly fullname="System.Security.Cryptography.X509Certificates" preserve="all" />
+  <assembly fullname="System.Net.Security" preserve="all" />
+  <assembly fullname="Mono.Security" preserve="all" />
+
   <!-- Services tiers -->
   <assembly fullname="CloudinaryDotNet" preserve="all" />
   <assembly fullname="Plugin.Maui.Audio" preserve="all" />
@@ -80,4 +89,8 @@
   <assembly fullname="Firebase.Core">
     <type fullname="Firebase.Core.*" preserve="all" />
   </assembly>
+  /// preserver le script AppDelegate.cs qui contient l'initialisation Firebase iOS (Firebase.Core.App.Configure()) et la gestion des notifications push (Firebase.CloudMessaging) -->
+    <assembly fullname="DonTroc.Platforms.iOS">
+        <type fullname="DonTroc.Platforms.iOS.AppDelegate" preserve="all" />
+    </assembly>
 </linker>

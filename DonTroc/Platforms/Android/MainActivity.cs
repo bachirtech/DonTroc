@@ -43,10 +43,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         try
         {
-            var consentService = IPlatformApplication.Current?.Services.GetService(typeof(Services.IConsentService))
-                as Services.IConsentService;
-
-            if (consentService != null)
+            if (IPlatformApplication.Current?.Services.GetService(typeof(Services.IConsentService)) is IConsentService consentService)
             {
                 var canRequestAds = await consentService.GatherConsentAsync();
                 System.Diagnostics.Debug.WriteLine($"[Consent] CanRequestAds = {canRequestAds}");

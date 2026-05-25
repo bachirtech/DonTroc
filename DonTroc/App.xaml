@@ -44,6 +44,7 @@
             <converters:DistanceVisibilityConverter x:Key="DistanceVisibilityConverter" />
             <converters:DistanceStringConverter x:Key="DistanceStringConverter" />
             <converters:MultiplePicturesConverter x:Key="MultiplePicturesConverter" />
+            <converters:UrlToCachedImageSourceConverter x:Key="UrlToCachedImageSourceConverter" />
 
             <!-- Convertisseurs pour le système de notation -->
             <converters:BoolToStarColorConverter x:Key="BoolToStarColorConverter" />
@@ -96,11 +97,6 @@
             <converters:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
             <converters:RoleToColorConverter x:Key="RoleToColorConverter" />
             <converters:ReportStatusToColorConverter x:Key="ReportStatusToColorConverter" />
-            
-            <Color x:Key="Primaire" />
-            <Color x:Key="GrisClair" />
-            <Style x:Key="CardFrame" TargetType="Frame" />
-            <Style x:Key="PrimaryButton" TargetType="Button" />
 
         </ResourceDictionary>
     </Application.Resources>

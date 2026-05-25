@@ -5,6 +5,9 @@
              x:DataType="viewModels:EditProfileViewModel"
              x:Class="DonTroc.Views.EditProfileView"
              Title="Modifier le profil"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}"
              BackgroundColor="{AppThemeBinding Light={StaticResource DonTrocBackground}, Dark={StaticResource DonTrocBackgroundDark}}">
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">

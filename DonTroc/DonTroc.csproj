@@ -36,7 +36,7 @@
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
 		<ApplicationDisplayVersion>2.1</ApplicationDisplayVersion>
-		<ApplicationVersion>33</ApplicationVersion>
+		<ApplicationVersion>54</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -64,17 +64,17 @@
 	<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">true</PublishTrimmed>
 	<PublishTrimmed Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">true</PublishTrimmed>
 	<TrimMode>partial</TrimMode>
-	<EnableCompressionInSingleFile Condition="'$(Configuration)' == 'Release'">false</EnableCompressionInSingleFile>
+	<EnableCompressionInSingleFile Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">false</EnableCompressionInSingleFile>
 	<!-- Désactiver le trimming des ressources satellites pour éviter les erreurs XA8000 et XABBA7023 -->
 	<TrimmerSingleWarn>false</TrimmerSingleWarn>
-		<!-- Configuration MtouchLink pour iOS et MacCatalyst -->
-		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">SdkOnly</MtouchLink>
-	<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">SdkOnly</MtouchLink>
+		<!-- Configuration MtouchLink pour iOS et MacCatalyst: activé en Release, désactivé en Debug -->
+		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' And ('$(Configuration)' == 'Release' Or '$(Configuration)' == 'ReleaseDevice')">SdkOnly</MtouchLink>
+		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst' And ('$(Configuration)' == 'Release' Or '$(Configuration)' == 'ReleaseDevice')">SdkOnly</MtouchLink>
 
 		<!-- Optimisations de performance pour Release (simplifiées) -->
-		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
-		<DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
-		<Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+		<DebugType Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">portable</DebugType>
+		<DebugSymbols Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">false</DebugSymbols>
+		<Optimize Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">true</Optimize>
 		<GenerateDocumentationFile>false</GenerateDocumentationFile>
 
 		<!-- Configuration spécifique pour les permissions Android -->
@@ -84,7 +84,7 @@
 	</PropertyGroup>
 
 	<!-- Configuration spécifique pour Release -->
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release' OR '$(Configuration)'=='ReleaseDevice'">
 		<WarningLevel>0</WarningLevel>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<DefineConstants>RELEASE</DefineConstants>
@@ -105,7 +105,6 @@
 		<EnableLLVM>false</EnableLLVM>
 		<!-- IMPORTANT: Désactiver complètement R8 pour éviter les erreurs de classes dupliquées -->
 		<AndroidDexTool>d8</AndroidDexTool>
-		<AndroidLinkTool></AndroidLinkTool>
 		<AndroidUseR8>false</AndroidUseR8>
 		<AndroidEnableProguard>false</AndroidEnableProguard>
 		<AndroidR8IgnoreWarnings>true</AndroidR8IgnoreWarnings>
@@ -115,7 +114,7 @@
 	</PropertyGroup>
 
 	<!-- Configuration pour Release uniquement - Optimisée pour test interne -->
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">
 		<!-- API cible 35 requis par Google Play (obligatoire depuis août 2024) -->
 		<AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
 		
@@ -139,7 +138,6 @@
 		<AndroidDexTool>d8</AndroidDexTool>
 		<!-- IMPORTANT: Désactiver R8 (AndroidLinkTool vide) pour éviter l'erreur -->
 		<!-- "Type androidx.compose.runtime.Immutable is defined multiple times" -->
-		<AndroidLinkTool></AndroidLinkTool>
 		
 		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
 		
@@ -165,9 +163,9 @@
 		<!--                                                               -->
 		<!-- SOLUTION : trimming OFF. AAB ~5-8 MB plus gros mais 0 crash. -->
 		<!-- ============================================================ -->
-		<AndroidLinkMode>None</AndroidLinkMode>
-		<PublishTrimmed>false</PublishTrimmed>
-		<TrimMode>copy</TrimMode>
+		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>partial</TrimMode>
 		<TrimmerRemoveSymbols>false</TrimmerRemoveSymbols>
 		
 		<!-- ============================================================ -->
@@ -198,7 +196,7 @@
 	</PropertyGroup>
 
 	<!-- Configuration de signature pour la production Android -->
-	<PropertyGroup Condition=" '$(Configuration)' == 'Release' AND '$(TargetFramework)' == 'net9.0-android' ">
+	<PropertyGroup Condition=" ('$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice') AND '$(TargetFramework)' == 'net9.0-android' ">
 		<AndroidKeyStore>true</AndroidKeyStore>
 		<AndroidSigningKeyStore>$(MSBuildProjectDirectory)/../keystore/dontroc-release.keystore</AndroidSigningKeyStore>
 		<AndroidSigningKeyAlias>dontroc</AndroidSigningKeyAlias>
@@ -284,29 +282,29 @@
 
 	<!-- Packages NuGet optimisés pour la production -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.120" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
 		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="10.0.0" />
-		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.3.0" />
+		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="5.0.0" />
 		<PackageReference Include="FirebaseAuthentication.net" Version="4.1.0" />
-		<PackageReference Include="FirebaseDatabase.net" Version="4.2.0" />
+		<PackageReference Include="FirebaseDatabase.net" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Maui.Graphics" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Maui.Graphics" Version="9.0.120" />
 		<!-- Plugin.Firebase 4.x : supporte Android + iOS via AdamE.Firebase.iOS bindings -->
 		<PackageReference Include="Plugin.Firebase" Version="4.2.1" />
 		<!-- DÉSACTIVÉ: Achats in-app indisponibles (profil marchand non configuré au Maroc)
 		<PackageReference Include="Plugin.InAppBilling" Version="8.0.3" /> -->
 		<PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
-		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
-		<PackageReference Include="Syncfusion.Maui.Core" Version="31.1.21" />
-		<PackageReference Include="Syncfusion.Maui.ImageEditor" Version="31.1.21" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.2" />
+		<PackageReference Include="Syncfusion.Maui.Core" Version="33.2.6" />
+		<PackageReference Include="Syncfusion.Maui.ImageEditor" Version="33.2.6" />
 		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 		<PackageReference Include="CloudinaryDotNet" Version="1.27.7" />
-		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="9.0.40" />
+		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="9.0.120" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
 		
 	</ItemGroup>
@@ -314,14 +312,22 @@
 	<!-- Packages spécifiques à Android -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 		<!-- Packages AndroidX -->
-		<PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.1.2" />
+		<PackageReference Include="SkiaSharp" Version="3.119.2" />
+		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.13.0" />
+		<PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.1.3" />
+		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.11.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>none</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.10.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.10.0.2" />
 		<PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.4.0.4" />
+		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.6.0.2" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads" Version="125.2.0" />
 		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Identifier" Version="118.3.0.1" />
 		<PackageReference Include="Xamarin.GooglePlayServices.AppSet" Version="116.1.0.9" />
 		
 		<!-- SkiaSharp pour le rendu graphique -->
-		<PackageReference Include="SkiaSharp" Version="3.119.1" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
 
 		<!-- Google Sign-In pour l'authentification SSO -->
@@ -334,8 +340,6 @@
 		<!--   - Vungle, Unity, IronSource, Pangle, Facebook                                -->
 		<!-- Le SDK Lite (124.0.0.5) ne contenait PAS ces classes, causant :                -->
 		<!--   "does not implement the initialize() method" / "Failed to create Adapter"   -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads" Version="125.0.0.1" />
-		<PackageReference Include="Xamarin.Google.Android.Play.Integrity" Version="1.6.0.1" />
 
 		<!-- ============================================================ -->
 		<!-- USER MESSAGING PLATFORM (UMP) — Consentement RGPD/CMP        -->
@@ -442,10 +446,8 @@
 		
 		<!-- Dépendances communes requises par les adaptateurs -->
 		<PackageReference Include="Xamarin.AndroidX.Annotation" Version="1.9.1.1" />
-		<PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.3.10.1" />
 		
 		<!-- Google Maps SDK pour Android (explicite pour éviter le trimming transitif) -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Maps" Version="119.2.1.2" />
 		
 		<!-- Material Design mis à jour pour Android 15 Edge-to-Edge -->
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.1" />
@@ -457,24 +459,20 @@
 		<PackageReference Include="Xamarin.AndroidX.CoordinatorLayout" Version="1.3.0.3" />
 		
 		<!-- Résolution des conflits de versions AndroidX -->
-		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.0.1">
-			<ExcludeAssets>all</ExcludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
 		
 		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.2.1.15">
 			<ExcludeAssets>all</ExcludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		
+		<PackageReference Include="Xamarin.GooglePlayServices.Maps" Version="120.0.0.1" />
+		
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement" Version="123.2.0" />
+		
 		<!-- Packages Google Play Services Measurement (transitifs via Ads SDK complet, -->
 		<!-- mais épinglés pour éviter les conflits de versions) -->
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement" Version="122.1.2.1" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="122.1.2.1" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Api" Version="122.1.2.1" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk" Version="122.1.2.1" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Impl" Version="122.1.2.1" />
-		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="122.1.2.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Api" Version="123.2.0" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Base" Version="123.2.0" />
 		
 		<!-- ============================================================ -->
 		<!-- Dépendances Java ignorées pour la vérification de build      -->
@@ -515,9 +513,11 @@
 		<!-- Références directes AndroidX -->
 		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0.1" />
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.10.0.1" />
-		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.10.0.1" />
-		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.12.2.1" />
 		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Impl" Version="123.2.0" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk" Version="123.2.0" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Measurement.Sdk.Api" Version="123.2.0" />
+		<PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.3.21" />
 		
 	</ItemGroup>
 
@@ -577,21 +577,65 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
-		<!-- IMPORTANT : LogicalName force la copie à la racine du bundle (.app/GoogleService-Info.plist).
-		     Sans ça, le fichier se retrouve dans .app/Platforms/iOS/ et FirebaseApp.configure() lève
-		     "could not find a valid GoogleService-Info.plist". -->
-		<BundleResource Include="Platforms/iOS/GoogleService-Info.plist">
+		<!-- IMPORTANT : LogicalName + Link forcent la copie à la racine du bundle (.app/GoogleService-Info.plist).
+		     Sans ça, le fichier se retrouve dans .app/Platforms/iOS/ ou est carrément absent,
+		     et FirebaseApp.configure() lève "could not find a valid GoogleService-Info.plist"
+		     → NSException non-rattrapable → SIGABRT au lancement (écran noir / crash). -->
+		<BundleResource Include="Platforms/iOS/GoogleService-Info.plist" Link="GoogleService-Info.plist">
 			<LogicalName>GoogleService-Info.plist</LogicalName>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</BundleResource>
 		<LinkDescription Include="Platforms/iOS/Linker.xml" />
 	</ItemGroup>
+
+	<!-- ============================================================ -->
+	<!-- FILET DE SÉCURITÉ : copie explicite du GoogleService-Info.plist -->
+	<!-- à la racine du bundle .app après _CopyResolvedFilesToPublishPreserveNewest -->
+	<!-- car la déclaration <BundleResource> est parfois ignorée silencieusement -->
+	<!-- par les targets MAUI/iOS (LogicalName perdu). Sans ce fichier,         -->
+	<!-- Plugin.Firebase appelle [FIRApp configure] qui throw une NSException   -->
+	<!-- non-rattrapable depuis C# → SIGABRT au démarrage.                       -->
+	<!-- ============================================================ -->
+	<Target Name="_ForceCopyGoogleServiceInfoPlist"
+	        AfterTargets="_CollectBundleResources;_CompileToNative;Build;_GenerateBundleName"
+	        Condition="'$(TargetFramework)' == 'net9.0-ios' AND Exists('$(MSBuildThisFileDirectory)Platforms/iOS/GoogleService-Info.plist')">
+		<PropertyGroup>
+			<_AppBundleDir Condition="'$(_AppBundlePath)' != ''">$(_AppBundlePath)</_AppBundleDir>
+			<_AppBundleDir Condition="'$(_AppBundleDir)' == ''">$(OutputPath)$(AssemblyName).app</_AppBundleDir>
+		</PropertyGroup>
+		<Copy SourceFiles="$(MSBuildThisFileDirectory)Platforms/iOS/GoogleService-Info.plist"
+		      DestinationFiles="$(_AppBundleDir)/GoogleService-Info.plist"
+		      SkipUnchangedFiles="true"
+		      Condition="Exists('$(_AppBundleDir)')" />
+		<Message Importance="high"
+		         Text="✅ GoogleService-Info.plist copié à $(_AppBundleDir)/GoogleService-Info.plist"
+		         Condition="Exists('$(_AppBundleDir)')" />
+		<Warning Text="⚠️ Bundle .app introuvable à $(_AppBundleDir) - GoogleService-Info.plist NON copié"
+		         Condition="!Exists('$(_AppBundleDir)')" />
+	</Target>
+
+	<!-- Backup target: copie aussi pendant la phase _CopyBundleResources -->
+	<Target Name="_ForceCopyGoogleServiceInfoPlistAfterCodesign"
+	        AfterTargets="_CodesignAppBundle;_CreateIpa;Publish"
+	        BeforeTargets="_CreateIpa"
+	        Condition="'$(TargetFramework)' == 'net9.0-ios' AND Exists('$(MSBuildThisFileDirectory)Platforms/iOS/GoogleService-Info.plist')">
+		<ItemGroup>
+			<_AppBundleCandidates Include="$(OutputPath)$(AssemblyName).app" />
+			<_AppBundleCandidates Include="$(OutputPath)publish/$(AssemblyName).app" />
+			<_AppBundleCandidates Include="$(IntermediateOutputPath)ipa/Payload/$(AssemblyName).app" />
+		</ItemGroup>
+		<Copy SourceFiles="$(MSBuildThisFileDirectory)Platforms/iOS/GoogleService-Info.plist"
+		      DestinationFiles="%(_AppBundleCandidates.Identity)/GoogleService-Info.plist"
+		      SkipUnchangedFiles="true"
+		      Condition="Exists('%(_AppBundleCandidates.Identity)')" />
+	</Target>
 
 	<PropertyGroup Condition="$(TargetFramework.Contains('-ios'))">
 		<!-- Contourner la vérification de version Xcode si nécessaire -->
 		<_XcodeVersionCheckEnabled>false</_XcodeVersionCheckEnabled>
 		
 		<!-- Désactiver Firebase Analytics/AdId pour éviter les conflits de version GoogleAppMeasurement -->
-		<FirebaseWithoutAdIdSupport>True</FirebaseWithoutAdIdSupport>
+		<FirebaseWithoutAdIdSupport>false</FirebaseWithoutAdIdSupport>
 		
 		<!-- Désactiver le bitcode car il est obsolète depuis iOS 16/Xcode 14 -->
 		<MtouchEnableBitcode>false</MtouchEnableBitcode>
@@ -649,10 +693,20 @@
 	     dotnet publish ... -p:CodesignKey="Apple Distribution: ..."     -->
 	<!-- ============================================================ -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-ios'))">
+		<!-- 🛠️ FIX ÉCRAN NOIR TestFlight (mai 2026) :
+		     MtouchLink=SdkOnly + PublishTrimmed=true supprimaient du code
+		     essentiel du runtime → process iOS vivant mais aucun code C# ne
+		     s'exécutait (AppDelegate.cctor jamais appelé). Validé sur device :
+		     avec MtouchLink=None l'app démarre correctement.
+		     PublishTrimmed=true reste OBLIGATOIRE (exigé par le SDK iOS) mais
+		     MtouchLink=None neutralise effectivement le trimming pour tous
+		     les assemblies. IPA ~10-15 MB plus gros mais l'app fonctionne. -->
 		<PublishTrimmed>true</PublishTrimmed>
-		<MtouchLink>SdkOnly</MtouchLink>
+		<MtouchLink>None</MtouchLink>
 		<MtouchDebug>false</MtouchDebug>
-		<MtouchUseLlvm>true</MtouchUseLlvm>
+		<!-- ⚠️ LLVM gardé désactivé : MtouchUseLlvm=true provoquait aussi des
+		     bugs de rendu (NavigationPage/CarouselView invisible) en MAUI 9. -->
+		<MtouchUseLlvm>false</MtouchUseLlvm>
 		<MtouchFloat32>true</MtouchFloat32>
 		<OptimizePNGs>true</OptimizePNGs>
 		<CodesignEntitlements>Platforms/iOS/Entitlements.Release.plist</CodesignEntitlements>
@@ -665,6 +719,45 @@
 		<ArchiveOnBuild Condition="'$(ArchiveOnBuild)' == ''">true</ArchiveOnBuild>
 		<!-- RID device par défaut (peut être overridé en CLI) -->
 		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">ios-arm64</RuntimeIdentifier>
+	</PropertyGroup>
+
+	<!-- ============================================================ -->
+	<!-- 🛠️ RELEASEDEVICE iOS — Test Release direct sur device physique-->
+	<!-- Sélectionner "ReleaseDevice" dans Rider (dropdown config)    -->
+	<!--                                                               -->
+	<!-- IDENTIQUE à Release MAIS avec LLVM=false pour diagnostiquer  -->
+	<!-- les bugs spécifiques à l'AOT LLVM (écran noir, rendering).   -->
+	<!-- MAIS signature Apple Development → installation directe USB  -->
+	<!-- sans passer par TestFlight. Utilisé pour diagnostiquer les   -->
+	<!-- crashs qui n'apparaissent qu'en Release (AOT, trimmer, etc.) -->
+	<!-- ============================================================ -->
+	<PropertyGroup Condition="'$(Configuration)' == 'ReleaseDevice' AND $(TargetFramework.Contains('-ios'))">
+		<!-- 🛠️ DIAGNOSTIC ÉCRAN NOIR : PublishTrimmed + MtouchLink=SdkOnly + LLVM
+		     provoquent un blocage SILENCIEUX (process vivant mais cctor jamais
+		     exécuté → DEMARRAGE.txt jamais écrit, boot.log jamais écrit).
+		     On part en mode "le moins agressif possible" pour ReleaseDevice afin
+		     de prouver que le bundle se lance, puis on réactivera les options
+		     une par une pour isoler le coupable. -->
+		<!-- PublishTrimmed=true requis par le SDK iOS, mais MtouchLink=None
+		     désactive effectivement le trimming pour tous les assemblies. -->
+		<PublishTrimmed>true</PublishTrimmed>
+		<MtouchLink>None</MtouchLink>
+		<MtouchDebug>false</MtouchDebug>
+		<MtouchUseLlvm>false</MtouchUseLlvm>
+		<UseInterpreter>false</UseInterpreter>
+		<MtouchFloat32>true</MtouchFloat32>
+		<OptimizePNGs>true</OptimizePNGs>
+		<!-- Signature DEVELOPMENT → installation directe sur device -->
+		<EnableCodeSigning>true</EnableCodeSigning>
+		<CodesignKey>Apple Development</CodesignKey>
+		<CodesignProvision>Automatic</CodesignProvision>
+		<!-- Entitlements DEV (aps-environment=development) -->
+		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
+		<!-- Pas d'IPA ni d'archive → déploiement direct -->
+		<BuildIpa>false</BuildIpa>
+		<ArchiveOnBuild>false</ArchiveOnBuild>
+		<!-- RID device physique arm64 -->
+		<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
 	</PropertyGroup>
 
 	<!-- NB : l'aplatissement de l'alpha des icônes iOS pour l'App Store

@@ -61,6 +61,7 @@
                                Text="{Binding SearchText}"
                                TextColor="White"
                                CancelButtonColor="White"
+                               BackgroundColor="Transparent"
                                FontSize="14" />
                 </Border>
 
@@ -295,11 +296,17 @@
                                             </VerticalStackLayout>
                                         </Border>
 
-                                        <!-- Image principale -->
-                                        <Image Source="{Binding FirstPhotoUrl}"
+                                        <!-- Image principale (cache disque 7j via UriImageSource).
+                                             ⚠️ NE PAS mettre IsVisible binding ici : le placeholder
+                                             beige + 📷 + "Pas de photo" reste TOUJOURS rendu derrière.
+                                             Si l'URL est vide/invalide, le converter retourne null
+                                             → Image vide transparente → placeholder visible.
+                                             Si l'URL charge OK → Image opaque par-dessus.
+                                             Si l'URL existe mais échoue (Cloudinary lent, Storage
+                                             expiré) → Image reste transparente → placeholder visible. -->
+                                        <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                Aspect="AspectFill"
-                                               HeightRequest="180"
-                                               IsVisible="{Binding FirstPhotoUrl, Converter={StaticResource StringToBoolConverter}}" />
+                                               HeightRequest="180" />
 
                                         <!-- Overlay transparent pour les clics sur l'image (→ page détail) -->
                                         <BoxView BackgroundColor="Transparent"

@@ -3,6 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DonTroc.Views.AdminSetupPage"
              Title="Configuration Admin"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}"
              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource DonTrocBackgroundDark}}">
 
     <ScrollView Padding="20">

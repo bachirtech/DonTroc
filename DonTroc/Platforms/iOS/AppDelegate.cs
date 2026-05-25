@@ -5,52 +5,126 @@ using Microsoft.Maui.Hosting;
 using Microsoft.Maui.ApplicationModel;
 using Google.MobileAds;
 using UserNotifications;
+using DonTroc.Services;
 
 namespace DonTroc;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate
 {
-    protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+    /// <summary>
+    /// Constructeur statique : exécuté la TOUTE 1ʳᵉ fois que la classe AppDelegate
+    /// est chargée par le runtime .NET, avant CreateMauiApp et FinishedLaunching.
+    /// On écrit ici un fichier "DEMARRAGE.txt" dans Documents pour confirmer que
+    /// le runtime managé .NET a bien démarré. Si ce fichier n'apparaît pas dans
+    /// l'app Fichiers iOS → DonTroc, c'est que l'app crashe AVANT tout code C#
+    /// (problème natif : Mono, signature, dylibs Firebase, etc.).
+    /// </summary>
+    static AppDelegate()
+    {
+        try
+        {
+            var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (string.IsNullOrEmpty(docs))
+                docs = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            var marker = System.IO.Path.Combine(docs, "DEMARRAGE.txt");
+            System.IO.File.WriteAllText(marker,
+                $"AppDelegate.cctor OK\nDate: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\nDocs: {docs}\n");
+        }
+        catch { /* ne JAMAIS faire échouer un cctor */ }
+
+        try { BootLogger.Log("==> AppDelegate.cctor() — runtime .NET vivant"); } catch { }
+    }
+
+    protected override MauiApp CreateMauiApp()
+    {
+        BootLogger.Log("AppDelegate.CreateMauiApp() → start");
+        try
+        {
+            var app = MauiProgram.CreateMauiApp();
+            BootLogger.Log("AppDelegate.CreateMauiApp() → OK");
+            return app;
+        }
+        catch (Exception ex)
+        {
+            BootLogger.LogException("CreateMauiApp", ex);
+            throw;
+        }
+    }
 
     public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
     {
-        // 🛠️ Désactive le KeyboardAutoManager d'iOS (MAUI .NET 9) qui peut laisser
-        // une bande grise persistante sous le contenu (zone réservée pour le clavier
-        // qui ne se rétracte pas correctement). On gère manuellement si besoin.
-        Microsoft.Maui.Platform.KeyboardAutoManagerScroll.Disconnect();
+        BootLogger.Log("==> FinishedLaunching START");
+        // ⚠️ IMPORTANT : Ne JAMAIS appeler base.FinishedLaunching() deux fois.
+        // Si le premier appel échoue partiellement, MAUI serait dans un état invalide
+        // et la création de scène UIKit crasherait ensuite (EXC_CRASH/SIGABRT).
+        // On initialise les dépendances AVANT base.FinishedLaunching, chacune protégée
+        // par son propre try-catch, pour ne pas bloquer le démarrage si l'une échoue.
 
-        // 🛠️ FIX bande grise + petits cercles colorés sur transitions :
-        // Force l'UITabBar native iOS à être OPAQUE (sinon le blur translucide
-        // laisse transparaître la couleur Terracotta du tab sélectionné sous
-        // forme de cercle pendant l'animation de switch d'onglet).
-        // Force aussi le UIWindow.backgroundColor pour éviter le gris système
-        // par défaut visible dans les zones safe-area / inset.
-        ConfigureIosAppearance();
+        // 1. Keyboard manager
+        try { Microsoft.Maui.Platform.KeyboardAutoManagerScroll.Disconnect(); BootLogger.Log("1. KeyboardAutoManagerScroll.Disconnect OK"); } catch (Exception ex) { BootLogger.LogException("Keyboard", ex); }
 
-        // ⚠️ Firebase DOIT être initialisé AVANT base.FinishedLaunching :
-        // base.FinishedLaunching() appelle CreateMauiApp() puis résout les services
-        // (dont AuthService) qui accèdent à FirebaseAuth.Auth → si FIRApp.configure()
-        // n'a pas encore tourné, crash "FirebaseAuth/Auth.swift:155 Fatal error".
-        Plugin.Firebase.Bundled.Platforms.iOS.CrossFirebase.Initialize(MauiProgram.CreateCrossFirebaseSettings());
+        // 2. Apparence UITabBar (doit être avant création des windows)
+        try { ConfigureIosAppearance(); BootLogger.Log("2. ConfigureIosAppearance OK"); } catch (Exception ex) { BootLogger.LogException("UIAppearance", ex); }
 
-        // Initialiser Google Mobile Ads (AdMob)
-        MobileAds.SharedInstance.Start(completionHandler: null);
+        // 3. Firebase ⚠️ DOIT être avant base.FinishedLaunching (AuthService y accède via DI)
+        try
+        {
+            Plugin.Firebase.Bundled.Platforms.iOS.CrossFirebase.Initialize(MauiProgram.CreateCrossFirebaseSettings());
+            BootLogger.Log("3. Firebase.Initialize OK");
+        }
+        catch (Exception ex)
+        {
+            BootLogger.LogException("Firebase.Initialize", ex);
+            try { System.Diagnostics.Debug.WriteLine($"[AppDelegate] Firebase.Initialize failed: {ex}"); } catch { }
+            // On continue quand même — l'app démarrera mais les features Firebase échoueront.
+        }
 
-        // Demander l'autorisation d'envoyer des notifications + s'enregistrer auprès d'APNs.
-        // FirebaseAppDelegateProxyEnabled = false dans Info.plist → on doit s'en charger nous-mêmes.
-        UNUserNotificationCenter.Current.RequestAuthorization(
-            UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound,
-            (granted, error) =>
-            {
-                if (granted)
+        // 4. AdMob
+        try { MobileAds.SharedInstance.Start(completionHandler: null); BootLogger.Log("4. AdMob start OK"); } catch (Exception ex) { BootLogger.LogException("AdMob", ex); }
+
+        // 5. Crashlytics
+        try { Firebase.Crashlytics.Crashlytics.SharedInstance.SetCrashlyticsCollectionEnabled(true); BootLogger.Log("5. Crashlytics OK"); } catch (Exception ex) { BootLogger.LogException("Crashlytics", ex); }
+
+        // 6. Notifications APNs (fire-and-forget, callback sur thread background)
+        try
+        {
+            UNUserNotificationCenter.Current.RequestAuthorization(
+                UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound,
+                (granted, _) =>
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
-                        UIApplication.SharedApplication.RegisterForRemoteNotifications());
-                }
-            });
+                    if (granted)
+                    {
+                        try
+                        {
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                try { UIApplication.SharedApplication.RegisterForRemoteNotifications(); } catch { }
+                            });
+                        }
+                        catch { }
+                    }
+                });
+        }
+        catch { }
 
-        return base.FinishedLaunching(application, launchOptions);
+        // 7. Démarrage MAUI — UN SEUL appel, jamais retryé.
+        try
+        {
+            BootLogger.Log("7. base.FinishedLaunching → start");
+            var result = base.FinishedLaunching(application, launchOptions);
+            BootLogger.Log($"7. base.FinishedLaunching → returned {result}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            BootLogger.LogException("base.FinishedLaunching", ex);
+            try { System.Diagnostics.Debug.WriteLine($"[AppDelegate] base.FinishedLaunching failed: {ex}"); } catch { }
+            try { Console.Error.WriteLine($"[AppDelegate] base.FinishedLaunching failed: {ex}"); } catch { }
+            // ⚠️ NE PAS retenter base.FinishedLaunching ici — cela laisserait MAUI dans
+            // un état corrompu et crasherait lors de la création de scène UIKit.
+            return false;
+        }
     }
 
     // APNs token reçu → transmis à Plugin.Firebase pour FCM

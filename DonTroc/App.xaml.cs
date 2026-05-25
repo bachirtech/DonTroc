@@ -29,10 +29,30 @@ public partial class App : Application
 
     public App(AuthService authService, GlobalNotificationService globalNotificationService, UnreadMessageService unreadMessageService, AdMobService adMobService, IServiceProvider serviceProvider, FileLoggerService fileLogger, NotificationService notificationService, SmartNotificationService smartNotificationService, AppRatingService appRatingService, ProximityNotificationService proximityNotificationService, RetentionNotificationService retentionNotificationService)
     {
-        InitializeComponent();
+        DonTroc.Services.BootLogger.Log("App.ctor → start (DI resolved OK)");
+        // ⚠️ FIX CRASH iOS : dfinir une MainPage de secours AVANT InitializeComponent().
+        // Si InitializeComponent() (parsing XAML) lève une exception, MainPage reste null.
+        // Or CreateWindow() (appelé depuis le callback UIKit de scène) appelle base.CreateWindow()
+        // qui lève InvalidOperationException si MainPage == null → EXC_CRASH (SIGABRT).
+        // Ce fallback garantit qu'une page est toujours disponible pour CreateWindow.
+        MainPage = new ContentPage
+        {
+            BackgroundColor = Color.FromArgb("#F6F1EB"),
+            Content = new ActivityIndicator { IsRunning = true }
+        };
 
-        // 🔬 DIAG iOS bande grise : forcer Light mode pour écarter la piste dark mode mal mappé.
-        // Si la bande grise disparaît avec Light forcé, c'est un problème de couleurs dark mode.
+        try
+        {
+            InitializeComponent();
+            DonTroc.Services.BootLogger.Log("App.ctor → InitializeComponent OK");
+        }
+        catch (Exception ex)
+        {
+            DonTroc.Services.BootLogger.LogException("App.InitializeComponent", ex);
+            System.Diagnostics.Debug.WriteLine($"[App] InitializeComponent failed: {ex}");
+            // MainPage de secours dj dfinie ci-dessus, on continue
+        }
+
         UserAppTheme = AppTheme.Light;
 
         _authService = authService;
@@ -53,10 +73,12 @@ public partial class App : Application
         try
         {
             InitializeApp();
+            DonTroc.Services.BootLogger.Log("App.ctor → InitializeApp OK");
             _appRatingService.StartTracking();
         }
         catch (Exception ex)
         {
+            DonTroc.Services.BootLogger.LogException("App.InitializeApp", ex);
             _fileLogger.LogException(ex);
             ShowErrorPage($"Erreur d'initialisation: {ex.Message}");
         }
@@ -185,24 +207,30 @@ public partial class App : Application
     {
         try
         {
-            MainPage = new ContentPage
+            // ⚠️ FIX iOS écran noir : on construit une splash 100% safe.
+            // Pas d'Image (le bundle iOS Release peut omettre/échouer à charger un asset),
+            // pas de StaticResource (si App.Resources a échoué à se charger, écran noir).
+            // BackgroundColor inline en hex = toujours visible.
+            var splash = new ContentPage
             {
                 BackgroundColor = Color.FromArgb("#F6F1EB"),
-                Content = new StackLayout
+                Content = new VerticalStackLayout
                 {
                     VerticalOptions = LayoutOptions.Center,
                     HorizontalOptions = LayoutOptions.Center,
                     Spacing = 20,
                     Children =
                     {
-                        new Image 
-                        { 
-                            Source = "logotroc.png",
-                            HeightRequest = 150,
+                        new Label
+                        {
+                            Text = "DonTroc",
+                            FontSize = 32,
+                            FontAttributes = FontAttributes.Bold,
+                            TextColor = Color.FromArgb("#8B4513"),
                             HorizontalOptions = LayoutOptions.Center
                         },
-                        new ActivityIndicator 
-                        { 
+                        new ActivityIndicator
+                        {
                             IsRunning = true,
                             Color = Color.FromArgb("#8B4513"),
                             HorizontalOptions = LayoutOptions.Center
@@ -217,6 +245,24 @@ public partial class App : Application
                     }
                 }
             };
+
+            // Essayer d'ajouter le logo, sans crasher si l'asset manque
+            try
+            {
+                var logo = new Image
+                {
+                    Source = "logotroc.png",
+                    HeightRequest = 150,
+                    HorizontalOptions = LayoutOptions.Center
+                };
+                ((VerticalStackLayout)splash.Content).Children.Insert(0, logo);
+            }
+            catch (Exception imgEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[App] Logo load failed (safe): {imgEx.Message}");
+            }
+
+            MainPage = splash;
 
             _ = InitializeAuthAsync().ContinueWith(t =>
             {
@@ -238,14 +284,17 @@ public partial class App : Application
     {
         try
         {
+            DonTroc.Services.BootLogger.Log("InitializeAuthAsync → start");
             // ÉTAPE 1 : Vérifier l'onboarding AVANT l'authentification
             // L'onboarding est un écran d'introduction → il passe AVANT le login
             var onboardingService = _serviceProvider.GetRequiredService<OnboardingService>();
+            DonTroc.Services.BootLogger.Log($"InitializeAuthAsync → OnboardingCompleted={onboardingService.IsOnboardingCompleted}");
             if (!onboardingService.IsOnboardingCompleted)
             {
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     var onboardingView = _serviceProvider.GetRequiredService<OnboardingView>();
+                    DonTroc.Services.BootLogger.Log("InitializeAuthAsync → resolved OnboardingView, SetRootPage");
                     SetRootPage(new NavigationPage(onboardingView));
                 });
                 return; // L'onboarding redirigera vers LoginView une fois terminé
@@ -253,24 +302,24 @@ public partial class App : Application
 
             // ÉTAPE 2 : Onboarding déjà fait → vérifier l'authentification
             bool isAuthenticated = _authService.IsSignedIn || await _authService.TryAutoSignInAsync();
+            DonTroc.Services.BootLogger.Log($"InitializeAuthAsync → isAuthenticated={isAuthenticated}");
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                // 🛠️ FIX iOS bande grise courbe (pageSheet résiduel) :
-                // NE PAS wrapper LoginView dans un NavigationPage. Sur iOS,
-                // NavigationPage(LoginView) crée un UINavigationController comme
-                // rootViewController. Quand on remplace ensuite MainPage par
-                // AppShell, MAUI iOS PRÉSENTE la Shell modalement (.pageSheet)
-                // par-dessus l'ancien UINavigationController au lieu de remplacer
-                // le rootViewController → on voit la bande grise courbe (le
-                // dessous du modal pageSheet) sur toutes les pages.
-                // LoginView a déjà Shell.NavBarIsVisible="False" et n'utilise
-                // pas la navigation Push → pas besoin de NavigationPage.
-                Page rootPage = isAuthenticated
-                    ? (Page)new AppShell(_unreadMessageService)
-                    : _serviceProvider.GetRequiredService<LoginView>();
-
-                SetRootPage(rootPage);
+                try
+                {
+                    Page rootPage = isAuthenticated
+                        ? (Page)new AppShell(_unreadMessageService)
+                        : _serviceProvider.GetRequiredService<LoginView>();
+                    DonTroc.Services.BootLogger.Log($"InitializeAuthAsync → rootPage built ({rootPage.GetType().Name}), SetRootPage");
+                    SetRootPage(rootPage);
+                    DonTroc.Services.BootLogger.Log("InitializeAuthAsync → SetRootPage DONE ✅");
+                }
+                catch (Exception innerEx)
+                {
+                    DonTroc.Services.BootLogger.LogException("InitializeAuthAsync.BuildRootPage", innerEx);
+                    throw;
+                }
             });
 
             if (isAuthenticated)
@@ -280,11 +329,20 @@ public partial class App : Application
                     await _globalNotificationService.InitializeAsync();
                     _ = Task.Run(async () =>
                     {
-                        try { await _proximityNotificationService.UpdateUserLocationAsync(); }
-                        catch { }
+                        try
+                        {
+                            await _proximityNotificationService.UpdateUserLocationAsync();
+                        }
+                        catch
+                        {
+                            Console.WriteLine("[App] Erreur UpdateUserLocation (background): localisation indisponible ou permission refusée.");
+                        }
                     });
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                        Debug.WriteLine($"[App] Erreur initialisation notifications: {ex.Message}");
+                }
             }
 
             // Vérification des mises à jour de l'app (popup soft/force).
@@ -306,11 +364,64 @@ public partial class App : Application
         catch (Exception ex)
         {
             _fileLogger.LogException(ex);
-            
+
+            // ⚠️ FIX iOS écran noir : si la création de LoginView/AppShell échoue
+            // (DI cassée, XAML compilé invalide, asset manquant…), on doit MALGRÉ
+            // TOUT afficher quelque chose de visible — sinon l'utilisateur reste
+            // sur un écran noir indéfiniment.
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                // Idem fallback : LoginView seule, pas de NavigationPage (cf. note plus haut)
-                SetRootPage(_serviceProvider.GetRequiredService<LoginView>());
+                try
+                {
+                    SetRootPage(_serviceProvider.GetRequiredService<LoginView>());
+                }
+                catch (Exception fallbackEx)
+                {
+                    _fileLogger?.LogException(fallbackEx);
+                    // Ultime fallback : page d'erreur 100% code (aucune dépendance XAML/DI).
+                    SetRootPage(new ContentPage
+                    {
+                        BackgroundColor = Color.FromArgb("#F6F1EB"),
+                        Content = new VerticalStackLayout
+                        {
+                            Padding = 24,
+                            Spacing = 16,
+                            VerticalOptions = LayoutOptions.Center,
+                            Children =
+                            {
+                                new Label
+                                {
+                                    Text = "DonTroc",
+                                    FontSize = 28,
+                                    FontAttributes = FontAttributes.Bold,
+                                    TextColor = Color.FromArgb("#8B4513"),
+                                    HorizontalOptions = LayoutOptions.Center
+                                },
+                                new Label
+                                {
+                                    Text = "Impossible de démarrer l'application.",
+                                    FontSize = 16,
+                                    TextColor = Color.FromArgb("#444"),
+                                    HorizontalTextAlignment = TextAlignment.Center
+                                },
+                                new Label
+                                {
+                                    Text = $"Détail : {ex.Message}",
+                                    FontSize = 12,
+                                    TextColor = Color.FromArgb("#888"),
+                                    HorizontalTextAlignment = TextAlignment.Center
+                                },
+                                new Button
+                                {
+                                    Text = "Réessayer",
+                                    BackgroundColor = Color.FromArgb("#D98C6A"),
+                                    TextColor = Colors.White,
+                                    Command = new Command(() => InitializeApp())
+                                }
+                            }
+                        }
+                    });
+                }
             });
         }
     }
@@ -343,23 +454,52 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// 🛠️ FIX iOS bande grise : on override CreateWindow pour appliquer un fond
-    /// explicite à la Page racine. Sinon, sur iOS, le UIWindow.backgroundColor
-    /// reste à la couleur système par défaut (systemBackground = gris-clair) qui
-    /// transparaît dans les zones non couvertes par la page (safe area, animations
-    /// Shell). NB : Window.BackgroundColor n'existe pas en MAUI ; on agit donc
-    /// sur Page.BackgroundColor + UIWindow.Appearance côté AppDelegate iOS.
+    /// Override CreateWindow pour garantir qu'une page racine est toujours disponible.
+    /// ⚠️ Cette méthode est appelée depuis le callback UIKit de création de scène
+    /// (FBSScene → MauiUISceneDelegate). Toute exception non catchée ici provoque
+    /// un EXC_CRASH (SIGABRT). On s'assure donc que MainPage est toujours défini
+    /// et on entoure toute la logique d'un try-catch.
     /// </summary>
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var window = base.CreateWindow(activationState);
-        // 🔴 DIAGNOSTIC : ORANGE FLUO sur Page racine.
-        // Si la "bande grise" devient ORANGE → c'est window.Page.BackgroundColor.
-        if (window.Page != null)
+        DonTroc.Services.BootLogger.Log($"App.CreateWindow → start (MainPage={(MainPage?.GetType().Name ?? "null")})");
+        try
         {
-            window.Page.BackgroundColor = Color.FromArgb("#FF8800");
+            // Garantir qu'une MainPage est toujours définie avant CreateWindow.
+            if (MainPage == null)
+            {
+                DonTroc.Services.BootLogger.Log("App.CreateWindow → MainPage was NULL, applying fallback");
+                MainPage = new ContentPage
+                {
+                    BackgroundColor = Color.FromArgb("#F6F1EB"),
+                    Content = new ActivityIndicator { IsRunning = true }
+                };
+            }
+
+            var window = base.CreateWindow(activationState);
+            DonTroc.Services.BootLogger.Log("App.CreateWindow → base.CreateWindow OK ✅");
+            return window;
         }
-        return window;
+        catch (Exception ex)
+        {
+            DonTroc.Services.BootLogger.LogException("App.CreateWindow", ex);
+            _fileLogger?.LogException(ex);
+            System.Diagnostics.Debug.WriteLine($"[App] CreateWindow exception: {ex}");
+
+            // Fallback minimal : créer une fenêtre avec une page d'erreur.
+            // Ne JAMAIS laisser l'exception remonter jusqu'au callback UIKit natif.
+            MainPage = new ContentPage
+            {
+                BackgroundColor = Color.FromArgb("#F6F1EB"),
+                Content = new Label
+                {
+                    Text = "Démarrage...",
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center
+                }
+            };
+            return base.CreateWindow(activationState);
+        }
     }
 
     protected override void OnStart()

@@ -114,7 +114,7 @@ namespace DonTroc.ViewModels
             }
         }
 
-        private async Task ExecuteGoToChatCommand(Conversation conversation)
+        private async Task ExecuteGoToChatCommand(Conversation? conversation)
         {
             if (conversation == null)
                 return;
@@ -136,7 +136,7 @@ namespace DonTroc.ViewModels
                 await Shell.Current.DisplayAlert("Erreur", $"Impossible d'ouvrir la conversation: {ex.Message}", "OK");
             }
         }
-        private async Task ExecuteDeleteConversationCommand(Conversation conversation)
+        private async Task ExecuteDeleteConversationCommand(Conversation? conversation)
         {
             if (conversation == null)
                 return;

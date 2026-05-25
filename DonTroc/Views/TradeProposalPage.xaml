@@ -6,6 +6,9 @@
              x:DataType="viewModels:TradeProposalViewModel"
              x:Class="DonTroc.Views.TradeProposalPage"
              Title="Proposer un troc"
+             Shell.BackgroundColor="{AppThemeBinding Light=#F9FFFB, Dark=#1A1A1A}"
+             Shell.TitleColor="{AppThemeBinding Light=#A8C686, Dark=#A8C686}"
+             Shell.ForegroundColor="{AppThemeBinding Light=#D98C6A, Dark=#D98C6A}"
              BackgroundColor="{AppThemeBinding Light={StaticResource BeigeClair}, Dark={StaticResource BeigeSombre}}">
 
     <Grid RowDefinitions="*,Auto">
@@ -28,7 +31,7 @@
                                 StrokeThickness="0"
                                 WidthRequest="80" HeightRequest="80"
                                 BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
-                            <Image Source="{Binding TargetAnnonce.FirstPhotoUrl}"
+                            <Image Source="{Binding TargetAnnonce.FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                    Aspect="AspectFill"
                                    WidthRequest="80" HeightRequest="80" />
                         </Border>
@@ -125,7 +128,7 @@
                                             StrokeThickness="0"
                                             StrokeShape="RoundRectangle 14,14,0,0"
                                             BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
-                                        <Image Source="{Binding FirstPhotoUrl}"
+                                        <Image Source="{Binding FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                                Aspect="AspectFill"
                                                HeightRequest="120" />
                                     </Border>
@@ -165,7 +168,7 @@
                                     StrokeThickness="0"
                                     WidthRequest="64" HeightRequest="64"
                                     BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
-                                <Image Source="{Binding SelectedAnnonce.FirstPhotoUrl}"
+                                <Image Source="{Binding SelectedAnnonce.FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                        Aspect="AspectFill" />
                             </Border>
                             <Label Text="{Binding SelectedAnnonce.Titre}"
@@ -186,7 +189,7 @@
                                     StrokeThickness="0"
                                     WidthRequest="64" HeightRequest="64"
                                     BackgroundColor="{AppThemeBinding Light=#F0E8DE, Dark=#3D3326}">
-                                <Image Source="{Binding TargetAnnonce.FirstPhotoUrl}"
+                                <Image Source="{Binding TargetAnnonce.FirstPhotoUrl, Converter={StaticResource UrlToCachedImageSourceConverter}}"
                                        Aspect="AspectFill" />
                             </Border>
                             <Label Text="{Binding TargetAnnonce.Titre}"
