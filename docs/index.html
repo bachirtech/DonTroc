@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="bdoekvSHxnzHtxElGrt6o7hdejZN_nATh3Zkx88emoA" />
     <title>DonTroc - Application de dons et d'échanges</title>
+    <link rel="alternate" hreflang="fr" href="https://bachirtech.github.io/DonTroc/">
+    <link rel="alternate" hreflang="en" href="https://bachirtech.github.io/DonTroc/index-en.html">
     <style>
         * {
             margin: 0;
@@ -15,18 +17,21 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             line-height: 1.6;
             color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #F6F1EB;
             min-height: 100vh;
         }
+
+        /* Hero */
         .hero {
             text-align: center;
-            padding: 80px 20px;
+            padding: 80px 20px 60px;
+            background: linear-gradient(135deg, #8B4513 0%, #D98C6A 100%);
             color: white;
         }
         .hero h1 {
             font-size: 3rem;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         .hero p {
             font-size: 1.3rem;
@@ -38,11 +43,38 @@
             font-size: 5rem;
             margin-bottom: 20px;
         }
+
+        /* Lang switcher */
+        .lang-switcher {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 15px 20px 0;
+            font-size: 0.9rem;
+        }
+        .lang-switcher a {
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            color: #666;
+            background: #fafafa;
+        }
+        .lang-switcher a:hover { background: #f0ebff; color: #8B4513; }
+        .lang-switcher a.active {
+            background: #8B4513; color: white; border-color: #8B4513; font-weight: 600;
+        }
+
+        /* Container */
         .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 60px 20px;
         }
+
+        /* Features */
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -53,73 +85,35 @@
             background: white;
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.1);
             text-align: center;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(139, 69, 19, 0.08);
         }
         .feature-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.15);
         }
         .feature-card .icon {
             font-size: 3rem;
             margin-bottom: 15px;
         }
         .feature-card h3 {
-            color: #512BD4;
+            color: #8B4513;
             margin-bottom: 10px;
         }
-        .cta-section {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            margin-top: 60px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .cta-section h2 {
-            color: #512BD4;
-            margin-bottom: 20px;
-        }
-        .store-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-        .store-btn {
-            background: #333;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: background 0.3s ease;
-        }
-        .store-btn:hover {
-            background: #512BD4;
-        }
-        .footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: white;
-            opacity: 0.9;
-        }
-        .footer a {
-            color: white;
-            margin: 0 15px;
-        }
+
+        /* How it works */
         .how-it-works {
-            background: rgba(255,255,255,0.1);
+            background: rgba(139, 69, 19, 0.05);
             border-radius: 20px;
             padding: 40px;
             margin-top: 60px;
+            border: 1px solid rgba(139, 69, 19, 0.1);
         }
         .how-it-works h2 {
             text-align: center;
-            color: white;
+            color: #8B4513;
             margin-bottom: 40px;
         }
         .steps {
@@ -130,13 +124,12 @@
         }
         .step {
             text-align: center;
-            color: white;
             flex: 1;
             min-width: 200px;
         }
         .step-number {
-            background: white;
-            color: #512BD4;
+            background: linear-gradient(135deg, #8B4513 0%, #D98C6A 100%);
+            color: white;
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -147,6 +140,78 @@
             font-weight: bold;
             margin: 0 auto 15px;
         }
+        .step h3 {
+            color: #8B4513;
+            margin-bottom: 8px;
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            margin-top: 60px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.1);
+            border: 1px solid rgba(139, 69, 19, 0.08);
+        }
+        .cta-section h2 {
+            color: #8B4513;
+            margin-bottom: 20px;
+        }
+        .store-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .store-btn {
+            background: linear-gradient(135deg, #D98C6A 0%, #b06a4e 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            font-size: 1.05rem;
+        }
+        .store-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        .store-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .store-btn.disabled:hover {
+            transform: none;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8B4513;
+            opacity: 0.8;
+        }
+        .footer a {
+            color: #8B4513;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1.1rem; }
+            .logo { font-size: 3.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -154,6 +219,11 @@
         <div class="logo">🎁</div>
         <h1>DonTroc</h1>
         <p>L'application qui donne une seconde vie à vos objets ! Donnez, échangez et faites des rencontres près de chez vous.</p>
+    </div>
+
+    <div class="lang-switcher">
+        <a href="index.html" hreflang="fr" class="active">🇫🇷 Français</a>
+        <a href="index-en.html" hreflang="en">🇬🇧 English</a>
     </div>
 
     <div class="container">
@@ -215,11 +285,11 @@
             <h2>Téléchargez DonTroc</h2>
             <p>Rejoignez notre communauté et commencez à donner une seconde vie à vos objets !</p>
             <div class="store-buttons">
-                <a href="download.html" class="store-btn" style="background: linear-gradient(135deg, #D98C6A 0%, #b06a4e 100%); font-size: 1.05rem;">
+                <a href="download.html" class="store-btn">
                     <span>📥</span>
                     <span>Télécharger l'APK Android</span>
                 </a>
-                <a href="#" class="store-btn" style="opacity: 0.5; cursor: not-allowed;" onclick="event.preventDefault(); alert('La version iOS arrive bientôt !');">
+                <a href="#" class="store-btn disabled" onclick="event.preventDefault(); alert('La version iOS arrive bientôt !');">
                     <span>🍎</span>
                     <span>App Store (bientôt)</span>
                 </a>
@@ -237,9 +307,8 @@
             <a href="terms.html">Conditions d'utilisation</a>
         </p>
         <p style="margin-top: 20px;">
-            Contact : <a href="mailto:bachirdev.pro@gmail.com">bachirdev.pro@gmail.com</a>
+            Contact : <a href="mailto:supportdontroc@gmail.com">supportdontroc@gmail.com</a>
         </p>
     </footer>
 </body>
 </html>
-
