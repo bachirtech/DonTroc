@@ -83,13 +83,32 @@
 -keep class com.google.protobuf.** { *; }
 -dontwarn com.google.protobuf.**
 
-# ===== InMobi SDK =====
--keep class com.inmobi.** { *; }
--dontwarn com.inmobi.**
--keep class com.iab.omid.library.inmobi.** { *; }
--dontwarn com.iab.omid.library.inmobi.**
+# ============================================================
+# RÈGLES DE MÉDIATION ADMOB — SDK RÉSEAU PARTENAIRES
+# Sans ces règles, R8 supprime les classes des SDK de médiation
+# qui sont chargées via réflexion Java par les adaptateurs.
+# ============================================================
 
-# ===== Picasso (requis par InMobi) =====
--keep class com.squareup.picasso.** { *; }
--dontwarn com.squareup.picasso.**
+# ===== Meta (Facebook) Audience Network =====
+-keep class com.facebook.ads.** { *; }
+-keep class com.facebook.** { *; }
+-dontwarn com.facebook.ads.**
+-dontwarn com.facebook.**
 
+# ===== Unity Ads =====
+-keep class com.unity3d.ads.** { *; }
+-keep class com.unity3d.services.** { *; }
+-dontwarn com.unity3d.ads.**
+-dontwarn com.unity3d.services.**
+
+# ===== Pangle (ByteDance/TikTok) =====
+-keep class com.pangle.** { *; }
+-keep class com.bytedance.** { *; }
+-dontwarn com.pangle.**
+-dontwarn com.bytedance.**
+
+# ===== IronSource (LevelPlay) =====
+-keep class com.ironsource.** { *; }
+-keep class com.unity3d.mediation.** { *; }
+-dontwarn com.ironsource.**
+-dontwarn com.unity3d.mediation.**

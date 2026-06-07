@@ -7,7 +7,7 @@ namespace DonTroc.Platforms.Android
     /// 
     /// Problème résolu :
     /// setTestDeviceIds() d'AdMob ne s'applique QU'à AdMob lui-même.
-    /// Chaque réseau partenaire (Facebook, Unity, Pangle, Vungle, IronSource)
+    /// Chaque réseau partenaire (Facebook, Unity, Pangle, IronSource)
     /// a son propre mécanisme de test qu'il faut activer séparément.
     /// 
     /// Comme les SDK partenaires sont en Bind="false" (pas de bindings C#),
@@ -33,7 +33,6 @@ namespace DonTroc.Platforms.Android
             EnableFacebookTestMode(deviceHash);
             EnableUnityTestMode();
             EnablePangleTestMode();
-            EnableVungleTestMode();
             // IronSource n'a pas de mode test global activable par code —
             // il se configure via le dashboard IronSource.
             Debug.WriteLine("[MediationTest] ✅ Modes test partenaires activés (Debug uniquement)");
@@ -121,33 +120,6 @@ namespace DonTroc.Platforms.Android
             catch (Exception ex)
             {
                 Debug.WriteLine($"[MediationTest] ⚠️ Pangle debug mode non activé: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Vungle (Liftoff) : Active la vérification d'intégration.
-        /// </summary>
-        private static void EnableVungleTestMode()
-        {
-            try
-            {
-                var vungleAdsClass = Java.Lang.Class.ForName("com.vungle.ads.VungleAds");
-
-                try
-                {
-                    var setVerificationMethod = vungleAdsClass.GetMethod(
-                        "setIntegrationVerificationEnabled", BooleanPrimitiveType);
-                    setVerificationMethod!.Invoke(null, new Java.Lang.Boolean(true));
-                    Debug.WriteLine("[MediationTest] ✅ Vungle → setIntegrationVerificationEnabled(true)");
-                }
-                catch
-                {
-                    Debug.WriteLine("[MediationTest] ⚠️ Vungle setIntegrationVerificationEnabled non disponible");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[MediationTest] ⚠️ Vungle debug mode non activé: {ex.Message}");
             }
         }
     }

@@ -35,8 +35,8 @@
 		<!-- Métadonnées de l'application -->
 		<ApplicationTitle>DonTroc</ApplicationTitle>
 		<ApplicationId>com.bachirdev.dontroc</ApplicationId>
-		<ApplicationDisplayVersion>2.1</ApplicationDisplayVersion>
-		<ApplicationVersion>54</ApplicationVersion>
+		<ApplicationDisplayVersion>2.1.1</ApplicationDisplayVersion>
+		<ApplicationVersion>65</ApplicationVersion>
 		<Authors>Bassirou Balde</Authors>
 		<Company>BachirDev</Company>
 		<Description>DonTroc - La plateforme de dons et échanges entre particuliers</Description>
@@ -67,11 +67,9 @@
 	<EnableCompressionInSingleFile Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">false</EnableCompressionInSingleFile>
 	<!-- Désactiver le trimming des ressources satellites pour éviter les erreurs XA8000 et XABBA7023 -->
 	<TrimmerSingleWarn>false</TrimmerSingleWarn>
-		<!-- Configuration MtouchLink pour iOS et MacCatalyst: activé en Release, désactivé en Debug -->
-		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' And ('$(Configuration)' == 'Release' Or '$(Configuration)' == 'ReleaseDevice')">SdkOnly</MtouchLink>
-		<MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst' And ('$(Configuration)' == 'Release' Or '$(Configuration)' == 'ReleaseDevice')">SdkOnly</MtouchLink>
+	<!-- Configuration MtouchLink: défini dans les blocs de configuration spécifiques (Release, ReleaseDevice, Debug) ci-dessous -->
 
-		<!-- Optimisations de performance pour Release (simplifiées) -->
+	<!-- Optimisations de performance pour Release (simplifiées) -->
 		<DebugType Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">portable</DebugType>
 		<DebugSymbols Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">false</DebugSymbols>
 		<Optimize Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseDevice'">true</Optimize>
@@ -88,7 +86,6 @@
 		<WarningLevel>0</WarningLevel>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<DefineConstants>RELEASE</DefineConstants>
-		<AndroidEnableProguard Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">false</AndroidEnableProguard>
 	</PropertyGroup>
 
 	<!-- Configuration pour Debug uniquement -->
@@ -106,7 +103,7 @@
 		<!-- IMPORTANT: Désactiver complètement R8 pour éviter les erreurs de classes dupliquées -->
 		<AndroidDexTool>d8</AndroidDexTool>
 		<AndroidUseR8>false</AndroidUseR8>
-		<AndroidEnableProguard>false</AndroidEnableProguard>
+		<AndroidEnableProguard>true</AndroidEnableProguard>
 		<AndroidR8IgnoreWarnings>true</AndroidR8IgnoreWarnings>
 		<AndroidEnableMultiDex>true</AndroidEnableMultiDex>
 		<!-- Arguments D8 pour gérer les classes dupliquées -->
@@ -133,14 +130,16 @@
 		<!-- Gain : -30 à -40 MB sur l'AAB final.                          -->
 		<!-- ============================================================ -->
 		<RuntimeIdentifiers>android-arm64;android-arm</RuntimeIdentifiers>
-		
 		<!-- Utiliser D8 sans R8 pour éviter le conflit de classes dupliquées AndroidX Compose -->
-		<AndroidDexTool>d8</AndroidDexTool>
-		<!-- IMPORTANT: Désactiver R8 (AndroidLinkTool vide) pour éviter l'erreur -->
-		<!-- "Type androidx.compose.runtime.Immutable is defined multiple times" -->
+		<AndroidDexTool>r8</AndroidDexTool>
+		<!-- R8 activé : shrinking du code Java/Dex uniquement (pas d'obfuscation, pas d'optimisation agressive).
+		     Réduction estimée : 20-30% sur la taille de l'AAB.
+		     Les règles ProGuard dans proguard.cfg et r8-rules.pro protègent Firebase, AdMob, Maps et les SDK de médiation. -->
+		<AndroidUseR8>true</AndroidUseR8>
+		<AndroidEnableProguard>true</AndroidEnableProguard>
 		
 		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
-		
+
 		<!-- ============================================================ -->
 		<!-- FIX CRASH RELEASE v4: SdkOnly + trimming partiel protégé     -->
 		<!-- PublishTrimmed=true + TrimMode=partial est REQUIS par le SDK  -->
@@ -186,8 +185,6 @@
 		<!-- LLVM désactivé -->
 		<EnableLLVM>false</EnableLLVM>
 		
-		<!-- ProGuard DÉSACTIVÉ : évite les crashs avec Firebase/MAUI/Reflection -->
-		<AndroidEnableProguard>false</AndroidEnableProguard>
 		<AndroidR8IgnoreWarnings>true</AndroidR8IgnoreWarnings>
 		
 		<!-- Forcer MultiDex et accepter les duplications -->
@@ -289,7 +286,6 @@
 		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="12.3.0" />
-		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="5.0.0" />
 		<PackageReference Include="FirebaseAuthentication.net" Version="4.1.0" />
 		<PackageReference Include="FirebaseDatabase.net" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
@@ -299,9 +295,6 @@
 		<!-- DÉSACTIVÉ: Achats in-app indisponibles (profil marchand non configuré au Maroc)
 		<PackageReference Include="Plugin.InAppBilling" Version="8.0.3" /> -->
 		<PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
-		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.2" />
-		<PackageReference Include="Syncfusion.Maui.Core" Version="33.2.6" />
-		<PackageReference Include="Syncfusion.Maui.ImageEditor" Version="33.2.6" />
 		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 		<PackageReference Include="CloudinaryDotNet" Version="1.27.7" />
 		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="9.0.120" />
@@ -312,7 +305,6 @@
 	<!-- Packages spécifiques à Android -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 		<!-- Packages AndroidX -->
-		<PackageReference Include="SkiaSharp" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.13.0" />
 		<PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.1.3" />
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.11.0">
@@ -327,9 +319,6 @@
 		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Identifier" Version="118.3.0.1" />
 		<PackageReference Include="Xamarin.GooglePlayServices.AppSet" Version="116.1.0.9" />
 		
-		<!-- SkiaSharp pour le rendu graphique -->
-		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
-
 		<!-- Google Sign-In pour l'authentification SSO -->
 		<!-- ❌ DÉSACTIVÉ : Google Sign-In n'est plus utilisé dans l'app (uniquement email/mdp Firebase Auth) -->
 		<!-- <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.4.0.2" /> -->
@@ -337,7 +326,7 @@
 		<!-- AdMob - SDK COMPLET avec classes de médiation                                  -->
 		<!-- Le SDK complet contient com.google.ads.mediation.Adapter (avec initialize())  -->
 		<!-- nécessaire pour que TOUS les adaptateurs de médiation fonctionnent :            -->
-		<!--   - Vungle, Unity, IronSource, Pangle, Facebook                                -->
+		<!--   - Unity, IronSource, Pangle, Facebook                                      -->
 		<!-- Le SDK Lite (124.0.0.5) ne contenait PAS ces classes, causant :                -->
 		<!--   "does not implement the initialize() method" / "Failed to create Adapter"   -->
 
@@ -377,16 +366,8 @@
 		<!-- Pangle (ByteDance/TikTok) - Adaptateur médiation AdMob -->
 		<AndroidMavenLibrary Include="com.google.ads.mediation:pangle" Version="7.9.1.2.0" Repository="Google" Bind="false" />
 		
-		<!-- Liftoff (Vungle) - Adaptateur médiation AdMob -->
-		<AndroidMavenLibrary Include="com.google.ads.mediation:vungle" Version="7.7.2.0" Repository="Google" Bind="false" />
-		
 		<!-- IronSource (LevelPlay) - Adaptateur médiation AdMob -->
 		<AndroidMavenLibrary Include="com.google.ads.mediation:ironsource" Version="9.3.0.2" Repository="Google" Bind="false" />
-		
-		<!-- InMobi - Adaptateur médiation AdMob -->
-		<!-- Adapter 10.8.8.1 + SDK inmobi-ads-kotlin 10.8.8              -->
-		<!-- Requiert aussi : inmobi-omsdk + Picasso + AndroidX Browser    -->
-		<AndroidMavenLibrary Include="com.google.ads.mediation:inmobi" Version="10.8.8.1" Repository="Google" Bind="false" />
 		
 		<!-- ============================================================ -->
 		<!-- SDK RÉSEAU PARTENAIRES (dépendances des adaptateurs ci-dessus) -->
@@ -417,32 +398,12 @@
 		<AndroidMavenLibrary Include="com.pangle.global:pag-sdk-ad" Version="unfat-7912-20260319202148-release" Repository="https://artifact.bytedance.com/repository/pangle" Bind="false" />
 		
 		<!-- ============================================================ -->
-		<!-- Vungle SDK. OkHttp/OkIo sont déjà fournis par les NuGet     -->
-		<!-- transitifs (Square.OkIO.JVM, etc.)                          -->
-		<!-- Avec le SDK Ads complet (125.0.0.1), l'adaptateur dispose   -->
-		<!-- de la classe de base MediationAdapter et initialize()       -->
-		<!-- fonctionne correctement.                                     -->
-		<!-- ============================================================ -->
-		<AndroidMavenLibrary Include="com.vungle:vungle-ads" Version="7.7.2" Bind="false" />
-		
-		<!-- ============================================================ -->
 		<!-- IronSource (LevelPlay) SDK                                   -->
 		<!-- L'adaptateur ironsource:9.3.0.2 dépend de mediation-sdk:9.3.0 -->
 		<!-- publié sous groupId com.unity3d.ads-mediation sur Maven Central -->
 		<!-- Sans ce SDK, l'adaptateur ne peut pas s'initialiser.          -->
 		<!-- ============================================================ -->
 		<AndroidMavenLibrary Include="com.unity3d.ads-mediation:mediation-sdk" Version="9.3.0" Bind="false" />
-		
-		<!-- ============================================================ -->
-		<!-- InMobi SDK (Kotlin) + dépendances directes                   -->
-		<!-- Le SDK InMobi nécessite Picasso (rendu images), l'OMSDK      -->
-		<!-- (Open Measurement) et AndroidX Browser (Chrome Custom Tabs). -->
-		<!-- ============================================================ -->
-		<AndroidMavenLibrary Include="com.inmobi.monetization:inmobi-ads-kotlin" Version="10.8.8" Bind="false" />
-		<!-- InMobi Open Measurement SDK (viewability tracking) -->
-		<AndroidMavenLibrary Include="com.inmobi.omsdk:inmobi-omsdk" Version="1.5.5.0" Bind="false" />
-		<!-- Picasso (rendu d'images publicitaires, requis par InMobi) -->
-		<AndroidMavenLibrary Include="com.squareup.picasso:picasso" Version="2.8" Bind="false" />
 		
 		<!-- Dépendances communes requises par les adaptateurs -->
 		<PackageReference Include="Xamarin.AndroidX.Annotation" Version="1.9.1.1" />
@@ -537,13 +498,18 @@
 		<NoWarn>$(NoWarn);NU1605;NU1608</NoWarn>
 	</PropertyGroup>
 
-	<ItemGroup>
+	<!-- ILLink.Descriptors.xml contient des entrées Android-only (Xamarin.AndroidX.*, GooglePlayServices.*).
+	     En build iOS, le trimmer ne peut pas les résoudre → IL2007 spam.
+	     On le réserve donc à Android. iOS utilise Platforms/iOS/Linker.xml via <LinkDescription> ci-dessus. -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 		<TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- Préserver les assemblies qui causent des erreurs de ressources manquantes -->
 		<TrimmerRootAssembly Include="Microsoft.Maui.Controls" />
 		<TrimmerRootAssembly Include="Microsoft.Maui.Controls.Maps" />
 		<TrimmerRootAssembly Include="Microsoft.Maui.Maps" />
-		<TrimmerRootAssembly Include="SkiaSharp.Views.Maui.Controls" />
 		<TrimmerRootAssembly Include="DonTroc" />
 	</ItemGroup>
 
@@ -693,20 +659,17 @@
 	     dotnet publish ... -p:CodesignKey="Apple Distribution: ..."     -->
 	<!-- ============================================================ -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-ios'))">
-		<!-- 🛠️ FIX ÉCRAN NOIR TestFlight (mai 2026) :
-		     MtouchLink=SdkOnly + PublishTrimmed=true supprimaient du code
-		     essentiel du runtime → process iOS vivant mais aucun code C# ne
-		     s'exécutait (AppDelegate.cctor jamais appelé). Validé sur device :
-		     avec MtouchLink=None l'app démarre correctement.
-		     PublishTrimmed=true reste OBLIGATOIRE (exigé par le SDK iOS) mais
-		     MtouchLink=None neutralise effectivement le trimming pour tous
-		     les assemblies. IPA ~10-15 MB plus gros mais l'app fonctionne. -->
+		<!--
+		MtouchLink=None : pas de linking mtouch. SdkOnly causait un ecran noir
+		(supprime des classes UIKit/SceneKit critiques pour MAUI).
+		TrimMode=partial + ILLinkDescriptors.xml pour le trimming .NET.
+		-->
 		<PublishTrimmed>true</PublishTrimmed>
-		<MtouchLink>None</MtouchLink>
+		<MtouchLink>SdkOnly</MtouchLink>
 		<MtouchDebug>false</MtouchDebug>
-		<!-- ⚠️ LLVM gardé désactivé : MtouchUseLlvm=true provoquait aussi des
-		     bugs de rendu (NavigationPage/CarouselView invisible) en MAUI 9. -->
-		<MtouchUseLlvm>false</MtouchUseLlvm>
+		<UseNativeHttpClientHandler>true</UseNativeHttpClientHandler>
+		<MtouchUseLlvm>true</MtouchUseLlvm>
+		<UseInterpreter>true</UseInterpreter>
 		<MtouchFloat32>true</MtouchFloat32>
 		<OptimizePNGs>true</OptimizePNGs>
 		<CodesignEntitlements>Platforms/iOS/Entitlements.Release.plist</CodesignEntitlements>
@@ -725,35 +688,36 @@
 	<!-- 🛠️ RELEASEDEVICE iOS — Test Release direct sur device physique-->
 	<!-- Sélectionner "ReleaseDevice" dans Rider (dropdown config)    -->
 	<!--                                                               -->
-	<!-- IDENTIQUE à Release MAIS avec LLVM=false pour diagnostiquer  -->
-	<!-- les bugs spécifiques à l'AOT LLVM (écran noir, rendering).   -->
-	<!-- MAIS signature Apple Development → installation directe USB  -->
-	<!-- sans passer par TestFlight. Utilisé pour diagnostiquer les   -->
-	<!-- crashs qui n'apparaissent qu'en Release (AOT, trimmer, etc.) -->
+	<!-- MtouchLink=SdkOnly : meme configuration que Release iOS       -->
+	<!--   avec linkskip pour proteger les assemblies managees.     -->
+	<!--   Signature Apple Development -> installation directe USB     -->
+	<!--   sans passer par TestFlight.                                 -->
+	<!--   Utilise pour diagnostiquer les crashs Release (AOT, etc.)  -->
 	<!-- ============================================================ -->
 	<PropertyGroup Condition="'$(Configuration)' == 'ReleaseDevice' AND $(TargetFramework.Contains('-ios'))">
-		<!-- 🛠️ DIAGNOSTIC ÉCRAN NOIR : PublishTrimmed + MtouchLink=SdkOnly + LLVM
-		     provoquent un blocage SILENCIEUX (process vivant mais cctor jamais
-		     exécuté → DEMARRAGE.txt jamais écrit, boot.log jamais écrit).
-		     On part en mode "le moins agressif possible" pour ReleaseDevice afin
-		     de prouver que le bundle se lance, puis on réactivera les options
-		     une par une pour isoler le coupable. -->
-		<!-- PublishTrimmed=true requis par le SDK iOS, mais MtouchLink=None
-		     désactive effectivement le trimming pour tous les assemblies. -->
+		<!--
+		MtouchLink=SdkOnly : link uniquement les SDK frameworks Apple.
+		Protections :
+		1. mtouch.args : linkskip sur toutes les assemblies managees
+		2. optimize=remove-dynamic-registrar=false : preserve le dynamic registrar MAUI
+		3. ILLinkDescriptors.xml + Platforms/iOS/Linker.xml : preserve="all"
+		4. LLVM desactive, UseInterpreter=true (necessaire pour MAUI avec SdkOnly)
+		-->
 		<PublishTrimmed>true</PublishTrimmed>
-		<MtouchLink>None</MtouchLink>
+		<MtouchLink>SdkOnly</MtouchLink>
 		<MtouchDebug>false</MtouchDebug>
-		<MtouchUseLlvm>false</MtouchUseLlvm>
-		<UseInterpreter>false</UseInterpreter>
+		<UseNativeHttpClientHandler>true</UseNativeHttpClientHandler>
+		<MtouchUseLlvm>true</MtouchUseLlvm>
+		<UseInterpreter>true</UseInterpreter>
 		<MtouchFloat32>true</MtouchFloat32>
 		<OptimizePNGs>true</OptimizePNGs>
-		<!-- Signature DEVELOPMENT → installation directe sur device -->
+		<!-- Signature DEVELOPMENT -> installation directe sur device -->
 		<EnableCodeSigning>true</EnableCodeSigning>
 		<CodesignKey>Apple Development</CodesignKey>
 		<CodesignProvision>Automatic</CodesignProvision>
 		<!-- Entitlements DEV (aps-environment=development) -->
 		<CodesignEntitlements>Platforms/iOS/Entitlements.plist</CodesignEntitlements>
-		<!-- Pas d'IPA ni d'archive → déploiement direct -->
+		<!-- Pas d'IPA ni d'archive -> deploiement direct -->
 		<BuildIpa>false</BuildIpa>
 		<ArchiveOnBuild>false</ArchiveOnBuild>
 		<!-- RID device physique arm64 -->
@@ -790,7 +754,7 @@
 	<!-- ============================================================ -->
 	<!-- Le NuGet Xamarin.GooglePlayServices.Ads 125.0.0.1 fournit la   -->
 	<!-- version native play-services-ads 25.0.0, mais les adaptateurs  -->
-	<!-- de médiation (Facebook, Unity, Pangle, Vungle, IronSource)     -->
+	<!-- de médiation (Facebook, Unity, Pangle, IronSource)     -->
 	<!-- exigent 25.1.0. Ce décalage mineur (25.0.0 vs 25.1.0) est     -->
 	<!-- compatible au runtime car les APIs utilisées n'ont pas changé.  -->
 	<!--                                                                 -->

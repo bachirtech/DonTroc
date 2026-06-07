@@ -15,9 +15,6 @@ google.com, pub-5085236088670848, DIRECT, f08c47fec0942fa0
 # --- Pangle (ByteDance) ---
 # pangle.io, <YOUR_PANGLE_PUB_ID>, DIRECT, 0fcb6adfb05d0fdd
 
-# --- Vungle / Liftoff ---
-# liftoff.io, <YOUR_LIFTOFF_PUB_ID>, DIRECT, e94ade0d27c61056
-
 # --- IronSource ---
 # ironsourceads.com, <YOUR_IRONSOURCE_PUB_ID>, DIRECT, c6263d5a37398d2b
 
@@ -26,4 +23,3 @@ google.com, pub-5085236088670848, DIRECT, f08c47fec0942fa0
 
 # --- Meta Audience Network (si actif) ---
 # facebook.com, <YOUR_FACEBOOK_PUB_ID>, DIRECT, c3e20eee3f780d68
-
