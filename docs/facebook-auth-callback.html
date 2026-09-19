@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion Facebook - DonTroc</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff8ee; color: #5c4033; display: grid; min-height: 100vh; place-items: center; margin: 0; }
+    main { max-width: 520px; padding: 24px; text-align: center; }
+    h1 { margin-bottom: 12px; }
+    p { line-height: 1.5; }
+    a { color: #8b4513; }
+    .small { color: #6b7280; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Connexion Facebook…</h1>
+  <p>Vous allez être redirigé vers l’application DonTroc.</p>
+  <p class="small">Si rien ne se passe, utilisez le lien affiché plus bas.</p>
+  <p id="fallback"></p>
+</main>
+<script>
+  (function () {
+    const callbackUriBase = "dontroc://facebook-auth-callback";
+    const params = new URLSearchParams(window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.search.slice(1));
+    const query = new URLSearchParams();
+
+    for (const [key, value] of params.entries()) {
+      query.set(key, value);
+    }
+
+    if (!query.has('error') && !query.has('error_reason') && !query.has('access_token')) {
+      query.set('error', 'facebook_callback_missing_token');
+      query.set('error_description', 'Aucun access_token Facebook n’a été renvoyé vers la page de callback.');
+    }
+
+    const finalUri = callbackUriBase + '?' + query.toString();
+    const fallback = document.getElementById('fallback');
+    fallback.innerHTML = 'Si la redirection automatique échoue, <a href="' + finalUri.replace(/"/g, '&quot;') + '">touchez ici pour revenir dans l’application</a>.';
+
+    window.location.replace(finalUri);
+  })();
+</script>
+</body>
+</html>
+
